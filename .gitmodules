@@ -1,0 +1,6 @@
+[submodule "firmware/submodules/levkurilenko/cern_work"]
+	path = firmware/submodules/levkurilenko/cern_work
+	url = https://bitbucket.org/levkurilenko/cern_work
+[submodule "firmware/submodules/levkurilenko/aurora_rx"]
+	path = firmware/submodules/levkurilenko/aurora_rx
+	url = https://bitbucket.org/levkurilenko/aurora_rx
