@@ -32,7 +32,7 @@ git-lfs/2.1.1
 
 ```$ source atlas-rd53-daq/firmware/setup_slac.csh```
 
->> Else you will need to install Vivado 2016.4 and install the Xilinx Licensing
+>> Else you will need to install Vivado and install the Xilinx Licensing
 
 > Go to the firmware's target directory:
 
