@@ -34,16 +34,6 @@ git-lfs/2.1.1
 
 >> Else you will need to install Vivado 2016.4 and install the Xilinx Licensing
 
-> Create a output build directory for the firmware output build files. 
-
->> Because we typically at SLAC have the git clone in AFS space, we create a symbolic link to a local hard drive to improve build performance and reduce latency in file access
-
-```$ ln -s /u1/build atlas-rd53-daq/firmware/build```
-
->> If your git clone is already on a local drive, then I would recommend creating a build directory in your git clone:
-
-```$ mkdir atlas-rd53-daq/firmware/build```
-
 > Go to the firmware's target directory:
 
 ```$ cd atlas-rd53-daq/firmware/targets/AtlasRd43Pgp3```
