@@ -8,8 +8,8 @@
 
 > Verify that you have git version 2.13.0 (or later) installed 
 
-
-```$ git version
+```
+$ git version
 git version 2.13.0
 ```
 
