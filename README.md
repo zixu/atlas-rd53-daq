@@ -8,13 +8,17 @@
 
 > Verify that you have git version 2.13.0 (or later) installed 
 
+
 ```$ git version
-git version 2.13.0```
+git version 2.13.0
+```
 
 > Verify that you have git-lfs version 2.1.1 (or later) installed 
 
-```$ git-lfs version
-git-lfs/2.1.1```
+```
+$ git-lfs version
+git-lfs/2.1.1
+```
 
 # Clone the GIT repository
 
