@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2017-12-20
+-- Last update: 2018-04-17
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
 -------------------------------------------------------------------------------
@@ -30,8 +30,7 @@ entity AtlasRd53Core is
    generic (
       TPD_G        : time    := 1 ns;
       BUILD_INFO_G : BuildInfoType;
-      PGP3_RATE_G  : boolean := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);      
+      PGP3_RATE_G  : boolean := true);  -- true = 10.3125 Gbps, false = 6.25 Gbps
    port (
       -- RD53 ASIC Serial Ports
       dPortDataP    : in    Slv4Array(3 downto 0);
@@ -188,7 +187,6 @@ begin
    U_XBAR : entity work.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
          MASTERS_CONFIG_G   => XBAR_CONFIG_C)
@@ -234,9 +232,8 @@ begin
    ---------------------
    U_HitTrig : entity work.AtlasRd53HitTrig
       generic map(
-         TPD_G            => TPD_G,
-         AXI_BASE_ADDR_G  => XBAR_CONFIG_C(TLU_INDEX_C).baseAddr,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         TPD_G           => TPD_G,
+         AXI_BASE_ADDR_G => XBAR_CONFIG_C(TLU_INDEX_C).baseAddr)
       port map(
          -- AXI-Lite Interface
          axilClk         => axilClk,
@@ -274,9 +271,8 @@ begin
    GEN_VEC : for i in 3 downto 0 generate
       U_Dport : entity work.AtlasRd53Dport
          generic map (
-            TPD_G            => TPD_G,
-            AXI_BASE_ADDR_G  => XBAR_CONFIG_C(DPORT0_INDEX_C+i).baseAddr,
-            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+            TPD_G           => TPD_G,
+            AXI_BASE_ADDR_G => XBAR_CONFIG_C(DPORT0_INDEX_C+i).baseAddr)
          port map (
             -- AXI-Lite Interface (axilClk domain)
             axilClk         => axilClk,
@@ -311,10 +307,9 @@ begin
    -------------------       
    U_System : entity work.AtlasRd53Sys
       generic map (
-         TPD_G            => TPD_G,
-         AXI_BASE_ADDR_G  => XBAR_CONFIG_C(SYS_INDEX_C).baseAddr,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         BUILD_INFO_G     => BUILD_INFO_G)
+         TPD_G           => TPD_G,
+         AXI_BASE_ADDR_G => XBAR_CONFIG_C(SYS_INDEX_C).baseAddr,
+         BUILD_INFO_G    => BUILD_INFO_G)
       port map (
          -- Configuration/Status interface
          status          => status,

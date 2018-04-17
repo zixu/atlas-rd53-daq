@@ -46,14 +46,23 @@ git-lfs/2.1.1
 
 ```$ make gui```
 
+Note: For more information about the firmware build system, please refer to this presentation:
+
+> https://docs.google.com/presentation/d/1kvzXiByE8WISo40Xd573DdR7dQU4BpDQGwEgNyeJjTI/edit?usp=sharing
+
 # How to program the KCU1500
+
 > https://docs.google.com/presentation/d/10eIsAbLmslcNk94yV-F1D3hBfxudBf0EFo4xjcn9qPk/edit?usp=sharing
 
 # How to load the driver
 
 ```
-# Clone the driver github repo (at KCU1500 devolopment branch):
-$ git clone --recursive -b kcu1500-dev https://github.com/slaclab/aes-stream-drivers
+# Confirm that you have the board the computer with VID=1a4a ("SLAC") and PID=2030 ("DataDev")
+$ lspci -nn | grep SLAC
+04:00.0 Signal processing controller [1180]: SLAC National Accelerator Lab PPA-REG Device [1a4a:2030]
+
+# Clone the driver github repo:
+$ git clone --recursive https://github.com/slaclab/aes-stream-drivers
 
 # Go to the driver directory
 $ cd aes-stream-drivers/data_dev/driver/
@@ -61,10 +70,14 @@ $ cd aes-stream-drivers/data_dev/driver/
 # Build the driver
 $ make
 
-# Execute load script as sudo
-$ sudo <base-directory>/atlas-rd53-daq/software/driver_load
+# add new driver
+$ sudo /sbin/insmod datadev.ko || exit 1
+
+# give appropriate group/permissions
+$ sudo chmod 666 /dev/data_dev*
 
 # Check for the loaded device
 $ cat /proc/data_dev0
 
 ```
+

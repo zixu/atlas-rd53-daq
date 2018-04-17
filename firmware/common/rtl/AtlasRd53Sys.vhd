@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Sys.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2017-12-20
+-- Last update: 2018-04-17
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -17,8 +17,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-USE IEEE.std_logic_unsigned.ALL;
-USE IEEE.std_logic_arith.ALL;
+use IEEE.std_logic_unsigned.all;
+use IEEE.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
@@ -30,11 +30,10 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53Sys is
    generic (
-      TPD_G            : time             := 1 ns;
-      BUILD_INFO_G     : BuildInfoType;
-      AXI_CLK_FREQ_G   : real             := 156.25E+6; -- units of Hz
-      AXI_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_DECERR_C);
+      TPD_G           : time             := 1 ns;
+      BUILD_INFO_G    : BuildInfoType;
+      AXI_CLK_FREQ_G  : real             := 156.25E+6;  -- units of Hz
+      AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- Configuration/Status interface
       status          : in    AtlasRd53StatusType;
@@ -105,9 +104,9 @@ architecture mapping of AtlasRd53Sys is
          connectivity  => x"FFFF"));
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
    constant PWR_I2C_C : I2cAxiLiteDevArray(0 to 1) := (
       0             => MakeI2cAxiLiteDevType(
@@ -141,7 +140,6 @@ begin
    U_XBAR : entity work.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
          MASTERS_CONFIG_G   => XBAR_CONFIG_C)
@@ -164,7 +162,6 @@ begin
       generic map (
          TPD_G              => TPD_G,
          BUILD_INFO_G       => BUILD_INFO_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G,
          CLK_PERIOD_G       => (1.0/AXI_CLK_FREQ_G),
          XIL_DEVICE_G       => "7SERIES",
          EN_DEVICE_DNA_G    => true,
@@ -205,11 +202,10 @@ begin
    ------------------------------
    U_BootProm : entity work.AxiMicronN25QCore
       generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         MEM_ADDR_MASK_G  => x"00000000",  -- Using hardware write protection
-         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,        -- units of Hz
-         SPI_CLK_FREQ_G   => (AXI_CLK_FREQ_G/8.0))  -- units of Hz
+         TPD_G           => TPD_G,
+         MEM_ADDR_MASK_G => x"00000000",  -- Using hardware write protection
+         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G,        -- units of Hz
+         SPI_CLK_FREQ_G  => (AXI_CLK_FREQ_G/8.0))  -- units of Hz
       port map (
          -- FLASH Memory Ports
          csL            => bootCsL,
@@ -250,8 +246,7 @@ begin
    -- U_SysReg : entity work.AtlasRd53SysReg
    -- generic map (
    -- TPD_G            => TPD_G,
-   -- AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
-   -- AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+   -- AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
    -- port map (
    -- -- AXI-Lite Interface
    -- axilClk         => axilClk,
@@ -264,28 +259,15 @@ begin
    -- status          => status,
    -- config          => config);
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-      port map (
-         axiClk         => axilClk,
-         axiClkRst      => axilRst,
-         axiReadMaster  => axilReadMasters(SYS_REG_INDEX_C),
-         axiReadSlave   => axilReadSlaves(SYS_REG_INDEX_C),
-         axiWriteMaster => axilWriteMasters(SYS_REG_INDEX_C),
-         axiWriteSlave  => axilWriteSlaves(SYS_REG_INDEX_C));
-
    ----------------------
    -- AXI-Lite: Power I2C
    ----------------------
    U_PwrI2C : entity work.AxiI2cRegMaster
       generic map (
-         TPD_G            => TPD_G,
-         DEVICE_MAP_G     => PWR_I2C_C,
-         I2C_SCL_FREQ_G   => 400.0E+3,  -- units of Hz
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
+         TPD_G          => TPD_G,
+         DEVICE_MAP_G   => PWR_I2C_C,
+         I2C_SCL_FREQ_G => 400.0E+3,    -- units of Hz
+         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
       port map (
          -- I2C Ports
          scl            => pwrScl,

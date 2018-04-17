@@ -27,8 +27,7 @@ use unisim.vcomponents.all;
 entity AtlasRd53HitTrig is
    generic (
       TPD_G            : time             := 1 ns;
-      AXI_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_DECERR_C);
+      AXI_BASE_ADDR_G  : slv(31 downto 0) := (others => '0'));
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -114,16 +113,8 @@ begin
          O  => tluBsyP,
          OB => tluBsyN);
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-      port map (
-         axiClk         => axilClk,
-         axiClkRst      => axilRst,
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave);
+   -- Place holder for future code
+   axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;         
 
 end mapping;

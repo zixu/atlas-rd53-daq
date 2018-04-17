@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Dport.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2017-12-18
+-- Last update: 2018-04-17
 -------------------------------------------------------------------------------
 -- Description: Hit/Trig Module
 -------------------------------------------------------------------------------
@@ -30,9 +30,8 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53Dport is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_BASE_ADDR_G  : slv(31 downto 0)      := (others => '0');
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      TPD_G           : time             := 1 ns;
+      AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -42,8 +41,8 @@ entity AtlasRd53Dport is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Streaming RD43 Data (axilClk domain)
-      axisMaster     : out AxiStreamMasterType;
-      axisSlave      : in  AxiStreamSlaveType;
+      axisMaster      : out AxiStreamMasterType;
+      axisSlave       : in  AxiStreamSlaveType;
       -- Timing Clocks
       clk640MHz       : in  sl;
       rst640MHz       : in  sl;
@@ -137,17 +136,9 @@ begin
          O  => dPortCmdP,
          OB => dPortCmdN);
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-      port map (
-         axiClk         => axilClk,
-         axiClkRst      => axilRst,
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave);
+   -- Place holder for future code
+   axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
    GEN_LANE : for i in 3 downto 0 generate
       U_rx_lane : aurora_rx_top_xapp
