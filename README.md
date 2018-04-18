@@ -36,7 +36,7 @@ git-lfs/2.1.1
 
 > Go to the firmware's target directory:
 
-```$ cd atlas-rd53-daq/firmware/targets/AtlasRd43Pgp3```
+```$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Pgp3_10Gbps```
 
 > Build the firmware
 
