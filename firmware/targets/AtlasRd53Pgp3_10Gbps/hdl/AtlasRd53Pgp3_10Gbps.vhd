@@ -2,9 +2,12 @@
 -- File       : AtlasRd53Pgp3_10Gbps.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2017-12-21
+-- Last update: 2018-04-17
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
+--
+-- Note: 10 Gbps is the standard link rate for PGPv3
+--
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

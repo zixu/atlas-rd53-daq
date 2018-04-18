@@ -4,7 +4,7 @@
 -- Created    : 2017-12-18
 -- Last update: 2018-04-17
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: System Level Registers
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

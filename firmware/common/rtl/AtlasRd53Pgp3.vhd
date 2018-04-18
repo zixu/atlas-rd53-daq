@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2017-12-21
+-- Last update: 2018-04-17
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
 -------------------------------------------------------------------------------
@@ -76,6 +76,10 @@ architecture mapping of AtlasRd53Pgp3 is
    signal sysClk : sl;
    signal sysRst : sl;
 
+   attribute dont_touch             : string;
+   attribute dont_touch of pgpRxOut : signal is "TRUE";
+   attribute dont_touch of pgpTxOut : signal is "TRUE";
+
 begin
 
    axilClk <= sysClk;
@@ -123,32 +127,39 @@ begin
          EN_QPLL_DRP_G => false)
       port map (
          -- Stable Clock and Reset
-         stableClk     => sysClk,
-         stableRst     => sysRst,
+         stableClk       => sysClk,
+         stableRst       => sysRst,
          -- Gt Serial IO
-         pgpGtTxP      => pgpTxP,
-         pgpGtTxN      => pgpTxN,
-         pgpGtRxP      => pgpRxP,
-         pgpGtRxN      => pgpRxN,
+         pgpGtTxP        => pgpTxP,
+         pgpGtTxN        => pgpTxN,
+         pgpGtRxP        => pgpRxP,
+         pgpGtRxN        => pgpRxN,
          -- GT Clocking
-         pgpRefClkP    => pgpClkP,
-         pgpRefClkN    => pgpClkN,
-         pgpRefClkDiv2 => pgpRefClkDiv2,
+         pgpRefClkP      => pgpClkP,
+         pgpRefClkN      => pgpClkN,
+         pgpRefClkDiv2   => pgpRefClkDiv2,
          -- Clocking
-         pgpClk        => pgpClk,
-         pgpClkRst     => pgpRst,
+         pgpClk          => pgpClk,
+         pgpClkRst       => pgpRst,
          -- Non VC Rx Signals
-         pgpRxIn       => pgpRxIn,
-         pgpRxOut      => pgpRxOut,
+         pgpRxIn         => pgpRxIn,
+         pgpRxOut        => pgpRxOut,
          -- Non VC Tx Signals
-         pgpTxIn       => pgpTxIn,
-         pgpTxOut      => pgpTxOut,
+         pgpTxIn         => pgpTxIn,
+         pgpTxOut        => pgpTxOut,
          -- Frame Transmit Interface
-         pgpTxMasters  => pgpTxMasters,
-         pgpTxSlaves   => pgpTxSlaves,
+         pgpTxMasters    => pgpTxMasters,
+         pgpTxSlaves     => pgpTxSlaves,
          -- Frame Receive Interface
-         pgpRxMasters  => pgpRxMasters,
-         pgpRxCtrl     => pgpRxCtrl);
+         pgpRxMasters    => pgpRxMasters,
+         pgpRxCtrl       => pgpRxCtrl,
+         -- AXI-Lite Register Interface (axilClk domain)
+         axilClk         => sysClk,
+         axilRst         => sysRst,
+         axilReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
+         axilReadSlave   => open,
+         axilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
+         axilWriteSlave  => open);
 
    U_Lane0_Vc1 : entity work.SrpV3AxiLite
       generic map (

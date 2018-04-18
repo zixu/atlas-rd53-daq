@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+##############################################################################
+## This file is part of 'ATLAS RD53 DEV'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'ATLAS RD53 DEV', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+import sys
+import pyrogue as pr
+import pyrogue.gui
+import PyQt4.QtGui
+import argparse
+import time
+import common as feb
+
+#################################################################
+
+# Set the argument parser
+parser = argparse.ArgumentParser()
+
+# Add arguments
+parser.add_argument(
+    "--dev", 
+    type     = str,
+    required = False,
+    default  = '/dev/datadev_0',
+    help     = "path to device",
+)  
+
+parser.add_argument(
+    "--port", 
+    type     = int,
+    required = False,
+    default  = 0,
+    help     = "KCU1500 QSFP port Number (0 or 1)",
+)  
+
+parser.add_argument(
+    "--mcs", 
+    type     = str,
+    required = True,
+    help     = "path to mcs file",
+)
+
+# Get the arguments
+args = parser.parse_args()
+
+#################################################################
+
+# Set base
+base = pr.Root(name='base',description='')    
+
+# Add Base Device
+base.add(feb.Top(
+    dev   = args.dev,
+    port  = args.port,
+))
+
+# Start the system
+base.start(pollEn=False)
+    
+# Create useful pointers
+AxiVersion = base.Top.AxiVersion
+PROM       = base.Top.AxiMicronN25Q
+
+print ( '###################################################')
+print ( '#                 Old Firmware                    #')
+print ( '###################################################')
+AxiVersion.printStatus()
+
+# Program the FPGA's PROM
+PROM.LoadMcsFile(args.mcs)
+
+if(PROM._progDone):
+    print('\nReloading FPGA firmware from PROM ....')
+    AxiVersion.FpgaReload()
+    time.sleep(5)
+    print('\nReloading FPGA done')
+
+    print ( '###################################################')
+    print ( '#                 New Firmware                    #')
+    print ( '###################################################')
+    AxiVersion.printStatus()
+else:
+    print('Failed to program FPGA')
+
+base.stop()
+exit()

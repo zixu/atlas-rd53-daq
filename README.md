@@ -30,7 +30,7 @@ git-lfs/2.1.1
 
 >> If you are on the SLAC AFS network:
 
-```$ source atlas-rd53-daq/firmware/setup_slac.csh```
+```$ source atlas-rd53-daq/firmware/setup_env_slac.csh```
 
 >> Else you will need to install Vivado and install the Xilinx Licensing
 
@@ -50,7 +50,13 @@ Note: For more information about the firmware build system, please refer to this
 
 > https://docs.google.com/presentation/d/1kvzXiByE8WISo40Xd573DdR7dQU4BpDQGwEgNyeJjTI/edit?usp=sharing
 
-# How to program the KCU1500
+# KCU1500 Firmware image with 8 lanes of PGPv3 at 10 Gbps/lane
+
+> https://github.com/slaclab/pgp-pcie-apps/blob/master/firmware/targets/XilinxKcu1500Pgp3/images/XilinxKcu1500Pgp3-0x00000001-20180417135313-ruckman-21cf26d0_primary.mcs
+
+> https://github.com/slaclab/pgp-pcie-apps/blob/master/firmware/targets/XilinxKcu1500Pgp3/images/XilinxKcu1500Pgp3-0x00000001-20180417135313-ruckman-21cf26d0_secondary.mcs
+
+# How to program the KCU1500 with JTAG
 
 > https://docs.google.com/presentation/d/10eIsAbLmslcNk94yV-F1D3hBfxudBf0EFo4xjcn9qPk/edit?usp=sharing
 
@@ -71,13 +77,13 @@ $ cd aes-stream-drivers/data_dev/driver/
 $ make
 
 # add new driver
-$ sudo /sbin/insmod datadev.ko || exit 1
+$ sudo /sbin/insmod ./datadev.ko cfgSize=327680 cfgRxCount=128 cfgTxCount=128 || exit 1
 
 # give appropriate group/permissions
-$ sudo chmod 666 /dev/data_dev*
+$ sudo chmod 666 /dev/datadev_*
 
 # Check for the loaded device
-$ cat /proc/data_dev0
+$ cat /proc/datadev_0
 
 ```
 

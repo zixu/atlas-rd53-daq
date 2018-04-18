@@ -1,10 +1,8 @@
-export GIT_BYPASS = 1
-
 # Use the PGPv3 10G core
 export INCLUDE_PGP3_10G = 1
 
 # Define the firmware version
-export PRJ_VERSION = 0x00000001
+export PRJ_VERSION = 0x00000003
 
 # Define target output
 target: prom
