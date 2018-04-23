@@ -58,7 +58,7 @@ $ source atlas-rd53-daq/firmware/setup_env_slac.csh
 2) Go to the firmware's target directory:
 
 ```
-$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Pgp3_10Gbps
+$ cd atlas-rd53-daq/firmware/targets/AtlasRd53FebPgp3_10Gbps
 ```
 
 3) Build the firmware

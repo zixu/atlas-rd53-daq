@@ -67,7 +67,7 @@ class Top(pyrogue.Device):
         ######################################################################
             
         # Add devices
-        self.add(AxiVersion(  memBase=memMap, offset=0x00000000))
-        self.add(Xadc(        memBase=memMap, offset=0x00010000))
-        self.add(AxiMicronP30(memBase=memMap, offset=0x00020000))
+        self.add(AxiVersion(  memBase=memMap, offset=0x00000000, expand=True))
+        self.add(Xadc(        memBase=memMap, offset=0x00010000, expand=True))
+        self.add(AxiMicronP30(memBase=memMap, offset=0x00020000, expand=True, hidden=True))
         

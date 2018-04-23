@@ -1,12 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Pgp3_10Gbps.vhd
+-- File       : AtlasRd53FebPgp3_6Gbps.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
 -- Last update: 2018-04-17
 -------------------------------------------------------------------------------
--- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
+-- Description: Top-Level module using four lanes of 6.0 Gbps PGPv3 communication
 --
--- Note: 10 Gbps is the standard link rate for PGPv3
+-- Note: 10 Gbps is the standard link rate for PGPv3.  This means the back-end 
+--       receiver will need to have special firmware to run at this 
+--       non-standard rate of 6 Gpbs
 --
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
@@ -23,7 +25,7 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 
-entity AtlasRd53Pgp3_10Gbps is
+entity AtlasRd53FebPgp3_6Gbps is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -87,16 +89,16 @@ entity AtlasRd53Pgp3_10Gbps is
       tempAlertL    : in    sl;
       vPIn          : in    sl;
       vNIn          : in    sl);
-end AtlasRd53Pgp3_10Gbps;
+end AtlasRd53FebPgp3_6Gbps;
 
-architecture top_level of AtlasRd53Pgp3_10Gbps is
+architecture top_level of AtlasRd53FebPgp3_6Gbps is
 
 begin
 
    U_Core : entity work.AtlasRd53Core
       generic map (
          TPD_G        => TPD_G,
-         PGP3_RATE_G  => true,          -- true = 10.3125 Gbps
+         PGP3_RATE_G  => false,         -- false = 6.25 Gbps
          BUILD_INFO_G => BUILD_INFO_G)
       port map (
          -- RD53 ASIC Serial Ports

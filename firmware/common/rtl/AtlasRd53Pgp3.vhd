@@ -37,7 +37,7 @@ entity AtlasRd53Pgp3 is
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType;
       -- Streaming RD43 Data (axilClk domain)
-      axisMasters     : in  AxiStreamMasterArray(3 downto 0);
+      axisMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       axisSlaves      : out AxiStreamSlaveArray(3 downto 0);
       -- Stable Reference IDELAY Clock and Reset
       refClk300MHz    : out sl;
