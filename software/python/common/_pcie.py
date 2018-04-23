@@ -50,9 +50,10 @@ class Pcie(pyrogue.Device):
         for i in range(8):
             self.add(pgp.Pgp3AxiL( 
                 memBase         = memMap,
-                name            = ('PgpV3Mon[%d]' % i),
+                name            = ('Pgp3Mon[%d]' % i),
                 offset          = (0x00800000 + i*0x10000),  
                 numVc           = 2,
+                writeEn         = True,
                 expand          = False,
             ))
             

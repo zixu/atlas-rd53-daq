@@ -5,7 +5,6 @@ loadIpCore -path "$::DIR_PATH/aurora_rx/hdl/ip_cores/fifo_fwft/fifo_fwft.xci"
 
 # loadSource -dir  "$::DIR_PATH/aurora_rx/hdl/rx_core"
 
-loadSource -path  "$::DIR_PATH/aurora_rx/hdl/rx_core/aurora_rx.xdc"
 loadSource -path  "$::DIR_PATH/aurora_rx/hdl/rx_core/aurora_rx_four_lane_top.sv"
 loadSource -path  "$::DIR_PATH/aurora_rx/hdl/rx_core/aurora_rx_top.sv"
 loadSource -path  "$::DIR_PATH/aurora_rx/hdl/rx_core/aurora_rx_top_xapp.sv"
