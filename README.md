@@ -157,6 +157,25 @@ $ cat /proc/datadev_0
 
 <!--- ########################################################################################### -->
 
+# How to reprogram the FEB via PGPv3 link
+
+```
+# Go to software directory
+$ cd atlas-rd53-daq/software
+
+# If you are on the SLAC AFS network, 
+$ source setup_env_slac.sh
+
+# Else you will need to clone and build rogue:
+> https://github.com/slaclab/rogue/blob/master/README.md
+
+# Run the programming script
+$ python3 scripts/ProgramRd53Fpga.py --mcs <PATH_TO_FEB_MCS>
+ 
+```
+
+<!--- ########################################################################################### -->
+
 # How to reprogram the KCU1500 via PCIe
 
 ```
@@ -179,7 +198,7 @@ $ sudo reboot
 
 <!--- ########################################################################################### -->
 
-# How to reprogram the FEB via PGPv3 link
+# How to run the FEB Development GUI
 
 ```
 # Go to software directory
@@ -192,7 +211,7 @@ $ source setup_env_slac.sh
 > https://github.com/slaclab/rogue/blob/master/README.md
 
 # Run the programming script
-$ python3 scripts/ProgramRd53Fpga.py --mcs <PATH_TO_FEB_MCS>
+$ python3 scripts/DevGui.py --guiType feb
  
 ```
 
@@ -212,25 +231,6 @@ $ source setup_env_slac.sh
 
 # Run the programming script
 $ python3 scripts/DevGui.py --guiType pcie
- 
-```
-
-<!--- ########################################################################################### -->
-
-# How to run the FEB Development GUI
-
-```
-# Go to software directory
-$ cd atlas-rd53-daq/software
-
-# If you are on the SLAC AFS network, 
-$ source setup_env_slac.sh
-
-# Else you will need to clone and build rogue:
-> https://github.com/slaclab/rogue/blob/master/README.md
-
-# Run the programming script
-$ python3 scripts/DevGui.py --guiType feb
  
 ```
 
