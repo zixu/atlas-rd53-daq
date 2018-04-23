@@ -113,6 +113,10 @@ Note: For more information about the Xilinx Kintex UltraScale FPGA KCU1500 Accel
 
 > https://www.xilinx.com/products/boards-and-kits/dk-u1-kcu1500-g.html#hardware
 
+# How to program the FEB with JTAG
+
+> https://docs.google.com/presentation/d/11ldbniL1gEGyFjEdtmfclyITp-wX3TFjtWGtU0N2wZo/edit?usp=sharing
+
 <!--- ########################################################################################### -->
 
 # How to program the KCU1500 with JTAG
