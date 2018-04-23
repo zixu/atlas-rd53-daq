@@ -86,7 +86,7 @@ Note: For more information about the firmware build system, please refer to this
 > If you are on the SLAC AFS network:
 
 ```
-$ source atlas-rd53-daq/firmware/setup_env_slac.csh
+$ source atlas-rd53-daq/firmware/setup_env_slac.sh
 ```
 
 > Else you will need to install Vivado and install the Xilinx Licensing
@@ -117,6 +117,8 @@ Note: For more information about the Xilinx Kintex UltraScale FPGA KCU1500 Accel
 
 # How to program the KCU1500 with JTAG
 
+This is required if the SLAC firmware has not been programmed into the KCU1500 PROM yet (like factory defaults)
+
 > https://docs.google.com/presentation/d/10eIsAbLmslcNk94yV-F1D3hBfxudBf0EFo4xjcn9qPk/edit?usp=sharing
 
 <!--- ########################################################################################### -->
@@ -127,6 +129,11 @@ Note: For more information about the Xilinx Kintex UltraScale FPGA KCU1500 Accel
 # Confirm that you have the board the computer with VID=1a4a ("SLAC") and PID=2030 ("DataDev")
 $ lspci -nn | grep SLAC
 04:00.0 Signal processing controller [1180]: SLAC National Accelerator Lab PPA-REG Device [1a4a:2030]
+
+# If you don't see the "DataDev" device when doing this lspci, you will need to reprogram the PCIe card
+# via JTAG.  After the JTAG reprogramming, you will need to do a full power cycle of PC (not reboot)
+
+> https://docs.google.com/presentation/d/10eIsAbLmslcNk94yV-F1D3hBfxudBf0EFo4xjcn9qPk/edit?usp=sharing
 
 # Clone the driver github repo:
 $ git clone --recursive https://github.com/slaclab/aes-stream-drivers
@@ -150,3 +157,81 @@ $ cat /proc/datadev_0
 
 <!--- ########################################################################################### -->
 
+# How to reprogram the KCU1500 via PCIe
+
+```
+# Go to software directory
+$ cd atlas-rd53-daq/software
+
+# If you are on the SLAC AFS network, 
+$ source setup_env_slac.sh
+
+# Else you will need to clone and build rogue:
+> https://github.com/slaclab/rogue/blob/master/README.md
+
+# Run the programming script
+$ python3 scripts/ProgramKcu1500.py --mcs_pri <PATH_TO_PRIMARY_MCS> --mcs_sec <PATH_TO_SECONDARY_MCS>
+ 
+# Reboot your computer
+$ sudo reboot
+ 
+```
+
+<!--- ########################################################################################### -->
+
+# How to reprogram the FEB via PGPv3 link
+
+```
+# Go to software directory
+$ cd atlas-rd53-daq/software
+
+# If you are on the SLAC AFS network, 
+$ source setup_env_slac.sh
+
+# Else you will need to clone and build rogue:
+> https://github.com/slaclab/rogue/blob/master/README.md
+
+# Run the programming script
+$ python3 scripts/ProgramRd53Fpga.py --mcs <PATH_TO_FEB_MCS>
+ 
+```
+
+<!--- ########################################################################################### -->
+
+# How to run the PCIe Development GUI
+
+```
+# Go to software directory
+$ cd atlas-rd53-daq/software
+
+# If you are on the SLAC AFS network, 
+$ source setup_env_slac.sh
+
+# Else you will need to clone and build rogue:
+> https://github.com/slaclab/rogue/blob/master/README.md
+
+# Run the programming script
+$ python3 scripts/DevGui.py --guiType pcie
+ 
+```
+
+<!--- ########################################################################################### -->
+
+# How to run the FEB Development GUI
+
+```
+# Go to software directory
+$ cd atlas-rd53-daq/software
+
+# If you are on the SLAC AFS network, 
+$ source setup_env_slac.sh
+
+# Else you will need to clone and build rogue:
+> https://github.com/slaclab/rogue/blob/master/README.md
+
+# Run the programming script
+$ python3 scripts/DevGui.py --guiType feb
+ 
+```
+
+<!--- ########################################################################################### -->
