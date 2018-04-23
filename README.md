@@ -49,21 +49,29 @@ $ git clone --recursive git@github.com:slaclab/atlas-rd53-daq
 
 > If you are on the SLAC AFS network:
 
-```$ source atlas-rd53-daq/firmware/setup_env_slac.csh```
+```
+$ source atlas-rd53-daq/firmware/setup_env_slac.csh
+```
 
 > Else you will need to install Vivado and install the Xilinx Licensing
 
 2) Go to the firmware's target directory:
 
-```$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Pgp3_10Gbps```
+```
+$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Pgp3_10Gbps
+```
 
 3) Build the firmware
 
-```$ make```
+```
+$ make
+```
 
 4) Optional: Open up the project in GUI mode to view the firmware build results
 
-```$ make gui```
+```
+$ make gui
+```
 
 Note: For more information about the firmware build system, please refer to this presentation:
 
@@ -77,21 +85,29 @@ Note: For more information about the firmware build system, please refer to this
 
 > If you are on the SLAC AFS network:
 
-```$ source atlas-rd53-daq/firmware/setup_env_slac.csh```
+```
+$ source atlas-rd53-daq/firmware/setup_env_slac.csh
+```
 
 > Else you will need to install Vivado and install the Xilinx Licensing
 
 2) Go to the firmware's target directory:
 
-```$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500Pgp3_10Gbps```
+```
+$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500Pgp3_10Gbps
+```
 
 3) Build the firmware
 
-```$ make```
+```
+$ make
+```
 
 4) Optional: Open up the project in GUI mode to view the firmware build results
 
-```$ make gui```
+```
+$ make gui
+```
 
 Note: For more information about the Xilinx Kintex UltraScale FPGA KCU1500 Acceleration Development Kit:
 
