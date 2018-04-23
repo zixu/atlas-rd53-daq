@@ -1,5 +1,7 @@
 # atlas-rd53-daq
 
+<!--- ########################################################################################### -->
+
 # Before you clone the GIT repository
 
 1) Create a github account:
@@ -31,13 +33,17 @@ $ git-lfs version
 git-lfs/2.1.1
 ```
 
+<!--- ########################################################################################### -->
+
 # Clone the GIT repository
 
 ```
 $ git clone --recursive git@github.com:slaclab/atlas-rd53-daq
 ```
 
-# How to build the firmware
+<!--- ########################################################################################### -->
+
+# How to build the Front End Board (FEB) firmware 
 
 > Setup your Xilinx Vivado:
 
@@ -63,15 +69,41 @@ Note: For more information about the firmware build system, please refer to this
 
 > https://docs.google.com/presentation/d/1kvzXiByE8WISo40Xd573DdR7dQU4BpDQGwEgNyeJjTI/edit?usp=sharing
 
-# KCU1500 Firmware image with 8 lanes of PGPv3 at 10 Gbps/lane
+<!--- ########################################################################################### -->
 
-> https://github.com/slaclab/pgp-pcie-apps/blob/master/firmware/targets/XilinxKcu1500Pgp3/images/XilinxKcu1500Pgp3-0x00000001-20180417135313-ruckman-21cf26d0_primary.mcs
+# How to build the KCU1500 PCIe card firmware 
 
-> https://github.com/slaclab/pgp-pcie-apps/blob/master/firmware/targets/XilinxKcu1500Pgp3/images/XilinxKcu1500Pgp3-0x00000001-20180417135313-ruckman-21cf26d0_secondary.mcs
+> Setup your Xilinx Vivado:
+
+>> If you are on the SLAC AFS network:
+
+```$ source atlas-rd53-daq/firmware/setup_env_slac.csh```
+
+>> Else you will need to install Vivado and install the Xilinx Licensing
+
+> Go to the firmware's target directory:
+
+```$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500Pgp3_10Gbps```
+
+> Build the firmware
+
+```$ make```
+
+> Optional: Open up the project in GUI mode to view the firmware build results
+
+```$ make gui```
+
+Note: For more information about the Xilinx Kintex UltraScale FPGA KCU1500 Acceleration Development Kit:
+
+> https://www.xilinx.com/products/boards-and-kits/dk-u1-kcu1500-g.html#hardware
+
+<!--- ########################################################################################### -->
 
 # How to program the KCU1500 with JTAG
 
 > https://docs.google.com/presentation/d/10eIsAbLmslcNk94yV-F1D3hBfxudBf0EFo4xjcn9qPk/edit?usp=sharing
+
+<!--- ########################################################################################### -->
 
 # How to load the driver
 
@@ -99,4 +131,6 @@ $ sudo chmod 666 /dev/datadev_*
 $ cat /proc/datadev_0
 
 ```
+
+<!--- ########################################################################################### -->
 
