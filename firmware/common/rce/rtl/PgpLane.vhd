@@ -23,7 +23,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.AxiPciePkg.all;
+use work.RceG3Pkg.all;
 use work.Pgp3Pkg.all;
 
 entity PgpLane is
@@ -33,16 +33,13 @@ entity PgpLane is
       NUM_VC_G        : positive;
       AXI_BASE_ADDR_G : slv(31 downto 0));
    port (
-      -- QPLL Interface
-      qpllLock        : in  slv(1 downto 0);
-      qpllClk         : in  slv(1 downto 0);
-      qpllRefclk      : in  slv(1 downto 0);
-      qpllRst         : out slv(1 downto 0);
       -- PGP Serial Ports
       pgpTxP          : out sl;
       pgpTxN          : out sl;
       pgpRxP          : in  sl;
       pgpRxN          : in  sl;
+      -- GT Clocking
+      pgpRefClk250    : in  sl;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
@@ -64,10 +61,12 @@ architecture mapping of PgpLane is
    signal pgpClk : sl;
    signal pgpRst : sl;
 
+   signal pgpTxIn      : Pgp3TxInType := PGP3_TX_IN_INIT_C;
    signal pgpTxOut     : Pgp3TxOutType;
    signal pgpTxMasters : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
    signal pgpTxSlaves  : AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
 
+   signal pgpRxIn      : Pgp3RxInType := PGP3_RX_IN_INIT_C;
    signal pgpRxOut     : Pgp3RxOutType;
    signal pgpRxMasters : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
    signal pgpRxCtrl    : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -77,35 +76,39 @@ begin
    -----------
    -- PGP Core
    -----------
-   U_Pgp : entity work.Pgp3GthUs
-      generic map (
+   U_PGPv3 : entity work.Pgp3Gtx7Wrapper
+      generic map(
          TPD_G            => TPD_G,
-         NUM_VC_G         => NUM_VC_G,
-         AXIL_CLK_FREQ_G  => (SYS_CLK_FREQ_C/2.0),
-         AXIL_BASE_ADDR_G => AXI_BASE_ADDR_G)
+         NUM_LANES_G      => 1,
+         NUM_VC_G         => 2,
+         RATE_G           => false,     -- false = 6.25 Gbps
+         REFCLK_TYPE_G    => PGP3_REFCLK_250_C, -- 250 MHz reference clock
+         REFCLK_G         => true,      -- TRUE: use pgpRefClkIn
+         EN_PGP_MON_G     => true,
+         EN_GTH_DRP_G     => false,
+         EN_QPLL_DRP_G    => false,
+         AXIL_BASE_ADDR_G => AXI_BASE_ADDR_G,
+         AXIL_CLK_FREQ_G  => 125.0E+6)
       port map (
          -- Stable Clock and Reset
          stableClk       => axilClk,
          stableRst       => axilRst,
-         -- QPLL Interface
-         qpllLock        => qpllLock,
-         qpllClk         => qpllClk,
-         qpllRefclk      => qpllRefclk,
-         qpllRst         => qpllRst,
          -- Gt Serial IO
-         pgpGtTxP        => pgpTxP,
-         pgpGtTxN        => pgpTxN,
-         pgpGtRxP        => pgpRxP,
-         pgpGtRxN        => pgpRxN,
+         pgpGtTxP(0)     => pgpTxP,
+         pgpGtTxN(0)     => pgpTxN,
+         pgpGtRxP(0)     => pgpRxP,
+         pgpGtRxN(0)     => pgpRxN,
+         -- GT Clocking
+         pgpRefClkIn     => pgpRefClk250,
          -- Clocking
-         pgpClk          => pgpClk,
-         pgpClkRst       => pgpRst,
+         pgpClk(0)       => pgpClk,
+         pgpClkRst(0)    => pgpRst,
          -- Non VC Rx Signals
-         pgpRxIn         => PGP3_RX_IN_INIT_C,
-         pgpRxOut        => pgpRxOut,
+         pgpRxIn(0)      => pgpRxIn,
+         pgpRxOut(0)     => pgpRxOut,
          -- Non VC Tx Signals
-         pgpTxIn         => PGP3_TX_IN_INIT_C,
-         pgpTxOut        => pgpTxOut,
+         pgpTxIn(0)      => pgpTxIn,
+         pgpTxOut(0)     => pgpTxOut,
          -- Frame Transmit Interface
          pgpTxMasters    => pgpTxMasters,
          pgpTxSlaves     => pgpTxSlaves,
@@ -126,7 +129,7 @@ begin
    U_Tx : entity work.PgpLaneTx
       generic map (
          TPD_G             => TPD_G,
-         DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
+         DMA_AXIS_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_C,
          NUM_VC_G          => NUM_VC_G)
       port map (
          -- DMA Interface (dmaClk domain)
@@ -148,7 +151,7 @@ begin
    U_Rx : entity work.PgpLaneRx
       generic map (
          TPD_G             => TPD_G,
-         DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
+         DMA_AXIS_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_C,
          LANE_G            => LANE_G,
          NUM_VC_G          => NUM_VC_G)
       port map (
