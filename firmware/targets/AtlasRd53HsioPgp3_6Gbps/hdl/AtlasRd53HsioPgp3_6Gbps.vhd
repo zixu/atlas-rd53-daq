@@ -133,11 +133,11 @@ begin
          extAxilWriteSlave  => axilWriteSlave,
          -- DMA Interfaces
          dmaClk             => dmaClk,
-         dmaClkRst          => dmaClkRst,
-         dmaObMaster        => dmaObMaster,
-         dmaObSlave         => dmaObSlave,
-         dmaIbMaster        => dmaIbMaster,
-         dmaIbSlave         => dmaIbSlave,
+         dmaClkRst          => dmaRst,
+         dmaObMaster        => dmaObMasters,
+         dmaObSlave         => dmaObSlaves,
+         dmaIbMaster        => dmaIbMasters,
+         dmaIbSlave         => dmaIbSlaves,
          -- User Interrupts
          userInterrupt      => (others => '0'));
 
