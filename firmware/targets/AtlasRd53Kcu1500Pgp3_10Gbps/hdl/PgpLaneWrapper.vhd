@@ -6,11 +6,11 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP Gen3 Card'.
+-- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP Gen3 Card', including this file, 
+-- No part of 'ATLAS RD53 DEV', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ entity PgpLaneWrapper is
    generic (
       TPD_G           : time             := 1 ns;
       REFCLK_WIDTH_G  : positive         := 2;
-      NUM_VC_G        : positive         := 4;
+      NUM_VC_G        : positive         := 2;
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- QSFP[0] Ports
