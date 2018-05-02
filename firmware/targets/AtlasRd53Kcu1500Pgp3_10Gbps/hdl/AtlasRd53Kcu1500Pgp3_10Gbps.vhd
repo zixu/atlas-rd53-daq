@@ -6,11 +6,11 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of 'axi-pcie-dev'.
+-- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'axi-pcie-dev', including this file, 
+-- No part of 'ATLAS RD53 DEV', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -210,7 +210,6 @@ begin
       generic map (
          TPD_G           => TPD_G,
          REFCLK_WIDTH_G  => 2,
-         NUM_VC_G        => 2,
          AXI_BASE_ADDR_G => BAR0_BASE_ADDR_C)
       port map (
          -- QSFP[0] Ports

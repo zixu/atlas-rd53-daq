@@ -2,15 +2,15 @@
 -- File       : PgpLaneRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-02-07
+-- Last update: 2018-05-01
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP Gen3 Card'.
+-- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP Gen3 Card', including this file, 
+-- No part of 'ATLAS RD53 DEV', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -22,14 +22,14 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.AxiPciePkg.all;
 use work.Pgp3Pkg.all;
 
 entity PgpLaneRx is
    generic (
-      TPD_G    : time     := 1 ns;
-      LANE_G   : natural  := 0;
-      NUM_VC_G : positive := 16);
+      TPD_G             : time := 1 ns;
+      DMA_AXIS_CONFIG_G : AxiStreamConfigType;
+      LANE_G            : natural;
+      NUM_VC_G          : positive);
    port (
       -- DMA Interface (dmaClk domain)
       dmaClk       : in  sl;
@@ -97,7 +97,7 @@ begin
             FIFO_PAUSE_THRESH_G => 512,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => DMA_AXIS_CONFIG_C)
+            MASTER_AXI_CONFIG_G => DMA_AXIS_CONFIG_G)
          port map (
             -- Slave Port
             sAxisClk    => pgpClk,
@@ -146,8 +146,8 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => DMA_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => DMA_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => DMA_AXIS_CONFIG_G,
+         MASTER_AXI_CONFIG_G => DMA_AXIS_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => pgpClk,
