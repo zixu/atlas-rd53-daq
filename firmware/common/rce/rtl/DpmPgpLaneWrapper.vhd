@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- File       : DpmPgpLaneWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-26
+-- Created    : 2018-05-01
 -- Last update: 2018-05-01
 -------------------------------------------------------------------------------
 -- Description: 
@@ -111,11 +111,11 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 5)
       port map (
-         -- refClk => refClk250,
-         gtRxP => rtmToDpmHsP(5 downto 1),
-         gtRxN => rtmToDpmHsN(5 downto 1),
-         gtTxP => dpmToRtmHsP(5 downto 1),
-         gtTxN => dpmToRtmHsN(5 downto 1));
+         refClk => axilClk,
+         gtRxP  => rtmToDpmHsP(5 downto 1),
+         gtRxN  => rtmToDpmHsN(5 downto 1),
+         gtTxP  => dpmToRtmHsP(5 downto 1),
+         gtTxN  => dpmToRtmHsN(5 downto 1));
 
    --------------------------------
    -- Mapping RTM[6] to PGP[1]
@@ -133,11 +133,11 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 5)
       port map (
-         -- refClk => refClk250,
-         gtRxP => rtmToDpmHsP(11 downto 7),
-         gtRxN => rtmToDpmHsN(11 downto 7),
-         gtTxP => dpmToRtmHsP(11 downto 7),
-         gtTxN => dpmToRtmHsN(11 downto 7));
+         refClk => axilClk,
+         gtRxP  => rtmToDpmHsP(11 downto 7),
+         gtRxN  => rtmToDpmHsN(11 downto 7),
+         gtTxP  => dpmToRtmHsP(11 downto 7),
+         gtTxN  => dpmToRtmHsN(11 downto 7));
 
    ---------------------
    -- AXI-Lite Crossbar

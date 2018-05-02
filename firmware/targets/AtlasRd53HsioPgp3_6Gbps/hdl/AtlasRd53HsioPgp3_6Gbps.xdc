@@ -8,9 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-set_property DIFF_TERM true [get_ports {dtmClkP[*]}]
-
-create_clock -name locRefClk -period 4.0 [get_ports locRefClkP]
+create_clock -name locRefClk -period 4.0 [get_ports locRefClk1P]
 
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks sysClk200] \
