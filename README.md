@@ -4,29 +4,20 @@
 
 # Before you clone the GIT repository
 
-1) Create a github account:
-> https://github.com/
-
-2) On the Linux machine that you will clone the github from, generate a SSH key (if not already done)
-> https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/
-
-3) Add a new SSH key to your GitHub account
-> https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/
-
-4) Setup for large filesystems on github
+1) Setup for large filesystems on github
 
 ```
 $ git lfs install
 ```
 
-5) Verify that you have git version 2.13.0 (or later) installed 
+2) Verify that you have git version 2.9.0 (or later) installed 
 
 ```
 $ git version
-git version 2.13.0
+git version 2.9.0
 ```
 
-6) Verify that you have git-lfs version 2.1.1 (or later) installed 
+3) Verify that you have git-lfs version 2.1.1 (or later) installed 
 
 ```
 $ git-lfs version
@@ -38,7 +29,7 @@ git-lfs/2.1.1
 # Clone the GIT repository
 
 ```
-$ git clone --recursive git@github.com:slaclab/atlas-rd53-daq
+$ git clone --recursive https://github.com/slaclab/atlas-rd53-daq
 ```
 
 <!--- ########################################################################################### -->
@@ -58,7 +49,7 @@ $ source atlas-rd53-daq/firmware/setup_env_slac.csh
 2) Go to the firmware's target directory:
 
 ```
-$ cd atlas-rd53-daq/firmware/targets/AtlasRd53FebPgp3_10Gbps
+$ cd atlas-rd53-daq/firmware/targets/AtlasRd53FebPgp3_6Gbps
 ```
 
 3) Build the firmware
@@ -94,7 +85,7 @@ $ source atlas-rd53-daq/firmware/setup_env_slac.sh
 2) Go to the firmware's target directory:
 
 ```
-$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500Pgp3_10Gbps
+$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500Pgp3_6Gbps
 ```
 
 3) Build the firmware
@@ -239,3 +230,4 @@ $ python3 scripts/DevGui.py --guiType pcie
 ```
 
 <!--- ########################################################################################### -->
+

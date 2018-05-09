@@ -2,7 +2,7 @@
 -- File       : PgpLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-01
--- Last update: 2018-05-01
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -81,9 +81,9 @@ begin
          TPD_G            => TPD_G,
          NUM_LANES_G      => 1,
          NUM_VC_G         => 2,
-         RATE_G           => false,     -- false = 6.25 Gbps
-         REFCLK_TYPE_G    => PGP3_REFCLK_250_C, -- 250 MHz reference clock
-         REFCLK_G         => true,      -- TRUE: use pgpRefClkIn
+         RATE_G           => "6.25Gbps",
+         REFCLK_TYPE_G    => PGP3_REFCLK_250_C,  -- 250 MHz reference clock
+         REFCLK_G         => true,               -- TRUE: use pgpRefClkIn
          EN_PGP_MON_G     => true,
          EN_GTH_DRP_G     => false,
          EN_QPLL_DRP_G    => false,

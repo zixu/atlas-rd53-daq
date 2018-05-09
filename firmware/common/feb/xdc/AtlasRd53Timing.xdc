@@ -29,9 +29,12 @@ set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {iprogClk}]
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {dnaClk}]  -group [get_clocks {dnaClkInv}] 
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks -of_objects [get_pins {U_Core/U_Pgp/U_PGPv3/U_TX_PLL/PllGen.U_Pll/CLKOUT1}]] 
-set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {clk640}]
-set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {clk160}]
-set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {clk40}]
+
+set_clock_groups -asynchronous \ 
+   -group [get_clocks -include_generated_clocks {pgpClkP}] \
+   -group [get_clocks -include_generated_clocks {intClk160MHz}] \
+   -group [get_clocks -include_generated_clocks {extClk160MHz0}] \
+   -group [get_clocks -include_generated_clocks {extClk160MHz1}]
 
 set_case_analysis 1 [get_pins {U_Core/U_Clk/U_BUFGMUX_0/S}]
 set_case_analysis 1 [get_pins {U_Core/U_Clk/U_BUFGMUX_1/S}]

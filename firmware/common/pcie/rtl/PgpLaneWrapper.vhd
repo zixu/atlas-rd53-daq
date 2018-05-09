@@ -2,7 +2,7 @@
 -- File       : PgpLaneWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-02-12
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ use unisim.vcomponents.all;
 entity PgpLaneWrapper is
    generic (
       TPD_G           : time             := 1 ns;
+      RATE_G          : string           := "10.3125Gbps";  -- or "6.25Gbps"
       REFCLK_WIDTH_G  : positive         := 2;
       NUM_VC_G        : positive         := 2;
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
@@ -131,7 +132,8 @@ begin
 
       U_QPLL : entity work.Pgp3GthUsQpll
          generic map (
-            TPD_G => TPD_G)
+            TPD_G  => TPD_G,
+            RATE_G => RATE_G)
          port map (
             -- Stable Clock and Reset
             stableClk  => axilClk,
@@ -190,6 +192,7 @@ begin
       U_Lane : entity work.PgpLane
          generic map (
             TPD_G           => TPD_G,
+            RATE_G          => RATE_G,
             LANE_G          => i,
             NUM_VC_G        => NUM_VC_G,
             AXI_BASE_ADDR_G => AXI_CONFIG_C(i).baseAddr)

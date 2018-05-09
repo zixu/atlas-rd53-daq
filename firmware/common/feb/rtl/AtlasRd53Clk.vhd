@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Clk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2017-12-19
+-- Last update: 2018-05-05
 -------------------------------------------------------------------------------
 -- Description: PLL Wrapper
 -------------------------------------------------------------------------------
@@ -27,17 +27,20 @@ entity AtlasRd53Clk is
    generic (
       TPD_G : time := 1 ns);
    port (
-      -- Reference Clocks
+      -- Reference Clocks Ports
       intClk160MHzP : in  sl;
       intClk160MHzN : in  sl;
       extClk160MHzP : in  slv(1 downto 0);
       extClk160MHzN : in  slv(1 downto 0);
+      -- Misc Ports
+      pwrSyncSclk   : out sl;
+      pwrSyncFclk   : out sl;
       -- Configuration/Status interface
       refSelect     : in  slv(1 downto 0);
       pllRst        : in  sl;
       refClk160MHz  : out sl;
       pllLocked     : out sl;
-      -- Timing Clocks
+      -- Timing Clocks Interface
       clk640MHz     : out sl;
       rst640MHz     : out sl;
       clk160MHz     : out sl;
@@ -51,7 +54,7 @@ architecture mapping of AtlasRd53Clk is
    signal intClk160MHz    : sl;
    signal extClk160MHzRaw : slv(1 downto 0);
    signal extClk160MHz    : sl;
-   signal refClk    : sl;
+   signal refClk          : sl;
 
 begin
 
@@ -113,5 +116,10 @@ begin
          rstOut(1) => rst160MHz,
          rstOut(2) => rst40MHz,
          locked    => pllLocked);
+
+
+   -- Not synchronizing the DC/DC to system clock
+   pwrSyncSclk <= '0';
+   pwrSyncFclk <= '0';
 
 end mapping;

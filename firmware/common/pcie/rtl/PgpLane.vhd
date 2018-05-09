@@ -31,6 +31,7 @@ entity PgpLane is
       TPD_G           : time := 1 ns;
       LANE_G          : natural;
       NUM_VC_G        : positive;
+      RATE_G          : string;
       AXI_BASE_ADDR_G : slv(31 downto 0));
    port (
       -- QPLL Interface
@@ -80,6 +81,7 @@ begin
    U_Pgp : entity work.Pgp3GthUs
       generic map (
          TPD_G            => TPD_G,
+         RATE_G           => RATE_G,
          NUM_VC_G         => NUM_VC_G,
          AXIL_CLK_FREQ_G  => (SYS_CLK_FREQ_C/2.0),
          AXIL_BASE_ADDR_G => AXI_BASE_ADDR_G)

@@ -2,7 +2,7 @@
 -- File       : AtlasRd53HitTrig.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2017-12-20
+-- Last update: 2018-05-05
 -------------------------------------------------------------------------------
 -- Description: Hit/Trig Module
 -------------------------------------------------------------------------------
@@ -26,8 +26,8 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53HitTrig is
    generic (
-      TPD_G            : time             := 1 ns;
-      AXI_BASE_ADDR_G  : slv(31 downto 0) := (others => '0'));
+      TPD_G           : time             := 1 ns;
+      AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -93,28 +93,28 @@ begin
       port map (
          I  => tluIntP,
          IB => tluIntN,
-         O  => tluInt);
+         O  => tluInt);                 -- Place holder for future code
 
    U_tluRst : IBUFDS
       port map (
          I  => tluRstP,
          IB => tluRstN,
-         O  => tluRst);
+         O  => tluRst);                 -- Place holder for future code
 
    U_tluTrgClk : OBUFDS
       port map (
-         I  => tluTrgClk,
+         I  => tluTrgClk,               -- Place holder for future code
          O  => tluTrgClkP,
          OB => tluTrgClkN);
 
    U_tluBsy : OBUFDS
       port map (
-         I  => tluBsy,
+         I  => tluBsy,                  -- Place holder for future code
          O  => tluBsyP,
          OB => tluBsyN);
 
    -- Place holder for future code
    axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;         
+   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
 end mapping;
