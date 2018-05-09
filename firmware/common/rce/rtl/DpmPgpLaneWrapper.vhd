@@ -169,7 +169,7 @@ begin
          generic map (
             TPD_G           => TPD_G,
             LANE_G          => i,
-            NUM_VC_G        => 2,
+            NUM_VC_G        => 16,
             AXI_BASE_ADDR_G => AXI_CONFIG_C(i).baseAddr)
          port map (
             -- PGP Serial Ports
@@ -201,7 +201,7 @@ begin
          TPD_G                => TPD_G,
          NUM_SLAVES_G         => NUM_LANE_C,
          MODE_G               => "ROUTED",
-         TDEST_ROUTES_G       => (0 => "0000000-", 1 => "0000001-"),
+         TDEST_ROUTES_G       => (0 => "0000----", 1 => "0001----"),
          ILEAVE_EN_G          => true,
          ILEAVE_ON_NOTVALID_G => false,
          ILEAVE_REARB_G       => 128,
@@ -222,7 +222,7 @@ begin
          TPD_G          => TPD_G,
          NUM_MASTERS_G  => NUM_LANE_C,
          MODE_G         => "ROUTED",
-         TDEST_ROUTES_G => (0 => "0000000-", 1 => "0000001-"),
+         TDEST_ROUTES_G => (0 => "0000----", 1 => "0001----"),
          PIPE_STAGES_G  => 1)
       port map (
          -- Clock and reset

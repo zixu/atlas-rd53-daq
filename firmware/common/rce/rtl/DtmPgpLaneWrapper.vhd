@@ -77,7 +77,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          LANE_G          => 0,
-         NUM_VC_G        => 2,
+         NUM_VC_G        => 16,
          AXI_BASE_ADDR_G => AXI_BASE_ADDR_G)
       port map (
          -- PGP Serial Ports
