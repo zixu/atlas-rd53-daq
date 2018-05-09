@@ -31,7 +31,7 @@ entity PgpLane is
       TPD_G           : time := 1 ns;
       LANE_G          : natural;
       NUM_VC_G        : positive;
-      RATE_G          : boolean;
+      RATE_G          : string;
       AXI_BASE_ADDR_G : slv(31 downto 0));
    port (
       -- QPLL Interface

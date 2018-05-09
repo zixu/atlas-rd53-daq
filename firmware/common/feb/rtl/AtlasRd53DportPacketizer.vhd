@@ -2,7 +2,7 @@
 -- File       : AtlasRd53DportPacketizer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2017-12-18
+-- Last update: 2018-05-05
 -------------------------------------------------------------------------------
 -- Description: Hit/Trig Module
 -------------------------------------------------------------------------------
@@ -125,6 +125,15 @@ begin
       v.txMaster.tLast  := '0';
       v.txMaster.tUser  := (others => '0');
 
+      ---------------------------------------------------------------
+      ---------------------------------------------------------------
+      ---------------------------------------------------------------
+      -- This "process" is a placeholder for future code.We only 
+      -- wrote enough firmware to check the min. resource requirement
+      ---------------------------------------------------------------      
+      ---------------------------------------------------------------      
+      ---------------------------------------------------------------      
+
       -- Check for data to move
       if (fifoValid = '1') then
 
@@ -178,6 +187,7 @@ begin
          BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
+         FIFO_PAUSE_THRESH_G => 500,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)

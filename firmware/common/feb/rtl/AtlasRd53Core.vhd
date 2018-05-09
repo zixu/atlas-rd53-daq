@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-04-17
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
 -------------------------------------------------------------------------------
@@ -28,9 +28,9 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53Core is
    generic (
-      TPD_G        : time    := 1 ns;
+      TPD_G        : time   := 1 ns;
       BUILD_INFO_G : BuildInfoType;
-      PGP3_RATE_G  : boolean := true);  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      PGP3_RATE_G  : string := "6.25Gbps");  -- or "10.3125Gbps"      
    port (
       -- RD53 ASIC Serial Ports
       dPortDataP    : in    Slv4Array(3 downto 0);
@@ -209,17 +209,20 @@ begin
       generic map(
          TPD_G => TPD_G)
       port map(
-         -- Reference Clock
+         -- Reference Clock Ports
          intClk160MHzP => intClk160MHzP,
          intClk160MHzN => intClk160MHzN,
          extClk160MHzP => extClk160MHzP,
          extClk160MHzN => extClk160MHzN,
+         -- Misc Ports
+         pwrSyncSclk   => pwrSyncSclk,
+         pwrSyncFclk   => pwrSyncFclk,
          -- Configuration/Status interface
          refSelect     => config.refSelect,
          pllRst        => config.pllRst,
          refClk160MHz  => status.refClk160MHz,
          pllLocked     => status.pllLocked,
-         -- Timing Clocks
+         -- Timing Clocks Interface
          clk640MHz     => clk640MHz,
          rst640MHz     => rst640MHz,
          clk160MHz     => clk160MHz,
@@ -338,8 +341,6 @@ begin
          bootMosi        => bootMosi,
          bootMiso        => bootMiso,
          -- Misc Ports
-         pwrSyncSclk     => pwrSyncSclk,
-         pwrSyncFclk     => pwrSyncFclk,
          pwrScl          => pwrScl,
          pwrSda          => pwrSda,
          tempAlertL      => tempAlertL,

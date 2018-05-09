@@ -2,7 +2,7 @@
 -- File       : AtlasRd53FebPgp3_6Gbps.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-04-17
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 6.0 Gbps PGPv3 communication
 --
@@ -98,7 +98,7 @@ begin
    U_Core : entity work.AtlasRd53Core
       generic map (
          TPD_G        => TPD_G,
-         PGP3_RATE_G  => false,         -- false = 6.25 Gbps
+         PGP3_RATE_G  => "6.25Gbps",
          BUILD_INFO_G => BUILD_INFO_G)
       port map (
          -- RD53 ASIC Serial Ports

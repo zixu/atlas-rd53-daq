@@ -2,7 +2,7 @@
 -- File       : PgpLaneWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-05-03
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use unisim.vcomponents.all;
 entity PgpLaneWrapper is
    generic (
       TPD_G           : time             := 1 ns;
-      RATE_G          : boolean          := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      RATE_G          : string           := "10.3125Gbps";  -- or "6.25Gbps"
       REFCLK_WIDTH_G  : positive         := 2;
       NUM_VC_G        : positive         := 2;
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));

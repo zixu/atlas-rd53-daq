@@ -58,7 +58,7 @@ $ source atlas-rd53-daq/firmware/setup_env_slac.csh
 2) Go to the firmware's target directory:
 
 ```
-$ cd atlas-rd53-daq/firmware/targets/AtlasRd53FebPgp3_10Gbps
+$ cd atlas-rd53-daq/firmware/targets/AtlasRd53FebPgp3_6Gbps
 ```
 
 3) Build the firmware
@@ -94,7 +94,7 @@ $ source atlas-rd53-daq/firmware/setup_env_slac.sh
 2) Go to the firmware's target directory:
 
 ```
-$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500Pgp3_10Gbps
+$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500Pgp3_6Gbps
 ```
 
 3) Build the firmware
@@ -240,20 +240,3 @@ $ python3 scripts/DevGui.py --guiType pcie
 
 <!--- ########################################################################################### -->
 
-# Task list 
-
-1) Waiting for TLU submodule: Assigned to Martin
-
-2) Waiting for new aurora_rx submodule: Assigned to Lev
-
-3) Determine the trigger and packet format of the RD53 data: Assigned to entire group
-
-4) Add MAX6682 (NTC readout) to pyrogue: Assigned to Larry
-
-5) Add SA56004ATK (U12) to pyrogue: Assigned to Larry
-
-6) Add LTC4151 (U11) to pyrogue: Assigned to Larry
-
-7) Add QSFP I2C to pyrogue: Assigned to Larry
-
-<!--- ########################################################################################### -->

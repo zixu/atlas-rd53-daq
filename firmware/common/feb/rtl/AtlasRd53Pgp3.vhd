@@ -27,7 +27,7 @@ use work.AtlasRd53Pkg.all;
 entity AtlasRd53Pgp3 is
    generic (
       TPD_G       : time    := 1 ns;
-      PGP3_RATE_G : boolean := true);  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      PGP3_RATE_G : string := "6.25Gbps");  -- or "10.3125Gbps"  
    port (
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : out sl;

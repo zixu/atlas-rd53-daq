@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Kcu1500Pgp3_6Gbps.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-24
--- Last update: 2018-05-03
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -209,7 +209,7 @@ begin
    U_Pgp : entity work.PgpLaneWrapper
       generic map (
          TPD_G           => TPD_G,
-         RATE_G          => false,      -- false = 6.25 Gbps         
+         RATE_G     => "6.25Gbps",
          AXI_BASE_ADDR_G => BAR0_BASE_ADDR_C)
       port map (
          -- QSFP[0] Ports
