@@ -221,6 +221,7 @@ class Top(pyrogue.Device):
         
         # Create an empty data stream array
         self.dataStream = [None] * 4
+        self.cmdStream  = [None] * 4
         
         # Check if emulating the GUI interface
         if (hwEmu):
@@ -234,23 +235,21 @@ class Top(pyrogue.Device):
             # static boost::shared_ptr<rogue::hardware::axi::AxiStreamDma> create (std::string path, uint32_t dest, bool ssiEnable);
             ########################################################################################################################
         
-            # Connect the SRPv3 to QSFP[port].Lane[0].VC[1]
-            srpStream  = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+1,1)
+            # Connect the SRPv3 to QSFP[port].Lane[0].VC[0]
+            srpStream  = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+0,1)
             memMap = rogue.protocols.srp.SrpV3()                
             pr.streamConnectBiDir( memMap, srpStream )             
             
-            # Create the Raw Data stream interface to QSFP[port].Lane[0].VC[0]
-            self.dataStream[0] = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+(32*0),1)
+            # Create the TLU stream interface to QSFP[port].Lane[0].VC[1]
+            self.tluStream = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+1,1)            
             
-            # Create the Raw Data stream interface to QSFP[port].Lane[1].VC[0]
-            self.dataStream[1] = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+(32*1),1)
-            
-            # Create the Raw Data stream interface to QSFP[port].Lane[2].VC[0]
-            self.dataStream[2] = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+(32*2),1)
-            
-            # Create the Raw Data stream interface to QSFP[port].Lane[3].VC[0]
-            self.dataStream[3] = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+(32*3),1)            
-            
+            for i in range(4):
+                # Create the RD53 Data stream interface to QSFP[port].Lane[0].VC[2+i]
+                self.dataStream[i] = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+2+i,1)
+                
+                # Create the RD53 CMD stream interface to QSFP[port].Lane[0].VC[2+i]
+                self.cmdStream[i] = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+6+i,1)                
+                       
         ######################################################################
             
         # Add devices
