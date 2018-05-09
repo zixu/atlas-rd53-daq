@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-08
+-- Last update: 2018-05-09
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
 -------------------------------------------------------------------------------
@@ -141,8 +141,18 @@ architecture mapping of AtlasRd53Core is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
-   signal axisMasters : AxiStreamMasterArray(3 downto 0);
-   signal axisSlaves  : AxiStreamSlaveArray(3 downto 0);
+   signal txDataMasters : AxiStreamMasterArray(3 downto 0);
+   signal txDataSlaves  : AxiStreamSlaveArray(3 downto 0);
+
+   signal txCmdMasters : AxiStreamMasterArray(3 downto 0);
+   signal txCmdSlaves  : AxiStreamSlaveArray(3 downto 0);
+   signal rxCmdMasters : AxiStreamMasterArray(3 downto 0);
+   signal rxCmdSlaves  : AxiStreamSlaveArray(3 downto 0);
+
+   signal txTluMaster : AxiStreamMasterType;
+   signal txTluSlave  : AxiStreamSlaveType;
+   signal rxTluMaster : AxiStreamMasterType;
+   signal rxTluSlave  : AxiStreamSlaveType;
 
    signal rxLinkUp : slv(3 downto 0);
    signal txLinkUp : slv(3 downto 0);
@@ -245,6 +255,11 @@ begin
          axilReadSlave   => axilReadSlaves(TLU_INDEX_C),
          axilWriteMaster => axilWriteMasters(TLU_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(TLU_INDEX_C),
+         -- Streaming TLU Interface (axilClk domain)
+         sTluMaster      => rxTluMaster,
+         sTluSlave       => rxTluSlave,
+         mTluMaster      => txTluMaster,
+         mTluSlave       => txTluSlave,
          -- Timing Clocks
          clk640MHz       => clk640MHz,
          rst640MHz       => rst640MHz,
@@ -284,9 +299,14 @@ begin
             axilReadSlave   => axilReadSlaves(DPORT0_INDEX_C+i),
             axilWriteMaster => axilWriteMasters(DPORT0_INDEX_C+i),
             axilWriteSlave  => axilWriteSlaves(DPORT0_INDEX_C+i),
-            -- Streaming RD43 Data (axilClk domain)
-            axisMaster      => axisMasters(i),
-            axisSlave       => axisSlaves(i),
+            -- Streaming RD43 Data Interface (axilClk domain)
+            mDataMaster     => txDataMasters(i),
+            mDataSlave      => txDataSlaves(i),
+            -- Streaming RD43 CMD Interface (axilClk domain)
+            sCmdMaster      => rxCmdMasters(i),
+            sCmdSlave       => rxCmdSlaves(i),
+            mCmdMaster      => txCmdMasters(i),
+            mCmdSlave       => txCmdSlaves(i),
             -- Timing Clocks
             clk640MHz       => clk640MHz,
             rst640MHz       => rst640MHz,
@@ -362,9 +382,19 @@ begin
          axilReadSlave   => axilReadSlave,
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave,
-         -- Streaming RD43 Data (axilClk domain)
-         axisMasters     => axisMasters,
-         axisSlaves      => axisSlaves,
+         -- Streaming RD43 Data Interface (axilClk domain)
+         sDataMasters    => txDataMasters,
+         sDataSlaves     => txDataSlaves,
+         -- Streaming RD43 CMD Interface (axilClk domain)
+         sCmdMasters     => txCmdMasters,
+         sCmdSlaves      => txCmdSlaves,
+         mCmdMasters     => rxCmdMasters,
+         mCmdSlaves      => rxCmdSlaves,
+         -- Streaming TLU Interface (axilClk domain)
+         sTluMaster      => txTluMaster,
+         sTluSlave       => txTluSlave,
+         mTluMaster      => rxTluMaster,
+         mTluSlave       => rxTluSlave,
          -- Stable Reference IDELAY Clock and Reset
          refClk300MHz    => refClk300MHz,
          refRst300MHz    => refRst300MHz,

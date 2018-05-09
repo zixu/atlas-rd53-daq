@@ -2,7 +2,7 @@
 -- File       : AtlasRd53HitTrig.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-05
+-- Last update: 2018-05-09
 -------------------------------------------------------------------------------
 -- Description: Hit/Trig Module
 -------------------------------------------------------------------------------
@@ -20,6 +20,8 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.AxiStreamPkg.all;
+use work.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -36,6 +38,11 @@ entity AtlasRd53HitTrig is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
+      -- Streaming TLU Interface (axilClk domain)
+      sTluMaster      : in  AxiStreamMasterType;
+      sTluSlave       : out AxiStreamSlaveType;
+      mTluMaster      : out AxiStreamMasterType;
+      mTluSlave       : in  AxiStreamSlaveType;
       -- Timing Clocks
       clk640MHz       : in  sl;
       rst640MHz       : in  sl;
@@ -116,5 +123,7 @@ begin
    -- Place holder for future code
    axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
    axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   sTluSlave      <= AXI_STREAM_SLAVE_FORCE_C;
+   mTluMaster     <= AXI_STREAM_MASTER_INIT_C;
 
 end mapping;
