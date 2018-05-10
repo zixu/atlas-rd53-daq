@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Dport.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-05
+-- Last update: 2018-05-09
 -------------------------------------------------------------------------------
 -- Description: Hit/Trig Module
 -------------------------------------------------------------------------------
@@ -40,9 +40,14 @@ entity AtlasRd53Dport is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-      -- Streaming RD43 Data (axilClk domain)
-      axisMaster      : out AxiStreamMasterType;
-      axisSlave       : in  AxiStreamSlaveType;
+      -- Streaming RD43 Data Interface (axilClk domain)
+      mDataMaster     : out AxiStreamMasterType;
+      mDataSlave      : in  AxiStreamSlaveType;
+      -- Streaming RD43 CMD Interface (axilClk domain)
+      sCmdMaster      : in  AxiStreamMasterType;
+      sCmdSlave       : out AxiStreamSlaveType;
+      mCmdMaster      : out AxiStreamMasterType;
+      mCmdSlave       : in  AxiStreamSlaveType;
       -- Timing Clocks
       clk640MHz       : in  sl;
       rst640MHz       : in  sl;
@@ -139,6 +144,8 @@ begin
    -- Place holder for future code
    axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
    axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   sCmdSlave      <= AXI_STREAM_SLAVE_FORCE_C;
+   mCmdMaster     <= AXI_STREAM_MASTER_INIT_C;
 
    GEN_LANE : for i in 3 downto 0 generate
       U_rx_lane : aurora_rx_top_xapp
@@ -206,7 +213,7 @@ begin
          -- AXI Stream Interface
          mAxisClk      => axilClk,
          mAxisRst      => axilRst,
-         mAxisMaster   => axisMaster,
-         mAxisSlave    => axisSlave);
+         mAxisMaster   => mDataMaster,
+         mAxisSlave    => mDataSlave);
 
 end mapping;

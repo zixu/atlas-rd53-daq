@@ -80,7 +80,7 @@ begin
       generic map(
          TPD_G            => TPD_G,
          NUM_LANES_G      => 1,
-         NUM_VC_G         => 2,
+         NUM_VC_G         => NUM_VC_G,
          RATE_G           => "6.25Gbps",
          REFCLK_TYPE_G    => PGP3_REFCLK_250_C,  -- 250 MHz reference clock
          REFCLK_G         => true,               -- TRUE: use pgpRefClkIn

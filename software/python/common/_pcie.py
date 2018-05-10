@@ -52,7 +52,7 @@ class Pcie(pyrogue.Device):
                 memBase         = memMap,
                 name            = ('Pgp3Mon[%d]' % i),
                 offset          = (0x00800000 + i*0x10000),  
-                numVc           = 2,
+                numVc           = 16,
                 writeEn         = True,
                 expand          = False,
             ))
