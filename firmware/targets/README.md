@@ -10,10 +10,12 @@
 
 # Task list 
 
-1) Waiting for TLU submodule: Assigned to Martin
+1) Integration of rogue in HSIO2: Assigned to Matthias (high priority)
 
 2) Waiting for new aurora_rx submodule: Assigned to Lev
 
-3) Determine the trigger and packet format of the RD53 data: Assigned to entire group
+3) Determine the trigger and packet format of the RD53 data: Assigned to Zijun/Martin
+
+4) Waiting for TLU submodule: Assigned to Zijun/Martin (low priority)
 
 <!--- ########################################################################################### -->
