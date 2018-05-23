@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Clk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-05
+-- Last update: 2018-05-23
 -------------------------------------------------------------------------------
 -- Description: PLL Wrapper
 -------------------------------------------------------------------------------
@@ -42,10 +42,13 @@ entity AtlasRd53Clk is
       pllLocked     : out sl;
       -- Timing Clocks Interface
       clk640MHz     : out sl;
-      rst640MHz     : out sl;
       clk160MHz     : out sl;
-      rst160MHz     : out sl;
+      clk80MHz      : out sl;
       clk40MHz      : out sl;
+      -- Timing Resets Interface
+      rst640MHz     : out sl;
+      rst160MHz     : out sl;
+      rst80MHz      : out sl;
       rst40MHz      : out sl);
 end AtlasRd53Clk;
 
@@ -99,24 +102,29 @@ begin
          BANDWIDTH_G      => "HIGH",
          INPUT_BUFG_G     => false,
          FB_BUFG_G        => true,
-         NUM_CLOCKS_G     => 3,
+         NUM_CLOCKS_G     => 4,
          CLKIN_PERIOD_G   => 6.25,      -- 160 MHz
          DIVCLK_DIVIDE_G  => 1,         -- 160 MHz = 160 MHz/1
          CLKFBOUT_MULT_G  => 8,         -- 1.28 GHz = 160 MHz x 8
          CLKOUT0_DIVIDE_G => 2,         -- 640 MHz = 1.28 GHz/2
          CLKOUT1_DIVIDE_G => 8,         -- 160 MHz = 1.28 GHz/8
-         CLKOUT2_DIVIDE_G => 32)        -- 40 MHz = 1.28 GHz/32
+         CLKOUT2_DIVIDE_G => 16,        -- 80 MHz = 1.28 GHz/16
+         CLKOUT3_DIVIDE_G => 32)        -- 40 MHz = 1.28 GHz/32
       port map(
          clkIn     => refClk,
          rstIn     => pllRst,
+         -- Clock Outputs
          clkOut(0) => clk640MHz,
          clkOut(1) => clk160MHz,
-         clkOut(2) => clk40MHz,
+         clkOut(2) => clk80MHz,
+         clkOut(3) => clk40MHz,
+         -- Reset Outputs
          rstOut(0) => rst640MHz,
          rstOut(1) => rst160MHz,
-         rstOut(2) => rst40MHz,
+         rstOut(2) => rst80MHz,
+         rstOut(3) => rst40MHz,
+         -- Status         
          locked    => pllLocked);
-
 
    -- Not synchronizing the DC/DC to system clock
    pwrSyncSclk <= '0';

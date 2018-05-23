@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Core.vhd
+-- File       : AtlasRd53EmuCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
 -- Last update: 2018-05-23
@@ -26,21 +26,21 @@ use work.AtlasRd53Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity AtlasRd53Core is
+entity AtlasRd53EmuCore is
    generic (
       TPD_G        : time   := 1 ns;
       BUILD_INFO_G : BuildInfoType;
       PGP3_RATE_G  : string := "6.25Gbps");  -- or "10.3125Gbps"      
    port (
-      -- RD53 ASIC Serial Ports
-      dPortDataP    : in    Slv4Array(3 downto 0);
-      dPortDataN    : in    Slv4Array(3 downto 0);
-      dPortHitP     : in    Slv4Array(3 downto 0);
-      dPortHitN     : in    Slv4Array(3 downto 0);
-      dPortCmdP     : out   slv(3 downto 0);
-      dPortCmdN     : out   slv(3 downto 0);
-      dPortAuxP     : out   slv(3 downto 0);
-      dPortAuxN     : out   slv(3 downto 0);
+      -- RD53 ASIC Emulation Ports
+      dPortDataP    : out   Slv4Array(3 downto 0);
+      dPortDataN    : out   Slv4Array(3 downto 0);
+      dPortHitP     : out   Slv4Array(3 downto 0);
+      dPortHitN     : out   Slv4Array(3 downto 0);
+      dPortCmdP     : in    slv(3 downto 0);
+      dPortCmdN     : in    slv(3 downto 0);
+      dPortAuxP     : in    slv(3 downto 0);
+      dPortAuxN     : in    slv(3 downto 0);
       dPortRst      : out   slv(3 downto 0);
       -- NTC SPI Ports
       dPortNtcCsL   : out   slv(3 downto 0);
@@ -92,18 +92,17 @@ entity AtlasRd53Core is
       tempAlertL    : in    sl;
       vPIn          : in    sl;
       vNIn          : in    sl);
-end AtlasRd53Core;
+end AtlasRd53EmuCore;
 
-architecture mapping of AtlasRd53Core is
+architecture mapping of AtlasRd53EmuCore is
 
-   constant NUM_AXIL_MASTERS_C : natural := 6;
+   constant NUM_AXIL_MASTERS_C : natural := 5;
 
    constant SYS_INDEX_C    : natural := 0;
    constant DPORT0_INDEX_C : natural := 1;
    constant DPORT1_INDEX_C : natural := 2;
    constant DPORT2_INDEX_C : natural := 3;
    constant DPORT3_INDEX_C : natural := 4;
-   constant TLU_INDEX_C    : natural := 5;
 
    constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
       SYS_INDEX_C     => (
@@ -125,10 +124,6 @@ architecture mapping of AtlasRd53Core is
       DPORT3_INDEX_C  => (
          baseAddr     => x"0400_0000",
          addrBits     => 24,
-         connectivity => x"FFFF"),
-      TLU_INDEX_C     => (
-         baseAddr     => x"0500_0000",
-         addrBits     => 24,
          connectivity => x"FFFF"));
 
    signal axilWriteMaster : AxiLiteWriteMasterType;
@@ -141,87 +136,61 @@ architecture mapping of AtlasRd53Core is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
-   signal txDataMasters : AxiStreamMasterArray(3 downto 0);
-   signal txDataSlaves  : AxiStreamSlaveArray(3 downto 0);
-
-   signal txCmdMasters : AxiStreamMasterArray(3 downto 0);
-   signal txCmdSlaves  : AxiStreamSlaveArray(3 downto 0);
-   signal rxCmdMasters : AxiStreamMasterArray(3 downto 0);
-   signal rxCmdSlaves  : AxiStreamSlaveArray(3 downto 0);
-
-   signal txTluMaster : AxiStreamMasterType;
-   signal txTluSlave  : AxiStreamSlaveType;
-   signal rxTluMaster : AxiStreamMasterType;
-   signal rxTluSlave  : AxiStreamSlaveType;
-
    signal rxLinkUp : slv(3 downto 0);
-   signal txLinkUp : slv(3 downto 0);
+   signal txLinkUp : slv(3 downto 0);   
+   signal pllLocked : slv(3 downto 0);
 
    signal axilClk : sl;
    signal axilRst : sl;
-
-   signal clk640MHz : sl;
-   signal clk160MHz : sl;
-   signal clk80MHz  : sl;
-   signal clk40MHz  : sl;
-
-   signal rst640MHz : sl;
-   signal rst160MHz : sl;
-   signal rst80MHz  : sl;
-   signal rst40MHz  : sl;
-
+   
    signal refClk300MHz : sl;
-   signal refRst300MHz : sl;
+   signal refRst300MHz : sl;   
 
    signal status : AtlasRd53StatusType := RD53_FEB_STATUS_INIT_C;
    signal config : AtlasRd53ConfigType := RD53_FEB_CONFIG_INIT_C;
 
-   attribute IODELAY_GROUP                 : string;
-   attribute IODELAY_GROUP of U_IDELAYCTRL : label is "xapp_idelay";
-
-   attribute KEEP_HIERARCHY                 : string;
-   attribute KEEP_HIERARCHY of U_IDELAYCTRL : label is "TRUE";
-
 begin
 
-   led <= rxLinkUp;
+   led <= pllLocked;
 
-   U_IDELAYCTRL : IDELAYCTRL
+   --------------------------------
+   -- Unused ports for the emulator
+   --------------------------------
+   GEN_FEB : for i in 3 downto 0 generate
+      GEN_CH : for j in 3 downto 0 generate
+         U_dPortHit : OBUFDS
+            port map (
+               I  => '0',
+               O  => dPortHitP(i)(j),
+               OB => dPortHitN(i)(j));
+      end generate GEN_CH;
+   end generate GEN_FEB;
+
+   U_tluInt : IBUFDS
       port map (
-         RDY    => status.iDelayCtrlRdy,
-         REFCLK => refClk300MHz,
-         RST    => refRst300MHz);
+         I  => tluIntP,
+         IB => tluIntN,
+         O  => open);
 
-   ----------------------
-   -- Timing Clock Module
-   ----------------------
-   U_Clk : entity work.AtlasRd53Clk
-      generic map(
-         TPD_G => TPD_G)
-      port map(
-         -- Reference Clock Ports
-         intClk160MHzP => intClk160MHzP,
-         intClk160MHzN => intClk160MHzN,
-         extClk160MHzP => extClk160MHzP,
-         extClk160MHzN => extClk160MHzN,
-         -- Misc Ports
-         pwrSyncSclk   => pwrSyncSclk,
-         pwrSyncFclk   => pwrSyncFclk,
-         -- Configuration/Status interface
-         refSelect     => config.refSelect,
-         pllRst        => config.pllRst,
-         refClk160MHz  => status.refClk160MHz,
-         pllLocked     => status.pllLocked,
-         -- Timing Clocks Interface
-         clk640MHz     => clk640MHz,
-         clk160MHz     => clk160MHz,
-         clk80MHz      => clk80MHz,
-         clk40MHz      => clk40MHz,
-         -- Timing Resets Interface
-         rst640MHz     => rst640MHz,
-         rst160MHz     => rst160MHz,
-         rst80MHz      => rst80MHz,
-         rst40MHz      => rst40MHz);
+   U_tluRst : IBUFDS
+      port map (
+         I  => tluRstP,
+         IB => tluRstN,
+         O  => open);
+
+   U_tluTrgClk : OBUFDS
+      port map (
+         I  => '0',
+         O  => tluTrgClkP,
+         OB => tluTrgClkN);
+
+   U_tluBsy : OBUFDS
+      port map (
+         I  => '0',
+         O  => tluBsyP,
+         OB => tluBsyN);
+
+   hitOut <= '0';
 
    ---------------
    -- PGPv3 Module
@@ -238,19 +207,6 @@ begin
          axilReadSlave   => axilReadSlave,
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave,
-         -- Streaming RD43 Data Interface (axilClk domain)
-         sDataMasters    => txDataMasters,
-         sDataSlaves     => txDataSlaves,
-         -- Streaming RD43 CMD Interface (axilClk domain)
-         sCmdMasters     => txCmdMasters,
-         sCmdSlaves      => txCmdSlaves,
-         mCmdMasters     => rxCmdMasters,
-         mCmdSlaves      => rxCmdSlaves,
-         -- Streaming TLU Interface (axilClk domain)
-         sTluMaster      => txTluMaster,
-         sTluSlave       => txTluSlave,
-         mTluMaster      => rxTluMaster,
-         mTluSlave       => rxTluSlave,
          -- Stable Reference IDELAY Clock and Reset
          refClk300MHz    => refClk300MHz,
          refRst300MHz    => refRst300MHz,
@@ -328,21 +284,16 @@ begin
          vPIn            => vPIn,
          vNIn            => vNIn);
 
-   ----------------
-   -- DPort Modules
-   ----------------
-   GEN_VEC : for i in 3 downto 0 generate
-      U_Dport : entity work.AtlasRd53Dport
+   ------------------
+   -- DPort Emulation 
+   ------------------
+   GEN_EMU : for i in 3 downto 0 generate
+      U_Dport : entity work.AtlasRd53EmuDport
          generic map (
             TPD_G           => TPD_G,
             LINK_INDEX_G    => i,
             AXI_BASE_ADDR_G => XBAR_CONFIG_C(DPORT0_INDEX_C+i).baseAddr)
          port map (
-            -- Misc. Interfaces
-            selEmuIn      => config.selEmuIn,
-            enAuxClk      => config.enAuxClk,
-            userRst       => config.userRst,
-            iDelayCtrlRdy => status.iDelayCtrlRdy,        
             -- AXI-Lite Interface (axilClk domain)
             axilClk         => axilClk,
             axilRst         => axilRst,
@@ -350,24 +301,12 @@ begin
             axilReadSlave   => axilReadSlaves(DPORT0_INDEX_C+i),
             axilWriteMaster => axilWriteMasters(DPORT0_INDEX_C+i),
             axilWriteSlave  => axilWriteSlaves(DPORT0_INDEX_C+i),
-            -- Streaming RD43 Data Interface (axilClk domain)
-            mDataMaster     => txDataMasters(i),
-            mDataSlave      => txDataSlaves(i),
-            -- Streaming RD43 CMD Interface (axilClk domain)
-            sCmdMaster      => rxCmdMasters(i),
-            sCmdSlave       => rxCmdSlaves(i),
-            mCmdMaster      => txCmdMasters(i),
-            mCmdSlave       => txCmdSlaves(i),
-            -- Timing Clocks Interface
-            clk640MHz       => clk640MHz,
-            clk160MHz       => clk160MHz,
-            clk80MHz        => clk80MHz,
-            clk40MHz        => clk40MHz,
-            -- Timing Resets Interface
-            rst640MHz       => rst640MHz,
-            rst160MHz       => rst160MHz,
-            rst80MHz        => rst80MHz,
-            rst40MHz        => rst40MHz,
+            -- Status
+            pllLocked       => pllLocked(i),
+            trigOut         => open,
+            fifoFull        => open,
+            ttFull          => open,
+            ttEmpty         => open,
             -- RD53 Ports
             dPortDataP      => dPortDataP(i),
             dPortDataN      => dPortDataN(i),
@@ -376,49 +315,6 @@ begin
             dPortAuxP       => dPortAuxP(i),
             dPortAuxN       => dPortAuxN(i),
             dPortRst        => dPortRst(i));
-   end generate GEN_VEC;
-
-   ---------------------
-   -- Hit/Trigger Module
-   ---------------------
-   U_HitTrig : entity work.AtlasRd53HitTrig
-      generic map(
-         TPD_G           => TPD_G,
-         AXI_BASE_ADDR_G => XBAR_CONFIG_C(TLU_INDEX_C).baseAddr)
-      port map(
-         -- AXI-Lite Interface
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMasters(TLU_INDEX_C),
-         axilReadSlave   => axilReadSlaves(TLU_INDEX_C),
-         axilWriteMaster => axilWriteMasters(TLU_INDEX_C),
-         axilWriteSlave  => axilWriteSlaves(TLU_INDEX_C),
-         -- Streaming TLU Interface (axilClk domain)
-         sTluMaster      => rxTluMaster,
-         sTluSlave       => rxTluSlave,
-         mTluMaster      => txTluMaster,
-         mTluSlave       => txTluSlave,
-         -- Timing Clocks
-         clk640MHz       => clk640MHz,
-         rst640MHz       => rst640MHz,
-         clk160MHz       => clk160MHz,
-         rst160MHz       => rst160MHz,
-         clk40MHz        => clk40MHz,
-         rst40MHz        => rst40MHz,
-         -- Trigger and hits Ports
-         dPortHitP       => dPortHitP,
-         dPortHitN       => dPortHitN,
-         trigInL         => trigInL,
-         hitInL          => hitInL,
-         hitOut          => hitOut,
-         -- TLU Ports
-         tluTrgClkP      => tluTrgClkP,
-         tluTrgClkN      => tluTrgClkN,
-         tluBsyP         => tluBsyP,
-         tluBsyN         => tluBsyN,
-         tluIntP         => tluIntP,
-         tluIntN         => tluIntN,
-         tluRstP         => tluRstP,
-         tluRstN         => tluRstN);
+   end generate GEN_EMU;
 
 end mapping;

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Dpm10GbEPgp3_6Gbps.vhd
+-- File       : AtlasRd53HsioDtm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-01
 -- Last update: 2018-05-01
@@ -23,10 +23,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.RceG3Pkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
-entity AtlasRd53Dpm10GbEPgp3_6Gbps is
+entity AtlasRd53HsioDtm is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -36,42 +33,50 @@ entity AtlasRd53Dpm10GbEPgp3_6Gbps is
       -- I2C
       i2cSda      : inout sl;
       i2cScl      : inout sl;
-      -- Ethernet
-      ethRxP      : in    slv(3 downto 0);
-      ethRxM      : in    slv(3 downto 0);
-      ethTxP      : out   slv(3 downto 0);
-      ethTxM      : out   slv(3 downto 0);
-      ethRefClkP  : in    sl;
-      ethRefClkM  : in    sl;
-      -- RTM Interface
-      locRefClkP  : in    sl;
-      locRefClkM  : in    sl;
-      dpmToRtmHsP : out   slv(11 downto 0);
-      dpmToRtmHsM : out   slv(11 downto 0);
-      rtmToDpmHsP : in    slv(11 downto 0);
-      rtmToDpmHsM : in    slv(11 downto 0);
-      -- DTM Signals
-      dtmClkP     : in    slv(1 downto 0);
-      dtmClkM     : in    slv(1 downto 0);
-      dtmFbP      : out   sl;
-      dtmFbM      : out   sl;
       -- Clock Select
-      clkSelA     : out   slv(1 downto 0);
-      clkSelB     : out   slv(1 downto 0));
-end AtlasRd53Dpm10GbEPgp3_6Gbps;
+      clkSelA     : out   sl;
+      clkSelB     : out   sl;
+      -- Base Ethernet
+      ethRxCtrl   : in    slv(1 downto 0);
+      ethRxClk    : in    slv(1 downto 0);
+      ethRxDataA  : in    Slv(1 downto 0);
+      ethRxDataB  : in    Slv(1 downto 0);
+      ethRxDataC  : in    Slv(1 downto 0);
+      ethRxDataD  : in    Slv(1 downto 0);
+      ethTxCtrl   : out   slv(1 downto 0);
+      ethTxClk    : out   slv(1 downto 0);
+      ethTxDataA  : out   Slv(1 downto 0);
+      ethTxDataB  : out   Slv(1 downto 0);
+      ethTxDataC  : out   Slv(1 downto 0);
+      ethTxDataD  : out   Slv(1 downto 0);
+      ethMdc      : out   Slv(1 downto 0);
+      ethMio      : inout Slv(1 downto 0);
+      ethResetL   : out   Slv(1 downto 0);
+      -- IPMI
+      dtmToIpmiP  : out   slv(1 downto 0);
+      dtmToIpmiM  : out   slv(1 downto 0);
+      -- Reference Clock
+      locRefClk1P : in    sl;
+      locRefClk1M : in    sl;
+      -- RTM High Speed
+      dtmToRtmHsP : out   sl;
+      dtmToRtmHsM : out   sl;
+      rtmToDtmHsP : in    sl;
+      rtmToDtmHsM : in    sl);
+end AtlasRd53HsioDtm;
 
-architecture TOP_LEVEL of AtlasRd53Dpm10GbEPgp3_6Gbps is
+architecture TOP_LEVEL of AtlasRd53HsioDtm is
 
    signal ref200Clk : sl;
    signal ref200Rst : sl;
 
-   signal dmaClk : slv(2 downto 0);
-   signal dmaRst : slv(2 downto 0);
+   signal dmaClk : slv(3 downto 0);
+   signal dmaRst : slv(3 downto 0);
 
-   signal dmaObMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal dmaObSlaves  : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal dmaIbMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal dmaIbSlaves  : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal dmaObMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal dmaObSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal dmaIbMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal dmaIbSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
    signal axilClk         : sl;
    signal axilRst         : sl;
@@ -83,34 +88,43 @@ architecture TOP_LEVEL of AtlasRd53Dpm10GbEPgp3_6Gbps is
 begin
 
    -----------
-   -- DPM Core
+   -- DTM Core
    -----------
-   U_DpmCore : entity work.DpmCore
+   U_HsioCore : entity work.HsioCore
       generic map (
          TPD_G          => TPD_G,
          BUILD_INFO_G   => BUILD_INFO_G,
-         RCE_DMA_MODE_G => RCE_DMA_AXISV2_C,  -- AXIS V2 Driver
-         ETH_10G_EN_G   => true)              -- 10 GbE XAUI
+         RCE_DMA_MODE_G => RCE_DMA_AXISV2_C)  -- AXIS V2 Driver
       port map (
          -- I2C
          i2cSda             => i2cSda,
          i2cScl             => i2cScl,
-         -- Ethernet
-         ethRxP             => ethRxP,
-         ethRxM             => ethRxM,
-         ethTxP             => ethTxP,
-         ethTxM             => ethTxM,
-         ethRefClkP         => ethRefClkP,
-         ethRefClkM         => ethRefClkM,
          -- Clock Select
          clkSelA            => clkSelA,
          clkSelB            => clkSelB,
-         -- Clocks and Resets
-         sysClk125          => open,
-         sysClk125Rst       => open,
+         -- Base Ethernet
+         ethRxCtrl          => ethRxCtrl,
+         ethRxClk           => ethRxClk,
+         ethRxDataA         => ethRxDataA,
+         ethRxDataB         => ethRxDataB,
+         ethRxDataC         => ethRxDataC,
+         ethRxDataD         => ethRxDataD,
+         ethTxCtrl          => ethTxCtrl,
+         ethTxClk           => ethTxClk,
+         ethTxDataA         => ethTxDataA,
+         ethTxDataB         => ethTxDataB,
+         ethTxDataC         => ethTxDataC,
+         ethTxDataD         => ethTxDataD,
+         ethMdc             => ethMdc,
+         ethMio             => ethMio,
+         ethResetL          => ethResetL,
+         -- IPMI
+         dtmToIpmiP         => dtmToIpmiP,
+         dtmToIpmiM         => dtmToIpmiM,
+         -- Clocks
          sysClk200          => ref200Clk,
          sysClk200Rst       => ref200Rst,
-         -- External AXI-Lite Interface [0xA0000000:0xAFFFFFFF]
+         -- External Axi Bus, 0xA0000000 - 0xAFFFFFFF
          axiClk             => axilClk,
          axiClkRst          => axilRst,
          extAxilReadMaster  => axilReadMaster,
@@ -123,7 +137,9 @@ begin
          dmaObMaster        => dmaObMasters,
          dmaObSlave         => dmaObSlaves,
          dmaIbMaster        => dmaIbMasters,
-         dmaIbSlave         => dmaIbSlaves);
+         dmaIbSlave         => dmaIbSlaves,
+         -- User Interrupts
+         userInterrupt      => (others => '0'));
 
    ----------------------------------
    -- DMA clock and reset assignments
@@ -131,43 +147,21 @@ begin
    dmaClk <= (others => ref200Clk);
    dmaRst <= (others => ref200Rst);
 
-   --------------------
-   -- DTM Clock Signals
-   --------------------
-   U_DtmClkgen : for i in 0 to 1 generate
-      U_DtmClkIn : IBUFDS
-         generic map (
-            DIFF_TERM => true)
-         port map(
-            I  => dtmClkP(i),
-            IB => dtmClkM(i),
-            O  => open);
-   end generate;
-
-   ---------------
-   -- DTM Feedback
-   ---------------
-   U_DtmFbOut : OBUFDS
-      port map(
-         O  => dtmFbP,
-         OB => dtmFbM,
-         I  => '0');
-
    -----------------
    -- DMA[0] = PGPv3
    -----------------
-   U_Hardware : entity work.DpmPgpLaneWrapper
+   U_Hardware : entity work.DtmPgpLaneWrapper
       generic map (
          TPD_G           => TPD_G,
          AXI_BASE_ADDR_G => x"A0000000")
       port map (
          -- RTM Interface
-         refClk250P      => locRefClkP,
-         refClk250N      => locRefClkM,
-         dpmToRtmHsP     => dpmToRtmHsP,
-         dpmToRtmHsN     => dpmToRtmHsM,
-         rtmToDpmHsP     => rtmToDpmHsP,
-         rtmToDpmHsN     => rtmToDpmHsM,
+         refClk250P      => locRefClk1P,
+         refClk250N      => locRefClk1M,
+         dtmToRtmHsP     => dtmToRtmHsP,
+         dtmToRtmHsN     => dtmToRtmHsM,
+         rtmToDtmHsP     => rtmToDtmHsP,
+         rtmToDtmHsN     => rtmToDtmHsM,
          -- DMA Interfaces (dmaClk domain)
          dmaClk          => dmaClk(0),
          dmaRst          => dmaRst(0),
@@ -194,5 +188,11 @@ begin
    --------------------
    dmaIbMasters(2) <= dmaObMasters(2);
    dmaObSlaves(2)  <= dmaIbSlaves(2);
+
+   --------------------
+   -- DMA[3] = Loopback
+   --------------------
+   dmaIbMasters(3) <= dmaObMasters(3);
+   dmaObSlaves(3)  <= dmaIbSlaves(3);
 
 end architecture TOP_LEVEL;
