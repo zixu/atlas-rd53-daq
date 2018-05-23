@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53FebPgp3_6Gbps.vhd
+-- File       : AtlasRd53Feb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-08
+-- Last update: 2018-05-23
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 6.0 Gbps PGPv3 communication
 --
@@ -25,7 +25,7 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 
-entity AtlasRd53FebPgp3_6Gbps is
+entity AtlasRd53Feb is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -39,7 +39,8 @@ entity AtlasRd53FebPgp3_6Gbps is
       dPortCmdN     : out   slv(3 downto 0);
       dPortAuxP     : out   slv(3 downto 0);
       dPortAuxN     : out   slv(3 downto 0);
-      dPortRst      : out   slv(3 downto 0);
+      dPortRst      : out   slv(3 downto 0); -- Inverted in HW on FPGA board before dport connector
+      -- NTC SPI Ports
       dPortNtcCsL   : out   slv(3 downto 0);
       dPortNtcSck   : out   slv(3 downto 0);
       dPortNtcSdo   : in    slv(3 downto 0);
@@ -89,9 +90,9 @@ entity AtlasRd53FebPgp3_6Gbps is
       tempAlertL    : in    sl;
       vPIn          : in    sl;
       vNIn          : in    sl);
-end AtlasRd53FebPgp3_6Gbps;
+end AtlasRd53Feb;
 
-architecture top_level of AtlasRd53FebPgp3_6Gbps is
+architecture top_level of AtlasRd53Feb is
 
 begin
 

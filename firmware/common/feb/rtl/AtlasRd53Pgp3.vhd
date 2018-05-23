@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-09
+-- Last update: 2018-05-23
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
 -------------------------------------------------------------------------------
@@ -37,18 +37,18 @@ entity AtlasRd53Pgp3 is
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType;
       -- Streaming RD43 Data Interface (axilClk domain)
-      sDataMasters    : in  AxiStreamMasterArray(3 downto 0);
+      sDataMasters    : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       sDataSlaves     : out AxiStreamSlaveArray(3 downto 0);
       -- Streaming RD43 CMD Interface (axilClk domain)
-      sCmdMasters     : in  AxiStreamMasterArray(3 downto 0);
+      sCmdMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       sCmdSlaves      : out AxiStreamSlaveArray(3 downto 0);
       mCmdMasters     : out AxiStreamMasterArray(3 downto 0);
-      mCmdSlaves      : in  AxiStreamSlaveArray(3 downto 0);
+      mCmdSlaves      : in  AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
       -- Streaming TLU Interface (axilClk domain)
-      sTluMaster      : in  AxiStreamMasterType;
+      sTluMaster      : in  AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
       sTluSlave       : out AxiStreamSlaveType;
       mTluMaster      : out AxiStreamMasterType;
-      mTluSlave       : in  AxiStreamSlaveType;
+      mTluSlave       : in  AxiStreamSlaveType               := AXI_STREAM_SLAVE_FORCE_C;
       -- Stable Reference IDELAY Clock and Reset
       refClk300MHz    : out sl;
       refRst300MHz    : out sl;

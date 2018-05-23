@@ -100,6 +100,9 @@ begin
       axiSlaveRegister(regCon, x"808", 0, v.config.hardRst);
       axiSlaveRegister(regCon, x"80C", 0, v.config.pllRst);
       axiSlaveRegister(regCon, x"810", 0, v.config.refSelect);
+      axiSlaveRegister(regCon, x"814", 0, v.config.selEmuIn);
+      axiSlaveRegister(regCon, x"818", 0, v.config.enAuxClk);
+      axiSlaveRegister(regCon, x"81C", 0, v.config.userRst);
 
       axiSlaveRegister(regCon, x"FF8", 0, v.rollOverEn);
       axiSlaveRegister(regCon, x"FFC", 0, v.cntRst);

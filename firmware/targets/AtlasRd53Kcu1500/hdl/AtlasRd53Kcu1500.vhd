@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Kcu1500Pgp3_6Gbps.vhd
+-- File       : AtlasRd53Kcu1500.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-24
 -- Last update: 2018-05-08
@@ -27,7 +27,7 @@ use work.AxiPciePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity AtlasRd53Kcu1500Pgp3_6Gbps is
+entity AtlasRd53Kcu1500 is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -87,9 +87,9 @@ entity AtlasRd53Kcu1500Pgp3_6Gbps is
       pciRxN       : in    slv(7 downto 0);
       pciTxP       : out   slv(7 downto 0);
       pciTxN       : out   slv(7 downto 0));
-end AtlasRd53Kcu1500Pgp3_6Gbps;
+end AtlasRd53Kcu1500;
 
-architecture top_level of AtlasRd53Kcu1500Pgp3_6Gbps is
+architecture top_level of AtlasRd53Kcu1500 is
 
    signal axilClk         : sl;
    signal axilRst         : sl;

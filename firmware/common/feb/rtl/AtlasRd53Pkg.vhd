@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2017-12-20
+-- Last update: 2018-05-23
 -------------------------------------------------------------------------------
 -- Description: ATLAS RD43 VHDL Package
 -------------------------------------------------------------------------------
@@ -23,6 +23,9 @@ use work.StdRtlPkg.all;
 package AtlasRd53Pkg is
 
    type AtlasRD53ConfigType is record
+      selEmuIn  : sl;
+      enAuxClk  : sl;
+      userRst   : sl;
       softTrig  : sl;
       softRst   : sl;
       hardRst   : sl;
@@ -30,6 +33,9 @@ package AtlasRd53Pkg is
       refSelect : slv(1 downto 0);
    end record;
    constant RD53_FEB_CONFIG_INIT_C : AtlasRD53ConfigType := (
+      selEmuIn  => '0',
+      enAuxClk  => '0',
+      userRst   => '0',
       softTrig  => '0',
       softRst   => '0',
       hardRst   => '0',

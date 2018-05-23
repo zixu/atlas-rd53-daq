@@ -13,10 +13,6 @@ create_clock -name intClk160MHz  -period 6.237 [get_ports {intClk160MHzP}]
 create_clock -name extClk160MHz0 -period 6.237 [get_ports {extClk160MHzP[0]}]
 create_clock -name extClk160MHz1 -period 6.237 [get_ports {extClk160MHzP[1]}]
 
-create_generated_clock -name clk640    [get_pins {U_Core/U_Clk/U_PLL/PllGen.U_Pll/CLKOUT0}] 
-create_generated_clock -name clk160    [get_pins {U_Core/U_Clk/U_PLL/PllGen.U_Pll/CLKOUT1}] 
-create_generated_clock -name clk40     [get_pins {U_Core/U_Clk/U_PLL/PllGen.U_Pll/CLKOUT2}] 
-
 create_generated_clock -name stableClk [get_pins {U_Core/U_Pgp/U_PGPv3/U_pgpRefClk/ODIV2}] 
 create_generated_clock -name clk300    [get_pins {U_Core/U_Pgp/U_MMCM/MmcmGen.U_Mmcm/CLKOUT0}] 
 create_generated_clock -name clk156    [get_pins {U_Core/U_Pgp/U_MMCM/MmcmGen.U_Mmcm/CLKOUT1}] 
@@ -30,11 +26,6 @@ set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {dnaClk}]  -group [get_clocks {dnaClkInv}] 
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks -of_objects [get_pins {U_Core/U_Pgp/U_PGPv3/U_TX_PLL/PllGen.U_Pll/CLKOUT1}]] 
 
-set_clock_groups -asynchronous \ 
-   -group [get_clocks -include_generated_clocks {pgpClkP}] \
-   -group [get_clocks -include_generated_clocks {intClk160MHz}] \
-   -group [get_clocks -include_generated_clocks {extClk160MHz0}] \
-   -group [get_clocks -include_generated_clocks {extClk160MHz1}]
-
-set_case_analysis 1 [get_pins {U_Core/U_Clk/U_BUFGMUX_0/S}]
-set_case_analysis 1 [get_pins {U_Core/U_Clk/U_BUFGMUX_1/S}]
+set_clock_groups -asynchronous \
+    -group [get_clocks -include_generated_clocks -of_objects [get_pins -hier -filter {name=~*gt0_Pgp3Gtx7Ip6G_i*gtxe2_i*TXOUTCLK}]] \
+    -group [get_clocks -include_generated_clocks -of_objects [get_pins -hier -filter {name=~*gt0_Pgp3Gtx7Ip6G_i*gtxe2_i*RXOUTCLK}]]

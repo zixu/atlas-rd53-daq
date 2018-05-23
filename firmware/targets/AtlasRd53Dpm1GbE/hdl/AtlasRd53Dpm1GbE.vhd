@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Dpm1GbEPgp3_6Gbps.vhd
+-- File       : AtlasRd53Dpm1GbE.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-01
 -- Last update: 2018-05-01
@@ -26,7 +26,7 @@ use work.RceG3Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity AtlasRd53Dpm1GbEPgp3_6Gbps is
+entity AtlasRd53Dpm1GbE is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -58,9 +58,9 @@ entity AtlasRd53Dpm1GbEPgp3_6Gbps is
       -- Clock Select
       clkSelA     : out   slv(1 downto 0);
       clkSelB     : out   slv(1 downto 0));
-end AtlasRd53Dpm1GbEPgp3_6Gbps;
+end AtlasRd53Dpm1GbE;
 
-architecture TOP_LEVEL of AtlasRd53Dpm1GbEPgp3_6Gbps is
+architecture TOP_LEVEL of AtlasRd53Dpm1GbE is
 
    signal iethRxP : slv(3 downto 0);
    signal iethRxM : slv(3 downto 0);
