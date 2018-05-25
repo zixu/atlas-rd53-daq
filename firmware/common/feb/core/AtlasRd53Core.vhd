@@ -2,9 +2,9 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-23
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
+-- Description: AD53 readout core module
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -332,17 +332,19 @@ begin
    -- DPort Modules
    ----------------
    GEN_VEC : for i in 3 downto 0 generate
-      U_Dport : entity work.AtlasRd53Dport
+      U_RxPhy : entity work.AtlasRd53RxPhyCore
          generic map (
             TPD_G           => TPD_G,
             LINK_INDEX_G    => i,
             AXI_BASE_ADDR_G => XBAR_CONFIG_C(DPORT0_INDEX_C+i).baseAddr)
          port map (
             -- Misc. Interfaces
-            selEmuIn      => config.selEmuIn,
-            enAuxClk      => config.enAuxClk,
-            userRst       => config.userRst,
-            iDelayCtrlRdy => status.iDelayCtrlRdy,        
+            enLocalEmu      => config.enLocalEmu,
+            enAuxClk        => config.enAuxClk,
+            asicRst         => config.asicRst,
+            batchSize       => config.batchSize,
+            timerConfig     => config.timerConfig,
+            iDelayCtrlRdy   => status.iDelayCtrlRdy,
             -- AXI-Lite Interface (axilClk domain)
             axilClk         => axilClk,
             axilRst         => axilRst,

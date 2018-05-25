@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Dport.vhd
+-- File       : AtlasRd53RxPhyCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-23
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: Hit/Trig Module
+-- Description: RX PHY Core module
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -23,21 +23,20 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
+use work.AtlasRd53Pkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
-entity AtlasRd53Dport is
+entity AtlasRd53RxPhyCore is
    generic (
       TPD_G           : time             := 1 ns;
       LINK_INDEX_G    : natural          := 0;
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- Misc. Interfaces
-      selEmuIn        : in  sl;
+      enLocalEmu      : in  sl;
       enAuxClk        : in  sl;
-      userRst         : in  sl;
+      asicRst         : in  sl;
+      batchSize       : in  slv(15 downto 0);
+      timerConfig     : in  slv(15 downto 0);
       iDelayCtrlRdy   : in  sl;
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -72,27 +71,49 @@ entity AtlasRd53Dport is
       dPortAuxP       : out sl;
       dPortAuxN       : out sl;
       dPortRst        : out sl);
-end AtlasRd53Dport;
+end AtlasRd53RxPhyCore;
 
-architecture mapping of AtlasRd53Dport is
+architecture mapping of AtlasRd53RxPhyCore is
 
-   signal data     : Slv64Array(3 downto 0);
-   signal sync     : Slv2Array(3 downto 0);
-   signal valid    : sl;
-   signal chBond   : sl;
+   signal rx : AtlasRD53DataArray(1 downto 0);
+
+   signal autoReadReg : Slv32Array(3 downto 0);
+   signal cmdDrop     : sl;
+   signal dataDrop    : slv(3 downto 0);
+   signal timedOut    : sl;
+
    signal dPortCmd : sl;
+
+   signal dataMaster : AxiStreamMasterType;
+   signal dataSlave  : AxiStreamSlaveType;
 
 begin
 
    -------------------------------
    -- Place holder for future code
    -------------------------------
-   axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-   sCmdSlave      <= AXI_STREAM_SLAVE_FORCE_C;
-   mCmdMaster     <= AXI_STREAM_MASTER_INIT_C;
+   sCmdSlave <= AXI_STREAM_SLAVE_FORCE_C;
+   dPortCmd  <= '0';
 
-   dPortCmd <= '0';
+   ------------------------
+   -- RX PHY Monitor Module
+   ------------------------
+   U_Monitor : entity work.AtlasRd53RxPhyMon
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Monitoring Interface
+         autoReadReg     => autoReadReg,
+         cmdDrop         => cmdDrop,
+         dataDrop        => dataDrop,
+         timedOut        => timedOut,
+         -- AXI-Lite Interface
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave);
 
    --------------------------------
    -- RX PHY Layer + Local Emulator
@@ -103,9 +124,9 @@ begin
          LINK_INDEX_G => LINK_INDEX_G)
       port map (
          -- Misc. Interfaces
-         selEmuIn      => selEmuIn,
+         enLocalEmu    => enLocalEmu,
          enAuxClk      => enAuxClk,
-         userRst       => userRst,
+         asicRst       => asicRst,
          iDelayCtrlRdy => iDelayCtrlRdy,
          dPortCmd      => dPortCmd,
          -- RD53 ASIC Serial Ports
@@ -116,11 +137,8 @@ begin
          dPortAuxP     => dPortAuxP,
          dPortAuxN     => dPortAuxN,
          dPortRst      => dPortRst,
-         -- RX PHY Interface
-         validOut      => valid,
-         chBondOut     => chBond,
-         dataOut       => data,
-         syncOut       => sync,
+         -- Outbound Reg/Data Interface (clk80MHz domain)
+         rxOut         => rx(0),        -- Reg/Data
          -- Timing Clocks Interface
          clk640MHz     => clk640MHz,
          clk160MHz     => clk160MHz,
@@ -132,23 +150,62 @@ begin
          rst80MHz      => rst80MHz,
          rst40MHz      => rst40MHz);
 
-   U_Packetizer : entity work.AtlasRd53DportPacketizer
+   -------------------------------
+   -- Demux the data/register path
+   -------------------------------
+   U_DeMuxRegData : entity work.AtlasRd53DeMuxRegData
       generic map (
          TPD_G => TPD_G)
       port map (
-         -- Aligned Inbound Interface
-         clk160MHz     => clk160MHz,
-         rst160MHz     => rst160MHz,
-         clk40MHz      => clk40MHz,
-         rst40MHz      => rst40MHz,
-         data          => data,
-         sync          => sync,
-         valid         => valid,
-         channelBonded => chBond,
-         -- AXI Stream Interface
-         mAxisClk      => axilClk,
-         mAxisRst      => axilRst,
-         mAxisMaster   => mDataMaster,
-         mAxisSlave    => mDataSlave);
+         -- RX Interface (clk80MHz domain)
+         clk80MHz    => clk80MHz,
+         rst80MHz    => rst80MHz,
+         rxIn        => rx(0),          -- Reg/Data
+         rxOut       => rx(1),          -- Data only
+         -- Outbound Reg only Interface (axilClk domain)
+         axilClk     => axilClk,
+         axilRst     => axilRst,
+         autoReadReg => autoReadReg,
+         cmdDrop     => cmdDrop,
+         mCmdMaster  => mCmdMaster,
+         mCmdSlave   => mCmdSlave);
+
+   ---------------------------------------
+   -- Convert RX Data Path into AXI stream
+   ---------------------------------------
+   U_RxData : entity work.AtlasRd53RxData
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- RX Interface (clk80MHz domain)
+         clk80MHz    => clk80MHz,
+         rst80MHz    => rst80MHz,
+         rx          => rx(1),          -- Data only  
+         -- Outbound Reg only Interface (axilClk domain)
+         axilClk     => axilClk,
+         axilRst     => axilRst,
+         dataDrop    => dataDrop,
+         mDataMaster => dataMaster,
+         mDataSlave  => dataSlave);
+
+   ---------------------------------------------------------
+   -- Batch Multiple 32-bit data words into large AXIS frame
+   ---------------------------------------------------------
+   U_DataBatcher : entity work.AtlasRd53RxDataBatcher
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Clock and Reset
+         axilClk     => axilClk,
+         axilRst     => axilRst,
+         -- Configuration/Status Interface
+         batchSize   => batchSize,
+         timerConfig => timerConfig,
+         timedOut    => timedOut,
+         -- AXI Streaming Interface
+         sDataMaster => dataMaster,
+         sDataSlave  => dataSlave,
+         mDataMaster => mDataMaster,
+         mDataSlave  => mDataSlave);
 
 end mapping;

@@ -8,5 +8,8 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from common._top  import *
-from common._pcie import *
+from common._dport  import *
+from common._ntc    import *
+from common._pcie   import *
+from common._sysReg import *
+from common._top    import *

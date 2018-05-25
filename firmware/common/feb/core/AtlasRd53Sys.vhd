@@ -2,9 +2,9 @@
 -- File       : AtlasRd53Sys.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-08
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: System Level Registers
+-- Description: System Level Modules
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

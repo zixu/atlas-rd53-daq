@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53SysReg.vhd
+-- File       : AtlasRd53RxPhyMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-07
--- Last update: 2018-05-07
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Monitor the RX PHY status signals
 -------------------------------------------------------------------------------
 -- This file is part of 'DUNE Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -24,31 +24,31 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AtlasRd53Pkg.all;
 
-entity AtlasRd53SysReg is
+entity AtlasRd53RxPhyMon is
    generic (
-      TPD_G          : time := 1 ns;
-      AXI_CLK_FREQ_G : real := 156.25E+6);  -- units of Hz
+      TPD_G : time := 1 ns);
    port (
+      -- Monitoring Interface
+      autoReadReg     : in  Slv32Array(3 downto 0);
+      cmdDrop         : in  sl;
+      dataDrop        : in  slv(3 downto 0);
+      timedOut        : in  sl;
       -- AXI-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
-      -- System Interface
-      status          : in  AtlasRd53StatusType;
-      config          : out AtlasRd53ConfigType);
-end AtlasRd53SysReg;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
+end AtlasRd53RxPhyMon;
 
-architecture rtl of AtlasRd53SysReg is
+architecture rtl of AtlasRd53RxPhyMon is
 
-   constant STATUS_SIZE_C : positive := 2;
+   constant STATUS_SIZE_C : positive := 6;
 
    type RegType is record
       cntRst         : sl;
       rollOverEn     : slv(STATUS_SIZE_C-1 downto 0);
-      config         : AtlasRD53ConfigType;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
@@ -56,7 +56,6 @@ architecture rtl of AtlasRd53SysReg is
    constant REG_INIT_C : RegType := (
       cntRst         => '1',
       rollOverEn     => (others => '0'),
-      config         => RD53_FEB_CONFIG_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -66,15 +65,13 @@ architecture rtl of AtlasRd53SysReg is
    signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
    signal statusCnt : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
 
-   signal refClk160MHzFreq : slv(31 downto 0);
-
    -- attribute dont_touch               : string;
    -- attribute dont_touch of r          : signal is "TRUE";
 
 begin
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, r,
-                   refClk160MHzFreq, statusCnt, statusOut) is
+   comb : process (autoReadReg, axilReadMaster, axilRst, axilWriteMaster, r,
+                   statusCnt, statusOut) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
    begin
@@ -92,17 +89,11 @@ begin
          axiSlaveRegisterR(regCon, toSlv((4*i), 12), 0, muxSlVectorArray(statusCnt, i));
       end loop;
       axiSlaveRegisterR(regCon, x"400", 0, statusOut);
-      axiSlaveRegisterR(regCon, x"404", 0, refClk160MHzFreq);
 
-      -- Map the write registers
-      axiSlaveRegister(regCon, x"800", 0, v.config.softTrig);
-      axiSlaveRegister(regCon, x"804", 0, v.config.softRst);
-      axiSlaveRegister(regCon, x"808", 0, v.config.hardRst);
-      axiSlaveRegister(regCon, x"80C", 0, v.config.pllRst);
-      axiSlaveRegister(regCon, x"810", 0, v.config.refSelect);
-      axiSlaveRegister(regCon, x"814", 0, v.config.selEmuIn);
-      axiSlaveRegister(regCon, x"818", 0, v.config.enAuxClk);
-      axiSlaveRegister(regCon, x"81C", 0, v.config.userRst);
+      axiSlaveRegisterR(regCon, x"410", 0, autoReadReg(0));
+      axiSlaveRegisterR(regCon, x"414", 0, autoReadReg(1));
+      axiSlaveRegisterR(regCon, x"418", 0, autoReadReg(2));
+      axiSlaveRegisterR(regCon, x"41C", 0, autoReadReg(3));
 
       axiSlaveRegister(regCon, x"FF8", 0, v.rollOverEn);
       axiSlaveRegister(regCon, x"FFC", 0, v.cntRst);
@@ -121,7 +112,6 @@ begin
       -- Outputs
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
-      config         <= r.config;
 
    end process comb;
 
@@ -132,37 +122,27 @@ begin
       end if;
    end process seq;
 
-   U_refClk160MHz : entity work.SyncClockFreq
-      generic map (
-         TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,
-         REFRESH_RATE_G => 1.0,         -- 1 Hz
-         CNT_WIDTH_G    => 32)
-      port map (
-         freqOut => refClk160MHzFreq,
-         clkIn   => status.refClk160MHz,
-         locClk  => axilClk,
-         refClk  => axilClk);
-
    U_SyncStatusVector : entity work.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
+         COMMON_CLK_G   => true,
          OUT_POLARITY_G => '1',
          CNT_RST_EDGE_G => false,
          CNT_WIDTH_G    => 32,
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(1)  => status.pllLocked,
-         statusIn(0)  => status.iDelayCtrlRdy,
+         statusIn(5)          => timedOut,
+         statusIn(4)          => cmdDrop,
+         statusIn(3 downto 0) => dataDrop,
          -- Output Status bit Signals (rdClk domain)  
-         statusOut    => statusOut,
+         statusOut            => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 
-         cntRstIn     => r.cntRst,
-         rollOverEnIn => r.rollOverEn,
-         cntOut       => statusCnt,
+         cntRstIn             => r.cntRst,
+         rollOverEnIn         => r.rollOverEn,
+         cntOut               => statusCnt,
          -- Clocks and Reset Ports
-         wrClk        => axilClk,
-         rdClk        => axilClk);
+         wrClk                => axilClk,
+         rdClk                => axilClk);
 
 end rtl;

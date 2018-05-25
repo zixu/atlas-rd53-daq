@@ -2,9 +2,9 @@
 -- File       : AtlasRd53EmuCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-23
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
+-- Description: Emulation Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -136,15 +136,15 @@ architecture mapping of AtlasRd53EmuCore is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
-   signal rxLinkUp : slv(3 downto 0);
-   signal txLinkUp : slv(3 downto 0);   
+   signal rxLinkUp  : slv(3 downto 0);
+   signal txLinkUp  : slv(3 downto 0);
    signal pllLocked : slv(3 downto 0);
 
    signal axilClk : sl;
    signal axilRst : sl;
-   
+
    signal refClk300MHz : sl;
-   signal refRst300MHz : sl;   
+   signal refRst300MHz : sl;
 
    signal status : AtlasRd53StatusType := RD53_FEB_STATUS_INIT_C;
    signal config : AtlasRd53ConfigType := RD53_FEB_CONFIG_INIT_C;

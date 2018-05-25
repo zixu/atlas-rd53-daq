@@ -2,9 +2,9 @@
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-23
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
+-- Description: Wrapper for PGPv3 communication
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -233,8 +233,9 @@ begin
 
       U_Lane0_Vc5_Vc2 : entity work.AtlasRd53Pgp3AxisFifo
          generic map (
-            TPD_G => TPD_G,
-            RX_G  => false)
+            TPD_G              => TPD_G,
+            RX_G               => false,
+            SLAVE_AXI_CONFIG_G => BATCHER_AXIS_CONFIG_C)
          port map (
             -- System Interface (axilClk domain)
             sysClk      => sysClk,

@@ -2,9 +2,9 @@
 -- File       : AtlasRd53MuxEmu.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-23
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: Hit/Trig Module
+-- Description: MUX for non-serialization emulation path
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -21,9 +21,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
+use work.AtlasRd53Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -33,16 +31,11 @@ entity AtlasRd53MuxEmu is
       TPD_G        : time    := 1 ns;
       LINK_INDEX_G : natural := 0);
    port (
-      selEmuIn   : in  sl;
+      enLocalEmu : in  sl;
       dPortCmdIn : in  sl;
-      validIn    : in  sl;
-      chBondIn   : in  sl;
-      dataIn     : in  Slv64Array(3 downto 0);
-      syncIn     : in  Slv2Array(3 downto 0);
-      validOut   : out sl;
-      chBondOut  : out sl;
-      dataOut    : out Slv64Array(3 downto 0);
-      syncOut    : out Slv2Array(3 downto 0);
+      -- RX Interface (clk80MHz domain)
+      rxIn       : in  AtlasRD53DataType;
+      rxOut      : out AtlasRD53DataType;
       -- Timing Clocks Interface
       clk160MHz  : in  sl;
       clk80MHz   : in  sl;
@@ -61,7 +54,7 @@ architecture mapping of AtlasRd53MuxEmu is
       port (
          clk160 : in  std_logic;
          rst    : in  std_logic;
-         datain : in  std_logic;
+         dataIn : in  std_logic;
          valid  : out std_logic;
          data   : out std_logic_vector(15 downto 0));
    end component;
@@ -103,7 +96,7 @@ begin
       port map (
          clk160 => clk160MHz,
          rst    => rst160MHz,
-         datain => dPortCmdIn,
+         dataIn => dPortCmdIn,
          valid  => cmdValid,
          data   => cmdData);
 
@@ -119,7 +112,7 @@ begin
          word_valid       => cmdValid,
          data_in          => cmdData,
          chip_id          => CHIP_ID_C,
-         data_next        => '1',  -- Not sure if this is correct???
+         data_next        => '1',       -- Not sure if this is correct???
          \frame_out[0]\   => frameData(0),
          \frame_out[1]\   => frameData(1),
          \frame_out[2]\   => frameData(2),
@@ -137,21 +130,18 @@ begin
       sync(i) <= "10" when (serviceFrame(i) = '1') else "01";
    end generate GEN_VEC;
 
-   process(clk40MHz)
+   process(clk80MHz)
    begin
-      if rising_edge(clk40MHz) then
+      if rising_edge(clk80MHz) then
          -- Pass through mode
-         if (selEmuIn = '0') then
-            validOut  <= validIn  after TPD_G;
-            chBondOut <= chBondIn after TPD_G;
-            dataOut   <= dataIn   after TPD_G;
-            syncOut   <= syncIn   after TPD_G;
+         if (enLocalEmu = '0') then
+            rxOut <= rxIn after TPD_G;
          -- Local Emulation mode
          else
-            validOut  <= '1'       after TPD_G;
-            chBondOut <= '1'       after TPD_G;
-            dataOut   <= frameData after TPD_G;
-            syncOut   <= sync      after TPD_G;
+            rxOut.valid  <= '1'       after TPD_G;
+            rxOut.chBond <= '1'       after TPD_G;
+            rxOut.data   <= frameData after TPD_G;
+            rxOut.sync   <= sync      after TPD_G;
          end if;
       end if;
    end process;
