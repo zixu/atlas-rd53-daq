@@ -2,9 +2,9 @@
 -- File       : AtlasRd53Pgp3AxisFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-09
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: Top-Level module using four lanes of 10 Gbps PGPv3 communication
+-- Description: PGP FIFO wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -24,9 +24,11 @@ use work.Pgp3Pkg.all;
 
 entity AtlasRd53Pgp3AxisFifo is
    generic (
-      TPD_G : time    := 1 ns;
-      TX_G  : boolean := true;
-      RX_G  : boolean := true);
+      TPD_G               : time                := 1 ns;
+      TX_G                : boolean             := true;
+      RX_G                : boolean             := true;
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := PGP3_AXIS_CONFIG_C;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType := PGP3_AXIS_CONFIG_C);
    port (
       -- System Interface (axilClk domain)
       sysClk      : in  sl;
@@ -51,12 +53,17 @@ begin
    GEN_TX : if (TX_G) generate
       U_Fifo : entity work.AxiStreamFifoV2
          generic map (
+            -- General Configurations
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => true,
-            BRAM_EN_G           => false,
-            GEN_SYNC_FIFO_G     => false,
-            FIFO_ADDR_WIDTH_G   => 4,
-            SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
+            VALID_THOLD_G       => 256,  -- same as Pgp3Gtx7Wrapper.vhd's TX_CELL_WORDS_MAX_G generic 
+            VALID_BURST_MODE_G  => true,
+            -- FIFO configurations
+            BRAM_EN_G           => true,
+            GEN_SYNC_FIFO_G     => true,
+            FIFO_ADDR_WIDTH_G   => 9,
+            -- AXI Stream Port Configurations
+            SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
             MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
          port map (
             -- Slave Port
@@ -82,7 +89,7 @@ begin
             FIFO_FIXED_THRESH_G => true,
             FIFO_PAUSE_THRESH_G => 128,
             SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Slave Port
             sAxisClk    => pgpClk,

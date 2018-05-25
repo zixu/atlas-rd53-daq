@@ -2,7 +2,7 @@
 -- File       : AtlasRd53HitTrig.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-09
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
 -- Description: Hit/Trig Module
 -------------------------------------------------------------------------------

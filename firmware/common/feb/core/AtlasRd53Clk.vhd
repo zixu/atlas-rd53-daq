@@ -2,9 +2,9 @@
 -- File       : AtlasRd53Clk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-23
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: PLL Wrapper
+-- Description: PLL Wrapper and 160 MHz clock MUX
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

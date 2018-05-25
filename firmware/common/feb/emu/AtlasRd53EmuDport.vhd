@@ -2,9 +2,9 @@
 -- File       : AtlasRd53EmuDport.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-23
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: Hit/Trig Module
+-- Description: Emulation of a DPORT interface
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -122,9 +122,9 @@ architecture mapping of AtlasRd53EmuDport is
    signal rst80MHz  : sl;
    signal rst40MHz  : sl;
 
-   signal dPortCmd : sl;
+   signal dPortCmd    : sl;
    signal dPortCmdReg : sl;
-   
+
    signal cmdValid : sl;
    signal cmdData  : slv(15 downto 0);
 
@@ -190,7 +190,7 @@ begin
          I  => dPortCmdP,
          IB => dPortCmdN,
          O  => dPortCmd);
-         
+
    U_IDDR : IDDR
       generic map (
          DDR_CLK_EDGE => "SAME_EDGE_PIPELINED",  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
@@ -198,11 +198,11 @@ begin
          INIT_Q2      => '0',           -- Initial value of Q2: '0' or '1'
          SRTYPE       => "SYNC")        -- Set/Reset type: "SYNC" or "ASYNC" 
       port map (
-         D  => dPortCmd,      -- 1-bit DDR data input
-         C  => clk160MHz,     -- 1-bit clock input
-         CE => '1',           -- 1-bit clock enable input
-         R  => rst160MHz,     -- 1-bit reset
-         S  => '0',           -- 1-bit set
+         D  => dPortCmd,                -- 1-bit DDR data input
+         C  => clk160MHz,               -- 1-bit clock input
+         CE => '1',                     -- 1-bit clock enable input
+         R  => rst160MHz,               -- 1-bit reset
+         S  => '0',                     -- 1-bit set
          Q1 => open,          -- 1-bit output for positive edge of clock 
          Q2 => dPortCmdReg);  -- 1-bit output for negative edge of clock          
 

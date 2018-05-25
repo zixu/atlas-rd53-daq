@@ -2,9 +2,9 @@
 -- File       : AtlasRd53RxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-23
+-- Last update: 2018-05-25
 -------------------------------------------------------------------------------
--- Description: Hit/Trig Module
+-- Description: RX PHY Module
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -21,9 +21,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
+use work.AtlasRd53Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -34,9 +32,9 @@ entity AtlasRd53RxPhy is
       LINK_INDEX_G : natural := 0);
    port (
       -- Misc. Interfaces
-      selEmuIn      : in  sl;
+      enLocalEmu    : in  sl;
       enAuxClk      : in  sl;
-      userRst       : in  sl;
+      asicRst       : in  sl;
       iDelayCtrlRdy : in  sl;
       dPortCmd      : in  sl;
       -- RD53 ASIC Serial Ports
@@ -47,11 +45,8 @@ entity AtlasRd53RxPhy is
       dPortAuxP     : out sl;
       dPortAuxN     : out sl;
       dPortRst      : out sl;
-      -- RX PHY Interface
-      validOut      : out sl;
-      chBondOut     : out sl;
-      dataOut       : out Slv64Array(3 downto 0);
-      syncOut       : out Slv2Array(3 downto 0);
+      -- Outbound Reg/Data Interface (clk80MHz domain)
+      rxOut         : out AtlasRD53DataType;
       -- Timing Clocks Interface
       clk640MHz     : in  sl;
       clk160MHz     : in  sl;
@@ -117,14 +112,12 @@ architecture mapping of AtlasRd53RxPhy is
    signal gearboxRdyRx   : slv(3 downto 0);
    signal validUnaligned : slv(3 downto 0);
 
-   signal data   : Slv64Array(3 downto 0);
-   signal sync   : Slv2Array(3 downto 0);
-   signal valid  : sl;
-   signal chBond : sl;
+   signal rxIn     : AtlasRD53DataType;
+   signal rxInSync : AtlasRD53DataType;
 
 begin
 
-   dPortRst <= rst40MHz or userRst;  -- Inverted in HW on FPGA board before dport connector
+   dPortRst <= rst40MHz or asicRst;  -- Inverted in HW on FPGA board before dport connector
 
    -----------------------------------------------
    -- Provide 40 MHz reference clock to remote EMU
@@ -205,16 +198,32 @@ begin
          gearbox_rdy_rx   => gearboxRdyRx,
          data_valid       => validUnaligned,
          -- Aligned Outbound Interface
-         \data_out_cb[0]\ => data(0),
-         \data_out_cb[1]\ => data(1),
-         \data_out_cb[2]\ => data(2),
-         \data_out_cb[3]\ => data(3),
-         \sync_out_cb[0]\ => sync(0),
-         \sync_out_cb[1]\ => sync(1),
-         \sync_out_cb[2]\ => sync(2),
-         \sync_out_cb[3]\ => sync(3),
-         data_valid_cb    => valid,
-         channel_bonded   => chBond);
+         \data_out_cb[0]\ => rxIn.data(0),
+         \data_out_cb[1]\ => rxIn.data(1),
+         \data_out_cb[2]\ => rxIn.data(2),
+         \data_out_cb[3]\ => rxIn.data(3),
+         \sync_out_cb[0]\ => rxIn.sync(0),
+         \sync_out_cb[1]\ => rxIn.sync(1),
+         \sync_out_cb[2]\ => rxIn.sync(2),
+         \sync_out_cb[3]\ => rxIn.sync(3),
+         data_valid_cb    => rxIn.valid,
+         channel_bonded   => rxIn.chBond);
+
+   -----------------
+   -- SYNC to 80 MHz
+   -----------------   
+   U_RxSync : entity work.AtlasRd53RxAsyncFifo
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Asynchronous Reset
+         rst   => rst40MHz,
+         -- Write Ports (wr_clk domain)
+         wrClk => clk40MHz,
+         rxIn  => rxIn,
+         -- Read Ports (rd_clk domain)
+         rdClk => clk80MHz,
+         rxOut => rxInSync);
 
    ----------------------------------------
    -- Mux for selecting RX PHY or emulation
@@ -224,18 +233,11 @@ begin
          TPD_G        => TPD_G,
          LINK_INDEX_G => LINK_INDEX_G)
       port map (
-         selEmuIn   => selEmuIn,
+         enLocalEmu => enLocalEmu,
          dPortCmdIn => dPortCmd,
-         -- RX Input
-         validIn    => valid,
-         chBondIn   => chBond,
-         dataIn     => data,
-         syncIn     => sync,
-         -- RX Output
-         validOut   => validOut,
-         chBondOut  => chBondOut,
-         dataOut    => dataOut,
-         syncOut    => syncOut,
+         -- RX Interface  (clk80MHz domain)
+         rxIn       => rxInSync,
+         rxOut      => rxOut,
          -- Timing Clocks Interface
          clk160MHz  => clk160MHz,
          clk80MHz   => clk80MHz,
