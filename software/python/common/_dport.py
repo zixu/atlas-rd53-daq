@@ -26,22 +26,20 @@ class Dport(pr.Device):
         ##################
         # Status Registers 
         ##################
-        self.addRemoteVariables(   
+        self.add(pr.RemoteVariable(
             name         = 'DataDropCnt',
             description  = 'Increments when data dropped due to back pressure',
             offset       = 0x000,
             bitSize      = 32,
-            base         = pr.UInt,
             mode         = 'RO',
-            number       = 4,
-            stride       = 4,
+            base         = pr.UInt,
             pollInterval = pollInterval,
-        )        
+        )) 
         
         self.add(pr.RemoteVariable(
             name         = 'CmdDropCnt',
             description  = 'Increments when cmd dropped due to back pressure',
-            offset       = 0x010,
+            offset       = 0x004,
             bitSize      = 32, 
             mode         = 'RO',
             base         = pr.UInt,
@@ -51,7 +49,7 @@ class Dport(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'TimedOutCnt',
             description  = 'Increments when a batcher timed out event occurs',
-            offset       = 0x014,
+            offset       = 0x008,
             bitSize      = 32, 
             mode         = 'RO',
             base         = pr.UInt,

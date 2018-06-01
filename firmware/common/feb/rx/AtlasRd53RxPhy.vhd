@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-25
+-- Last update: 2018-05-31
 -------------------------------------------------------------------------------
 -- Description: RX PHY Module
 -------------------------------------------------------------------------------
@@ -17,234 +17,233 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
+use work.AxiStreamPkg.all;
+use work.Pgp3Pkg.all;
 use work.AtlasRd53Pkg.all;
-
-library unisim;
-use unisim.vcomponents.all;
 
 entity AtlasRd53RxPhy is
    generic (
-      TPD_G        : time    := 1 ns;
-      LINK_INDEX_G : natural := 0);
+      TPD_G : time := 1 ns);
    port (
       -- Misc. Interfaces
       enLocalEmu    : in  sl;
-      enAuxClk      : in  sl;
       asicRst       : in  sl;
       iDelayCtrlRdy : in  sl;
-      dPortCmd      : in  sl;
       -- RD53 ASIC Serial Ports
       dPortDataP    : in  slv(3 downto 0);
       dPortDataN    : in  slv(3 downto 0);
       dPortCmdP     : out sl;
       dPortCmdN     : out sl;
-      dPortAuxP     : out sl;
-      dPortAuxN     : out sl;
       dPortRst      : out sl;
-      -- Outbound Reg/Data Interface (clk80MHz domain)
-      rxOut         : out AtlasRD53DataType;
-      -- Timing Clocks Interface
+      -- Timing/Trigger Interface
       clk640MHz     : in  sl;
       clk160MHz     : in  sl;
       clk80MHz      : in  sl;
       clk40MHz      : in  sl;
-      -- Timing Resets Interface
       rst640MHz     : in  sl;
       rst160MHz     : in  sl;
       rst80MHz      : in  sl;
-      rst40MHz      : in  sl);
+      rst40MHz      : in  sl;
+      ttc           : in  AtlasRd53TimingTrigType;  -- clk160MHz domain
+      -- Outbound Reg/Data Interface (axilClk domain)
+      axilClk       : in  sl;
+      axilRst       : in  sl;
+      mDataMaster   : out AxiStreamMasterType;
+      mDataSlave    : in  AxiStreamSlaveType;
+      dataDrop      : out sl;
+      sCmdMaster    : in  AxiStreamMasterType;
+      sCmdSlave     : out AxiStreamSlaveType;
+      mCmdMaster    : out AxiStreamMasterType;
+      mCmdSlave     : in  AxiStreamSlaveType;
+      cmdDrop       : out sl;
+      autoReadReg   : out Slv32Array(3 downto 0));
 end AtlasRd53RxPhy;
 
 architecture mapping of AtlasRd53RxPhy is
 
-   component aurora_rx_top_xapp
-      port (
-         rst           : in  sl;
-         clk40         : in  sl;
-         clk160        : in  sl;
-         clk640        : in  sl;
-         data_in_p     : in  sl;
-         data_in_n     : in  sl;
-         idelay_rdy    : in  sl;
-         blocksync_out : out sl;
-         gearbox_rdy   : out sl;
-         data_valid    : out sl;
-         sync_out      : out slv(1 downto 0);
-         data_out      : out slv(63 downto 0));
-   end component;
+   constant AXIS_MASTER_INIT_C : AxiStreamMasterType := (
+      tValid => '0',
+      tData  => (others => '0'),
+      tStrb  => (others => '1'),
+      tKeep  => (others => '1'),
+      tLast  => '1',                    -- single 64-bit word transactions
+      tDest  => (others => '0'),
+      tId    => (others => '0'),
+      tUser  => toSlv(2, 128));         -- Set the Start of Frame bit for SSI
 
-   component channel_bond
-      port (
-         rst              : in  sl;
-         clk40            : in  sl;
-         \data_in[0]\     : in  slv(63 downto 0);
-         \data_in[1]\     : in  slv(63 downto 0);
-         \data_in[2]\     : in  slv(63 downto 0);
-         \data_in[3]\     : in  slv(63 downto 0);
-         \sync_in[0]\     : in  slv(1 downto 0);
-         \sync_in[1]\     : in  slv(1 downto 0);
-         \sync_in[2]\     : in  slv(1 downto 0);
-         \sync_in[3]\     : in  slv(1 downto 0);
-         blocksync_out    : in  slv(3 downto 0);
-         gearbox_rdy_rx   : in  slv(3 downto 0);
-         data_valid       : in  slv(3 downto 0);
-         \data_out_cb[0]\ : out slv(63 downto 0);
-         \data_out_cb[1]\ : out slv(63 downto 0);
-         \data_out_cb[2]\ : out slv(63 downto 0);
-         \data_out_cb[3]\ : out slv(63 downto 0);
-         \sync_out_cb[0]\ : out slv(1 downto 0);
-         \sync_out_cb[1]\ : out slv(1 downto 0);
-         \sync_out_cb[2]\ : out slv(1 downto 0);
-         \sync_out_cb[3]\ : out slv(1 downto 0);
-         data_valid_cb    : out sl;
-         channel_bonded   : out sl);
-   end component;
+   signal rx      : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
+   signal rdReg   : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
+   signal autoReg : Slv32Array(3 downto 0) := (others => x"0000_0000");
 
+   signal emuRx         : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
+   signal emuRdReg      : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
+   signal emuAutoRegOut : Slv32Array(3 downto 0) := (others => x"0000_0000");
+
+   signal rxOut      : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
+   signal rdRegOut   : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
+   signal autoRegOut : Slv32Array(3 downto 0) := (others => x"0000_0000");
+
+   signal dPortCmd    : sl;
    signal dPortCmdReg : sl;
+   signal enEmu       : sl;
 
-   signal dataUnaligned  : Slv64Array(3 downto 0);
-   signal syncUnaligned  : Slv2Array(3 downto 0);
-   signal blockSync      : slv(3 downto 0);
-   signal gearboxRdyRx   : slv(3 downto 0);
-   signal validUnaligned : slv(3 downto 0);
-
-   signal rxIn     : AtlasRD53DataType;
-   signal rxInSync : AtlasRD53DataType;
+   signal dataCtrl : AxiStreamCtrlType;
+   signal cmdCtrl  : AxiStreamCtrlType;
 
 begin
 
-   dPortRst <= rst40MHz or asicRst;  -- Inverted in HW on FPGA board before dport connector
+   dPortRst <= rst160MHz or asicRst;  -- Inverted in HW on FPGA board before dport connector
 
-   -----------------------------------------------
-   -- Provide 40 MHz reference clock to remote EMU
-   -----------------------------------------------
-   U_dPortAux : entity work.ClkOutBufDiff
+   ------------------------
+   -- CMD Generation Module
+   ------------------------
+   U_Cmd : entity work.AtlasRd53TxCmdWrapper
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '0',
-         XIL_DEVICE_G   => "7SERIES")
+         TPD_G => TPD_G)
       port map (
-         clkIn   => clk40MHz,
-         rstIn   => enAuxClk,
-         clkOutP => dPortAuxP,
-         clkOutN => dPortAuxN);
-
-   ------------------------
-   -- Output the serial CMD
-   ------------------------
-   U_ODDR : ODDR
-      generic map(
-         DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
-         INIT         => '0',  -- Initial value for Q port ('1' or '0')
-         SRTYPE       => "SYNC")        -- Reset Type ("ASYNC" or "SYNC")
-      port map (
-         D1 => dPortCmd,                -- 1-bit data input (positive edge)
-         D2 => dPortCmd,                -- 1-bit data input (negative edge)
-         Q  => dPortCmdReg,             -- 1-bit DDR output
-         C  => clk160MHz,               -- 1-bit clock input
-         CE => '1',                     -- 1-bit clock enable input
-         R  => rst160MHz,               -- 1-bit reset
-         S  => '0');                    -- 1-bit set
-
-   U_dPortCmd : OBUFDS
-      port map (
-         I  => dPortCmdReg,
-         O  => dPortCmdP,
-         OB => dPortCmdN);
+         -- AXI Stream Interface (axilClk domain)
+         axilClk    => axilClk,
+         axilRst    => axilRst,
+         sCmdMaster => sCmdMaster,
+         sCmdSlave  => sCmdSlave,
+         -- Timing Interface (clk160MHz domain)
+         clk160MHz  => clk160MHz,
+         rst160MHz  => rst160MHz,
+         ttc        => ttc,
+         -- Command Serial Interface (clk160MHz domain)
+         cmdOutP    => dPortCmdP,
+         cmdOutN    => dPortCmdN);
 
    ---------------
    -- RX PHY Layer
    ---------------
-   GEN_LANE : for i in 3 downto 0 generate
-      U_rx_lane : aurora_rx_top_xapp
-         port map (
-            -- Clock and Reset
-            rst           => rst40MHz,
-            clk40         => clk40MHz,
-            clk160        => clk160MHz,
-            clk640        => clk640MHz,
-            -- RD53 ASIC Serial Ports
-            data_in_p     => dPortDataP(i),
-            data_in_n     => dPortDataN(i),
-            -- IDELAYCTRL status
-            idelay_rdy    => iDelayCtrlRdy,
-            -- Unaligned Outbound Interface
-            blocksync_out => blockSync(i),
-            gearbox_rdy   => gearboxRdyRx(i),
-            data_valid    => validUnaligned(i),
-            sync_out      => syncUnaligned(i),
-            data_out      => dataUnaligned(i));
-   end generate GEN_LANE;
-
-   U_chBond : channel_bond
-      port map (
-         -- Clock and Reset
-         rst              => rst40MHz,
-         clk40            => clk40MHz,
-         -- Unaligned Inbound Interface
-         \data_in[0]\     => dataUnaligned(0),
-         \data_in[1]\     => dataUnaligned(1),
-         \data_in[2]\     => dataUnaligned(2),
-         \data_in[3]\     => dataUnaligned(3),
-         \sync_in[0]\     => syncUnaligned(0),
-         \sync_in[1]\     => syncUnaligned(1),
-         \sync_in[2]\     => syncUnaligned(2),
-         \sync_in[3]\     => syncUnaligned(3),
-         blocksync_out    => blockSync,
-         gearbox_rdy_rx   => gearboxRdyRx,
-         data_valid       => validUnaligned,
-         -- Aligned Outbound Interface
-         \data_out_cb[0]\ => rxIn.data(0),
-         \data_out_cb[1]\ => rxIn.data(1),
-         \data_out_cb[2]\ => rxIn.data(2),
-         \data_out_cb[3]\ => rxIn.data(3),
-         \sync_out_cb[0]\ => rxIn.sync(0),
-         \sync_out_cb[1]\ => rxIn.sync(1),
-         \sync_out_cb[2]\ => rxIn.sync(2),
-         \sync_out_cb[3]\ => rxIn.sync(3),
-         data_valid_cb    => rxIn.valid,
-         channel_bonded   => rxIn.chBond);
-
-   -----------------
-   -- SYNC to 80 MHz
-   -----------------   
-   U_RxSync : entity work.AtlasRd53RxAsyncFifo
+   U_RxPhyLayer : entity work.aurora_rx_channel
       generic map (
-         TPD_G => TPD_G)
+         g_NUM_LANES => 4)
       port map (
-         -- Asynchronous Reset
-         rst   => rst40MHz,
-         -- Write Ports (wr_clk domain)
-         wrClk => clk40MHz,
-         rxIn  => rxIn,
-         -- Read Ports (rd_clk domain)
-         rdClk => clk80MHz,
-         rxOut => rxInSync);
+         rst_n_i      => not(rst160MHz),
+         clk_rx_i     => clk160MHz,        -- Fabric clock (serdes/8)
+         clk_serdes_i => clk640MHz,        -- IO clock
+         -- Input
+         enable_i     => not(asicRst),
+         rx_data_i_p  => dPortDataP,
+         rx_data_i_n  => dPortDataN,
+         trig_tag_i   => (others => '0'),  -- Unused
+         -- Output
+         rx_data_o    => rx.tData(63 downto 0),
+         rx_valid_o   => rx.tValid,
+         rx_stat_o    => open);
+
+   -- Placeholder for future code
+   emuRdReg      <= AXIS_MASTER_INIT_C;
+   emuAutoRegOut <= (others => x"0000_0000");
+
+   -------------------------
+   -- TX Emulation PHY Layer
+   -------------------------
+   -- Placeholder for future code
+   emuRx         <= AXIS_MASTER_INIT_C;
+   emuRdReg      <= AXIS_MASTER_INIT_C;
+   emuAutoRegOut <= (others => x"0000_0000");
 
    ----------------------------------------
    -- Mux for selecting RX PHY or emulation
    ----------------------------------------
-   U_MuxEmu : entity work.AtlasRd53MuxEmu
+   rxOut      <= rx      when(enEmu = '0') else emuRx;
+   rdRegOut   <= rdReg   when(enEmu = '0') else emuRdReg;
+   autoRegOut <= autoReg when(enEmu = '0') else emuAutoRegOut;
+
+   U_enEmu : entity work.SynchronizerOneShot
       generic map (
-         TPD_G        => TPD_G,
-         LINK_INDEX_G => LINK_INDEX_G)
+         TPD_G => TPD_G)
       port map (
-         enLocalEmu => enLocalEmu,
-         dPortCmdIn => dPortCmd,
-         -- RX Interface  (clk80MHz domain)
-         rxIn       => rxInSync,
-         rxOut      => rxOut,
-         -- Timing Clocks Interface
-         clk160MHz  => clk160MHz,
-         clk80MHz   => clk80MHz,
-         clk40MHz   => clk40MHz,
-         -- Timing Resets Interface
-         rst160MHz  => rst160MHz,
-         rst80MHz   => rst80MHz,
-         rst40MHz   => rst40MHz);
+         clk     => clk160MHz,
+         dataIn  => enLocalEmu,
+         dataOut => enEmu);
+
+   ---------------------------------------------   
+   -- Synchronize the outputs to AXI clock domain
+   ---------------------------------------------      
+   U_SyncRxData : entity work.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         VALID_THOLD_G       => 1,
+         -- FIFO configurations
+         BRAM_EN_G           => true,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 9,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => clk160MHz,
+         sAxisRst    => rst160MHz,
+         sAxisMaster => rxOut,
+         sAxisCtrl   => dataCtrl,
+         -- Master Port
+         mAxisClk    => axilClk,
+         mAxisRst    => axilRst,
+         mAxisMaster => mDataMaster,
+         mAxisSlave  => mDataSlave);
+
+   U_dataDrop : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => dataCtrl.overflow,
+         dataOut => dataDrop);
+
+   U_SyncCmdData : entity work.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         VALID_THOLD_G       => 1,
+         -- FIFO configurations
+         BRAM_EN_G           => true,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 9,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => clk160MHz,
+         sAxisRst    => rst160MHz,
+         sAxisMaster => rdRegOut,
+         sAxisCtrl   => cmdCtrl,
+         -- Master Port
+         mAxisClk    => axilClk,
+         mAxisRst    => axilRst,
+         mAxisMaster => mCmdMaster,
+         mAxisSlave  => mCmdSlave);
+
+   U_cmdDrop : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => cmdCtrl.overflow,
+         dataOut => cmdDrop);
+
+   GEN_VEC : for i in 3 downto 0 generate
+
+      U_autoReadReg : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 32)
+         port map (
+            wr_clk => clk160MHz,
+            din    => autoRegOut(i),
+            rd_clk => axilClk,
+            dout   => autoReadReg(i));
+
+   end generate GEN_VEC;
 
 end mapping;

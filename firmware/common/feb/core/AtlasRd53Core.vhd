@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-25
+-- Last update: 2018-05-31
 -------------------------------------------------------------------------------
 -- Description: AD53 readout core module
 -------------------------------------------------------------------------------
@@ -164,11 +164,11 @@ architecture mapping of AtlasRd53Core is
    signal clk160MHz : sl;
    signal clk80MHz  : sl;
    signal clk40MHz  : sl;
-
    signal rst640MHz : sl;
    signal rst160MHz : sl;
    signal rst80MHz  : sl;
    signal rst40MHz  : sl;
+   signal ttc       : AtlasRd53TimingTrigType;
 
    signal refClk300MHz : sl;
    signal refRst300MHz : sl;
@@ -335,7 +335,6 @@ begin
       U_RxPhy : entity work.AtlasRd53RxPhyCore
          generic map (
             TPD_G           => TPD_G,
-            LINK_INDEX_G    => i,
             AXI_BASE_ADDR_G => XBAR_CONFIG_C(DPORT0_INDEX_C+i).baseAddr)
          port map (
             -- Misc. Interfaces
@@ -360,16 +359,16 @@ begin
             sCmdSlave       => rxCmdSlaves(i),
             mCmdMaster      => txCmdMasters(i),
             mCmdSlave       => txCmdSlaves(i),
-            -- Timing Clocks Interface
+            -- Timing/Trigger Interface
             clk640MHz       => clk640MHz,
             clk160MHz       => clk160MHz,
             clk80MHz        => clk80MHz,
             clk40MHz        => clk40MHz,
-            -- Timing Resets Interface
             rst640MHz       => rst640MHz,
             rst160MHz       => rst160MHz,
             rst80MHz        => rst80MHz,
             rst40MHz        => rst40MHz,
+            ttc             => ttc,
             -- RD53 Ports
             dPortDataP      => dPortDataP(i),
             dPortDataN      => dPortDataN(i),
@@ -400,13 +399,16 @@ begin
          sTluSlave       => rxTluSlave,
          mTluMaster      => txTluMaster,
          mTluSlave       => txTluSlave,
-         -- Timing Clocks
+         -- Timing/Trigger Interface
          clk640MHz       => clk640MHz,
-         rst640MHz       => rst640MHz,
          clk160MHz       => clk160MHz,
-         rst160MHz       => rst160MHz,
+         clk80MHz        => clk80MHz,
          clk40MHz        => clk40MHz,
+         rst640MHz       => rst640MHz,
+         rst160MHz       => rst160MHz,
+         rst80MHz        => rst80MHz,
          rst40MHz        => rst40MHz,
+         ttc             => ttc,
          -- Trigger and hits Ports
          dPortHitP       => dPortHitP,
          dPortHitN       => dPortHitN,

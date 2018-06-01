@@ -22,6 +22,7 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Pgp3Pkg.all;
+use work.AtlasRd53Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -43,13 +44,16 @@ entity AtlasRd53HitTrig is
       sTluSlave       : out AxiStreamSlaveType;
       mTluMaster      : out AxiStreamMasterType;
       mTluSlave       : in  AxiStreamSlaveType;
-      -- Timing Clocks
+      -- Timing/Trigger Interface
       clk640MHz       : in  sl;
-      rst640MHz       : in  sl;
       clk160MHz       : in  sl;
-      rst160MHz       : in  sl;
+      clk80MHz        : in  sl;
       clk40MHz        : in  sl;
+      rst640MHz       : in  sl;
+      rst160MHz       : in  sl;
+      rst80MHz        : in  sl;
       rst40MHz        : in  sl;
+      ttc             : out AtlasRd53TimingTrigType;  -- clk160MHz domain
       -- Trigger and hits Ports
       dPortHitP       : in  Slv4Array(3 downto 0);
       dPortHitN       : in  Slv4Array(3 downto 0);
@@ -125,5 +129,6 @@ begin
    axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
    sTluSlave      <= AXI_STREAM_SLAVE_FORCE_C;
    mTluMaster     <= AXI_STREAM_MASTER_INIT_C;
+   ttc            <= RD53_FEB_TIMING_TRIG_INIT_C;
 
 end mapping;
