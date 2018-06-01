@@ -155,7 +155,7 @@ begin
    rdRegOut   <= rdReg   when(enEmu = '0') else emuRdReg;
    autoRegOut <= autoReg when(enEmu = '0') else emuAutoRegOut;
 
-   U_enEmu : entity work.SynchronizerOneShot
+   U_enEmu : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
