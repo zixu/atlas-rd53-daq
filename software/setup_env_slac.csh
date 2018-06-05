@@ -17,6 +17,7 @@ source /u/re/ruckman/projects/rogue/setup_env.csh
 # Python Package directories
 setenv SURF_DIR ${PWD}/../firmware/submodules/surf/python
 setenv PCIE_DIR ${PWD}/../firmware/submodules/axi-pcie-core/python
+setenv RCE_DIR  ${PWD}/../firmware/submodules/rce-gen3-fw-lib/python
 
 # Setup python path
-setenv PYTHONPATH ${PWD}/python:${SURF_DIR}:${PCIE_DIR}:${PYTHONPATH}
+setenv PYTHONPATH ${PWD}/python:${SURF_DIR}:${PCIE_DIR}:${RCE_DIR}:${PYTHONPATH}
