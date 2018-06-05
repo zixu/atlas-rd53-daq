@@ -2,7 +2,7 @@
 -- File       : AtlasRd53HsioDtm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-01
--- Last update: 2018-05-01
+-- Last update: 2018-06-05
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -29,54 +29,52 @@ entity AtlasRd53HsioDtm is
       BUILD_INFO_G : BuildInfoType);
    port (
       -- Debug
-      led         : out   slv(1 downto 0) := "00";
+      led          : out   slv(1 downto 0) := "00";
       -- I2C
-      i2cSda      : inout sl;
-      i2cScl      : inout sl;
+      i2cSda       : inout sl;
+      i2cScl       : inout sl;
       -- Clock Select
-      clkSelA     : out   sl;
-      clkSelB     : out   sl;
+      clkSelA      : out   sl;
+      clkSelB      : out   sl;
       -- Base Ethernet
-      ethRxCtrl   : in    slv(1 downto 0);
-      ethRxClk    : in    slv(1 downto 0);
-      ethRxDataA  : in    Slv(1 downto 0);
-      ethRxDataB  : in    Slv(1 downto 0);
-      ethRxDataC  : in    Slv(1 downto 0);
-      ethRxDataD  : in    Slv(1 downto 0);
-      ethTxCtrl   : out   slv(1 downto 0);
-      ethTxClk    : out   slv(1 downto 0);
-      ethTxDataA  : out   Slv(1 downto 0);
-      ethTxDataB  : out   Slv(1 downto 0);
-      ethTxDataC  : out   Slv(1 downto 0);
-      ethTxDataD  : out   Slv(1 downto 0);
-      ethMdc      : out   Slv(1 downto 0);
-      ethMio      : inout Slv(1 downto 0);
-      ethResetL   : out   Slv(1 downto 0);
+      ethRxCtrl    : in    slv(1 downto 0);
+      ethRxClk     : in    slv(1 downto 0);
+      ethRxDataA   : in    Slv(1 downto 0);
+      ethRxDataB   : in    Slv(1 downto 0);
+      ethRxDataC   : in    Slv(1 downto 0);
+      ethRxDataD   : in    Slv(1 downto 0);
+      ethTxCtrl    : out   slv(1 downto 0);
+      ethTxClk     : out   slv(1 downto 0);
+      ethTxDataA   : out   Slv(1 downto 0);
+      ethTxDataB   : out   Slv(1 downto 0);
+      ethTxDataC   : out   Slv(1 downto 0);
+      ethTxDataD   : out   Slv(1 downto 0);
+      ethMdc       : out   Slv(1 downto 0);
+      ethMio       : inout Slv(1 downto 0);
+      ethResetL    : out   Slv(1 downto 0);
       -- IPMI
-      dtmToIpmiP  : out   slv(1 downto 0);
-      dtmToIpmiM  : out   slv(1 downto 0);
+      dtmToIpmiP   : out   slv(1 downto 0);
+      dtmToIpmiM   : out   slv(1 downto 0);
       -- Reference Clock
-      locRefClk1P : in    sl;
-      locRefClk1M : in    sl;
-      -- RTM High Speed
-      dtmToRtmHsP : out   sl;
-      dtmToRtmHsM : out   sl;
-      rtmToDtmHsP : in    sl;
-      rtmToDtmHsM : in    sl);
+      locRefClk1P  : in    sl;
+      locRefClk1M  : in    sl;
+      -- SFP High Speed
+      dtmToFpgaHsP : out   sl;
+      dtmToFpgaHsM : out   sl;
+      fpgaToDtmHsP : in    sl;
+      fpgaToDtmHsM : in    sl;
+      -- SFP High Speed
+      dtmToSfpHsP  : out   sl;
+      dtmToSfpHsM  : out   sl;
+      sfpToDtmHsP  : in    sl;
+      sfpToDtmHsM  : in    sl);
 end AtlasRd53HsioDtm;
 
 architecture TOP_LEVEL of AtlasRd53HsioDtm is
 
-   signal ref200Clk : sl;
-   signal ref200Rst : sl;
+   constant NUM_AXIL_MASTERS_C : natural := 2;
 
-   signal dmaClk : slv(3 downto 0);
-   signal dmaRst : slv(3 downto 0);
-
-   signal dmaObMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal dmaObSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal dmaIbMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal dmaIbSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, x"A0000000", 25, 24);
 
    signal axilClk         : sl;
    signal axilRst         : sl;
@@ -84,6 +82,22 @@ architecture TOP_LEVEL of AtlasRd53HsioDtm is
    signal axilReadSlave   : AxiLiteReadSlaveType;
    signal axilWriteMaster : AxiLiteWriteMasterType;
    signal axilWriteSlave  : AxiLiteWriteSlaveType;
+
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+
+   signal dmaClk       : slv(3 downto 0);
+   signal dmaRst       : slv(3 downto 0);
+   signal dmaObMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal dmaObSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal dmaIbMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal dmaIbSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+
+   signal ref200Clk : sl;
+   signal ref200Rst : sl;
+   signal locRefClk : sl;
 
 begin
 
@@ -141,41 +155,61 @@ begin
          -- User Interrupts
          userInterrupt      => (others => '0'));
 
+   --------------------------
+   -- AXI-Lite: Crossbar Core
+   --------------------------  
+   U_XBAR : entity work.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => AXI_CONFIG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => axilWriteMasters,
+         mAxiWriteSlaves     => axilWriteSlaves,
+         mAxiReadMasters     => axilReadMasters,
+         mAxiReadSlaves      => axilReadSlaves);
+
    ----------------------------------
    -- DMA clock and reset assignments
    ----------------------------------
    dmaClk <= (others => ref200Clk);
    dmaRst <= (others => ref200Rst);
 
-   -----------------
-   -- DMA[0] = PGPv3
-   -----------------
-   U_Hardware : entity work.DtmPgpLaneWrapper
+   ---------------------------------------   
+   -- DMA[2] = PGPv2b to HSIO Artix-7 FPGA
+   ---------------------------------------   
+   U_HsioPgpLane : entity work.HsioPgpLane
       generic map (
-         TPD_G           => TPD_G,
-         AXI_BASE_ADDR_G => x"A0000000")
+         TPD_G => TPD_G)
       port map (
-         -- RTM Interface
-         refClk250P      => locRefClk1P,
-         refClk250N      => locRefClk1M,
-         dtmToRtmHsP     => dtmToRtmHsP,
-         dtmToRtmHsN     => dtmToRtmHsM,
-         rtmToDtmHsP     => rtmToDtmHsP,
-         rtmToDtmHsN     => rtmToDtmHsM,
-         -- DMA Interfaces (dmaClk domain)
-         dmaClk          => dmaClk(0),
-         dmaRst          => dmaRst(0),
-         dmaObMaster     => dmaObMasters(0),
-         dmaObSlave      => dmaObSlaves(0),
-         dmaIbMaster     => dmaIbMasters(0),
-         dmaIbSlave      => dmaIbSlaves(0),
+         sysClk200       => ref200Clk,
+         locRefClk       => locRefClk,
          -- AXI-Lite Interface (axilClk domain)
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave);
+         axiClk          => axilClk,
+         axiClkRst       => axilRst,
+         axiReadMaster   => axilReadMasters(0),
+         axiReadSlave    => axilReadSlaves(0),
+         axiWriteMaster  => axilWriteMasters(0),
+         axiWriteSlave   => axilWriteSlaves(0),
+         -- DMA Interfaces (dmaClk domain)
+         pgpAxisClk      => dmaClk(0),
+         pgpAxisRst      => dmaRst(0),
+         pgpDataRxMaster => dmaIbMasters(0),
+         pgpDataRxSlave  => dmaIbSlaves(0),
+         pgpDataTxMaster => dmaObMasters(0),
+         pgpDataTxSlave  => dmaObSlaves(0),
+         -- FPGA Interface
+         pgpTxP          => dtmToFpgaHsP,
+         pgpTxM          => dtmToFpgaHsM,
+         pgpRxP          => fpgaToDtmHsP,
+         pgpRxM          => fpgaToDtmHsM);
 
    --------------------
    -- DMA[1] = Loopback
@@ -183,11 +217,36 @@ begin
    dmaIbMasters(1) <= dmaObMasters(1);
    dmaObSlaves(1)  <= dmaIbSlaves(1);
 
-   --------------------
-   -- DMA[2] = Loopback
-   --------------------
-   dmaIbMasters(2) <= dmaObMasters(2);
-   dmaObSlaves(2)  <= dmaIbSlaves(2);
+   ------------------------
+   -- DMA[2] = PGPv3 to FEB
+   ------------------------
+   U_Hardware : entity work.DtmPgpLaneWrapper
+      generic map (
+         TPD_G           => TPD_G,
+         AXI_BASE_ADDR_G => x"A0000000")
+      port map (
+         -- SFP Interface
+         refClk250P      => locRefClk1P,
+         refClk250N      => locRefClk1M,
+         refClk250       => locRefClk,
+         dtmToRtmHsP     => dtmToSfpHsP,
+         dtmToRtmHsN     => dtmToSfpHsM,
+         rtmToDtmHsP     => sfpToDtmHsP,
+         rtmToDtmHsN     => sfpToDtmHsM,
+         -- DMA Interfaces (dmaClk domain)
+         dmaClk          => dmaClk(2),
+         dmaRst          => dmaRst(2),
+         dmaObMaster     => dmaObMasters(2),
+         dmaObSlave      => dmaObSlaves(2),
+         dmaIbMaster     => dmaIbMasters(2),
+         dmaIbSlave      => dmaIbSlaves(2),
+         -- AXI-Lite Interface (axilClk domain)
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(1),
+         axilReadSlave   => axilReadSlaves(1),
+         axilWriteMaster => axilWriteMasters(1),
+         axilWriteSlave  => axilWriteSlaves(1));
 
    --------------------
    -- DMA[3] = Loopback

@@ -2,7 +2,7 @@
 -- File       : DtmPgpLaneWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-01
--- Last update: 2018-05-01
+-- Last update: 2018-06-05
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ entity DtmPgpLaneWrapper is
       -- RTM Interface
       refClk250P      : in  sl;
       refClk250N      : in  sl;
+      refClk250       : out sl;
       dtmToRtmHsP     : out sl;
       dtmToRtmHsN     : out sl;
       rtmToDtmHsP     : in  sl;
@@ -58,9 +59,11 @@ end DtmPgpLaneWrapper;
 
 architecture mapping of DtmPgpLaneWrapper is
 
-   signal refClk250 : sl;
+   signal refClk : sl;
 
 begin
+
+   refClk250 <= refClk;
 
    ------------------------
    -- Common PGP Clocking
@@ -86,7 +89,7 @@ begin
          pgpTxP          => dtmToRtmHsP,
          pgpTxN          => dtmToRtmHsN,
          -- GT Clocking
-         pgpRefClk250    => refClk250,
+         pgpRefClk250    => refClk,
          -- DMA Interface (dmaClk domain)
          dmaClk          => dmaClk,
          dmaRst          => dmaRst,

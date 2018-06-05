@@ -39,7 +39,8 @@ entity HsioPgpLane is
    port (
 
       -- Sys Clocks
-      sysClk200 : in sl;
+      sysClk200  : in sl;
+      locRefClk  : in sl;
 
       -- AXI Bus
       axiClk         : in  sl;
@@ -57,9 +58,9 @@ entity HsioPgpLane is
       pgpDataTxMaster : in  AxiStreamMasterType;
       pgpDataTxSlave  : out AxiStreamSlaveType;
 
-      -- Reference Clock
-      locRefClkP : in sl;
-      locRefClkM : in sl;
+      -- -- Reference Clock
+      -- locRefClkP : in sl;
+      -- locRefClkM : in sl;
 
       -- PHY
       pgpTxP : out sl;
@@ -73,7 +74,7 @@ architecture mapping of HsioPgpLane is
 
    signal pgpClkRst        : sl;
    signal pgpClk           : sl;
-   signal locRefClk        : sl;
+   -- signal locRefClk        : sl;
    signal locRefClkG       : sl;
    signal pgpRxIn          : Pgp2bRxInType;
    signal pgpRxOut         : Pgp2bRxOutType;
@@ -95,14 +96,14 @@ architecture mapping of HsioPgpLane is
 
 begin
 
-   -- locRefClk drives PGP
-   U_LocRefClkIbufds : IBUFDS_GTE2
-      port map (
-         I     => locRefClkP,
-         IB    => locRefClkM,
-         CEB   => '0',
-         O     => locRefClk,
-         ODIV2 => open);
+   -- -- locRefClk drives PGP
+   -- U_LocRefClkIbufds : IBUFDS_GTE2
+      -- port map (
+         -- I     => locRefClkP,
+         -- IB    => locRefClkM,
+         -- CEB   => '0',
+         -- O     => locRefClk,
+         -- ODIV2 => open);
 
    U_LocRefClkBufg : BUFG
       port map (
