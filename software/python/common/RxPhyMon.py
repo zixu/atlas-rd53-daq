@@ -11,10 +11,10 @@
 
 import pyrogue as pr
 
-class Dport(pr.Device):
+class RxPhyMon(pr.Device):
     def __init__(   self,       
-        name        = "Dport",
-        description = "Container for DPORT registers",
+        name        = "RxPhyMon",
+        description = "Container for RX Phy Monitoring registers",
         pollInterval = 1,
         **kwargs):
         
@@ -37,19 +37,9 @@ class Dport(pr.Device):
         )) 
         
         self.add(pr.RemoteVariable(
-            name         = 'CmdDropCnt',
-            description  = 'Increments when cmd dropped due to back pressure',
-            offset       = 0x004,
-            bitSize      = 32, 
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = pollInterval,
-        )) 
-        
-        self.add(pr.RemoteVariable(
             name         = 'TimedOutCnt',
             description  = 'Increments when a batcher timed out event occurs',
-            offset       = 0x008,
+            offset       = 0x004,
             bitSize      = 32, 
             mode         = 'RO',
             base         = pr.UInt,
@@ -76,7 +66,7 @@ class Dport(pr.Device):
             name         = 'RollOverEn', 
             description  = 'Rollover enable for status counters',
             offset       = 0xFF8,
-            bitSize      = 6, 
+            bitSize      = 2, 
             mode         = 'RW',
             base         = pr.UInt,
         ))        

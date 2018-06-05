@@ -11,11 +11,12 @@
 
 import rogue
 import rogue.hardware.axi
+import rogue.utilities.fileio
 
 import pyrogue
 import pyrogue as pr
-import pyrogue.interfaces.simulation
 import pyrogue.protocols
+import pyrogue.utilities.fileio
 
 import surf.axi as axiVer
 import surf.xilinx as xil
@@ -25,49 +26,52 @@ import surf.devices.nxp as nxp
 
 import common
         
-class Top(pyrogue.Device):
+class Top(pr.Root):
     def __init__(   self,       
             name        = "Top",
             description = "Container for FEB FPGA",
             dev         = '/dev/datadev_0',
-            port        = 0,
-            hwEmu       = False,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
+        # File writer
+        dataWriter = pr.utilities.fileio.StreamWriter()
+        self.add(dataWriter)
+        
         ######################################################################
         
-        # Create an empty data stream array
-        self.dataStream = [None] * 4
-        self.cmdStream  = [None] * 4
+        # Create an empty stream array
+        dataStream = [None] * 4
         
-        # Check if emulating the GUI interface
-        if (hwEmu):
-            # Create emulated hardware interface
-            print ("Running in Hardware Emulation Mode:")
-            memMap = pyrogue.interfaces.simulation.MemEmulate()
-            
-        else:
-            ########################################################################################################################
-            # https://github.com/slaclab/rogue/blob/master/include/rogue/hardware/axi/AxiStreamDma.h
-            # static boost::shared_ptr<rogue::hardware::axi::AxiStreamDma> create (std::string path, uint32_t dest, bool ssiEnable);
-            ########################################################################################################################
+        ########################################################################################################################
+        # https://github.com/slaclab/rogue/blob/master/include/rogue/hardware/axi/AxiStreamDma.h
+        # static boost::shared_ptr<rogue::hardware::axi::AxiStreamDma> create (std::string path, uint32_t dest, bool ssiEnable);
+        ########################################################################################################################
+    
+        ######################################################################
+        # PGPv3.[VC=0] = FEB SRPv3 Register Access
+        # PGPv3.[VC=1] = TLU Streaming Interface
+        # PGPv3.[VC=2] = RD53[DPORT=0] Streaming Data Interface
+        # PGPv3.[VC=3] = RD53[DPORT=1] Streaming Data Interface
+        # PGPv3.[VC=4] = RD53[DPORT=2] Streaming Data Interface
+        # PGPv3.[VC=5] = RD53[DPORT=3] Streaming Data Interface
+        ######################################################################
         
-            # Connect the SRPv3 to QSFP[port].Lane[0].VC[0]
-            srpStream  = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+0,1)
-            memMap = rogue.protocols.srp.SrpV3()                
-            pr.streamConnectBiDir( memMap, srpStream )             
+        # Connect the SRPv3 to PGPv3.VC[0]
+        srpStream  = rogue.hardware.axi.AxiStreamDma(dev,0,True)
+        memMap = rogue.protocols.srp.SrpV3()                
+        pr.streamConnectBiDir( memMap, srpStream )             
+        
+        # Create the TLU stream interface to PGPv3.VC[1]
+        self.tluStream = rogue.hardware.axi.AxiStreamDma(dev,1,True)            
+        
+        for i in range(4):
+            # Create the RD53 Data stream interface to PGPv3.VC[2+i]
+            dataStream[i] = rogue.hardware.axi.AxiStreamDma(dev,2+i,True)
             
-            # Create the TLU stream interface to QSFP[port].Lane[0].VC[1]
-            self.tluStream = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+1,1)            
+            # Add data stream to file as channel [i] to dataStream[i]
+            pr.streamConnect(dataStream[i],dataWriter.getChannel(i))            
             
-            for i in range(4):
-                # Create the RD53 Data stream interface to QSFP[port].Lane[0].VC[2+i]
-                self.dataStream[i] = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+2+i,1)
-                
-                # Create the RD53 CMD stream interface to QSFP[port].Lane[0].VC[2+i]
-                self.cmdStream[i] = rogue.hardware.axi.AxiStreamDma(dev,(128*port)+6+i,1)                
-                       
         ######################################################################
             
         # Add devices
@@ -124,12 +128,21 @@ class Top(pyrogue.Device):
             senseRes    = 20.E-3, # Units of Ohms
             expand      = False,
         ))
+
+        for i in range(4):
+            self.add(common.RxPhy(
+                name    = ('RxPhy[%d]'%i), 
+                memBase = memMap, 
+                offset  = (0x01000000*(i+1)), 
+                expand  = False,
+            ))             
         
         for i in range(4):
-            self.add(common.Dport(
-                name        = ('Dport[%d]'%i), 
-                description = 'This device contains all the registers for a DPORT pair', 
-                memBase     = memMap, 
-                offset      = (0x01000000*(i+1)), 
-                expand      = False,
-            ))            
+            self.add(common.RxPhyMon(
+                name    = ('RxPhyMon[%d]'%i), 
+                memBase = memMap, 
+                offset  = (0x01000000*(i+1) + 0x00100000), 
+                expand  = False,
+            )) 
+            
+        ######################################################################
