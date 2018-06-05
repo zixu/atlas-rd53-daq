@@ -10,7 +10,6 @@
 ##############################################################################
 
 import pyrogue as pr
-import rogue.interfaces.memory as rim
 
 class RxPhy(pr.Device):
     def __init__(   self,       
@@ -1280,90 +1279,64 @@ class RxPhy(pr.Device):
         ###########################################
         ###         Pixel Configurations        ###
         ###########################################
-        
-        
-        for col in range(400):
-            
-            self.add(pr.LocalVariable(    
-                name         = ('pix_en[%d]' % col),
-                description  = "Pixel Power and Enable",
-                mode         = "RW",
-                value        = {row: 0 for row in range(192)},
-                minimum      = 0,
-                maximum      = 1,
-                hidden       = True,
-            ))          
-        
-        
-            # for row in range(192):
-                # self.add(pr.BaseBlock(  
-                    # name     = ('pix_en_%d_%d' % (col,row)),
-                    # localSet = None,
-                    # localGet = None,
-                    # value    = 0,
-                # ))        
-        
-        # self.add(pr.LocalVariable(    
-            # name         = 'pix_en',
-            # description  = "Pixel Power and Enable",
-            # mode         = "RW",
-            # value        = {col: {row: 0 for row in range(192)} for col in range(400)},
-            # minimum      = 0,
-            # maximum      = 1,
-            # hidden       = True,
-        # ))  
+        self.add(pr.LocalVariable(    
+            name         = 'pix_en',
+            description  = "Pixel Power and Enable",
+            mode         = "RW",
+            value        = {col: {row: 0 for row in range(192)} for col in range(400)},
+            minimum      = 0,
+            maximum      = 1,
+            hidden       = True,
+        ))  
 
-        # self.add(pr.LocalVariable(    
-            # name         = 'pix_injen',
-            # description  = "Injection Enable",
-            # mode         = "RW",
-            # value        = {col: {row: 0 for row in range(192)} for col in range(400)},                  
-            # minimum      = 0,
-            # maximum      = 1,
-            # hidden       = True,
-        # ))
+        self.add(pr.LocalVariable(    
+            name         = 'pix_injen',
+            description  = "Injection Enable",
+            mode         = "RW",
+            value        = {col: {row: 0 for row in range(192)} for col in range(400)},                  
+            minimum      = 0,
+            maximum      = 1,
+            hidden       = True,
+        ))
 
-        # self.add(pr.LocalVariable(    
-            # name         = 'pix_hitbus',
-            # description  = "Hit-OR-bus Enable",
-            # mode         = "RW",
-            # value        = {col: {row: 0 for row in range(192)} for col in range(400)},                  
-            # minimum      = 0,
-            # maximum      = 1,
-            # hidden       = True,
-        # )) 
+        self.add(pr.LocalVariable(    
+            name         = 'pix_hitbus',
+            description  = "Hit-OR-bus Enable",
+            mode         = "RW",
+            value        = {col: {row: 0 for row in range(192)} for col in range(400)},                  
+            minimum      = 0,
+            maximum      = 1,
+            hidden       = True,
+        )) 
 
-        # self.add(pr.LocalVariable(    
-            # name         = 'pix_tdac',
-            # description  = "TDAC",
-            # mode         = "RW",
-            # value        = {col: {row: 0 for row in range(192)} for col in range(400)},                  
-            # minimum      = 0,
-            # maximum      = 15,
-            # hidden       = True,
-        # ))         
+        self.add(pr.LocalVariable(    
+            name         = 'pix_tdac',
+            description  = "TDAC",
+            mode         = "RW",
+            value        = {col: {row: 0 for row in range(192)} for col in range(400)},                  
+            minimum      = 0,
+            maximum      = 15,
+            hidden       = True,
+        ))         
         
-        # self.add(pr.LocalVariable(    
-            # name         = 'pix_sign',
-            # description  = "Diff=TDAC Sign, Linear=GainSelection, Sync=Unused",
-            # mode         = "RW",
-            # value        = {col: {row: 0 for row in range(192)} for col in range(400)},                  
-            # minimum      = 0,
-            # maximum      = 1,
-            # hidden       = True,
-        # ))        
-              
+        self.add(pr.LocalVariable(    
+            name         = 'pix_sign',
+            description  = "Diff=TDAC Sign, Linear=GainSelection, Sync=Unused",
+            mode         = "RW",
+            value        = {col: {row: 0 for row in range(192)} for col in range(400)},                  
+            minimum      = 0,
+            maximum      = 1,
+            hidden       = True,
+        ))        
                 
         def getPixValue(col,row):
-            # en     = self.pix_en.get()[col][row]
-            en     = 0
             # en     = self.node(f'pix_{col}_{row}_en').get()
             # injen  = self.node(f'pix_{col}_{row}_injen').get()
             # hitbus = self.node(f'pix_{col}_{row}_hitbus').get()
             # tdac   = self.node(f'pix_{col}_{row}_tdac').get()
             # sign   = self.node(f'pix_{col}_{row}_sign').get()
             # return (sign<<7) | (tdac<<3) | (hitbus<<2) | (injen<<1) | en
-            return  en
+            return 0
 
         ##############################
         # Commands
