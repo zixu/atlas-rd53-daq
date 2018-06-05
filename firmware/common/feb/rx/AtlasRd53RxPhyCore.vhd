@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhyCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-31
+-- Last update: 2018-06-04
 -------------------------------------------------------------------------------
 -- Description: RX PHY Core module
 -------------------------------------------------------------------------------
@@ -47,11 +47,6 @@ entity AtlasRd53RxPhyCore is
       -- Streaming RD43 Data Interface (axilClk domain)
       mDataMaster     : out AxiStreamMasterType;
       mDataSlave      : in  AxiStreamSlaveType;
-      -- Streaming RD43 CMD Interface (axilClk domain)
-      sCmdMaster      : in  AxiStreamMasterType;
-      sCmdSlave       : out AxiStreamSlaveType;
-      mCmdMaster      : out AxiStreamMasterType;
-      mCmdSlave       : in  AxiStreamSlaveType;
       -- Timing/Trigger Interface
       clk640MHz       : in  sl;
       clk160MHz       : in  sl;
@@ -74,12 +69,20 @@ end AtlasRd53RxPhyCore;
 
 architecture mapping of AtlasRd53RxPhyCore is
 
+   constant NUM_AXIL_MASTERS_C : natural := 2;
+
+   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXI_BASE_ADDR_G, 21, 20);
+
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+
    signal dataMaster  : AxiStreamMasterType;
    signal dataSlave   : AxiStreamSlaveType;
    signal autoReadReg : Slv32Array(3 downto 0);
 
    signal dataDrop : sl;
-   signal cmdDrop  : sl;
    signal timedOut : sl;
 
 begin
@@ -98,6 +101,27 @@ begin
          clkOutP => dPortAuxP,
          clkOutN => dPortAuxN);
 
+   --------------------------
+   -- AXI-Lite: Crossbar Core
+   --------------------------  
+   U_XBAR : entity work.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => AXI_CONFIG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => axilWriteMasters,
+         mAxiWriteSlaves     => axilWriteSlaves,
+         mAxiReadMasters     => axilReadMasters,
+         mAxiReadSlaves      => axilReadSlaves);
+
    --------------------------------
    -- RX PHY Layer + Local Emulator
    --------------------------------
@@ -106,37 +130,37 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Misc. Interfaces
-         enLocalEmu    => enLocalEmu,
-         asicRst       => asicRst,
-         iDelayCtrlRdy => iDelayCtrlRdy,
+         enLocalEmu      => enLocalEmu,
+         asicRst         => asicRst,
+         iDelayCtrlRdy   => iDelayCtrlRdy,
          -- RD53 ASIC Serial Ports
-         dPortDataP    => dPortDataP,
-         dPortDataN    => dPortDataN,
-         dPortCmdP     => dPortCmdP,
-         dPortCmdN     => dPortCmdN,
-         dPortRst      => dPortRst,
+         dPortDataP      => dPortDataP,
+         dPortDataN      => dPortDataN,
+         dPortCmdP       => dPortCmdP,
+         dPortCmdN       => dPortCmdN,
+         dPortRst        => dPortRst,
          -- Timing/Trigger Interface
-         clk640MHz     => clk640MHz,
-         clk160MHz     => clk160MHz,
-         clk80MHz      => clk80MHz,
-         clk40MHz      => clk40MHz,
-         rst640MHz     => rst640MHz,
-         rst160MHz     => rst160MHz,
-         rst80MHz      => rst80MHz,
-         rst40MHz      => rst40MHz,
-         ttc           => ttc,
-         -- Outbound Reg/Data Interface (axilClk domain)
-         axilClk       => axilClk,
-         axilRst       => axilRst,
-         mDataMaster   => dataMaster,
-         mDataSlave    => dataSlave,
-         dataDrop      => dataDrop,
-         sCmdMaster    => sCmdMaster,
-         sCmdSlave     => sCmdSlave,
-         mCmdMaster    => mCmdMaster,
-         mCmdSlave     => mCmdSlave,
-         cmdDrop       => cmdDrop,
-         autoReadReg   => autoReadReg);
+         clk640MHz       => clk640MHz,
+         clk160MHz       => clk160MHz,
+         clk80MHz        => clk80MHz,
+         clk40MHz        => clk40MHz,
+         rst640MHz       => rst640MHz,
+         rst160MHz       => rst160MHz,
+         rst80MHz        => rst80MHz,
+         rst40MHz        => rst40MHz,
+         ttc             => ttc,
+         -- AXI-Lite Interface  (axilClk domain)
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(0),
+         axilReadSlave   => axilReadSlaves(0),
+         axilWriteMaster => axilWriteMasters(0),
+         axilWriteSlave  => axilWriteSlaves(0),
+         -- Outbound Data/Auto-Read Interface (axilClk domain)
+         mDataMaster     => dataMaster,
+         mDataSlave      => dataSlave,
+         dataDrop        => dataDrop,
+         autoReadReg     => autoReadReg);
 
    ---------------------------------------------------------
    -- Batch Multiple 64-bit data words into large AXIS frame
@@ -167,15 +191,14 @@ begin
       port map (
          -- Monitoring Interface
          autoReadReg     => autoReadReg,
-         cmdDrop         => cmdDrop,
          dataDrop        => dataDrop,
          timedOut        => timedOut,
          -- AXI-Lite Interface
          axilClk         => axilClk,
          axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave);
+         axilReadMaster  => axilReadMasters(1),
+         axilReadSlave   => axilReadSlaves(1),
+         axilWriteMaster => axilWriteMasters(1),
+         axilWriteSlave  => axilWriteSlaves(1));
 
 end mapping;

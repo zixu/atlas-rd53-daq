@@ -30,7 +30,6 @@ entity AtlasRd53RxPhyMon is
    port (
       -- Monitoring Interface
       autoReadReg     : in  Slv32Array(3 downto 0);
-      cmdDrop         : in  sl;
       dataDrop        : in  sl;
       timedOut        : in  sl;
       -- AXI-Lite Interface
@@ -44,7 +43,7 @@ end AtlasRd53RxPhyMon;
 
 architecture rtl of AtlasRd53RxPhyMon is
 
-   constant STATUS_SIZE_C : positive := 3;
+   constant STATUS_SIZE_C : positive := 2;
 
    type RegType is record
       cntRst         : sl;
@@ -132,8 +131,7 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(2)  => timedOut,
-         statusIn(1)  => cmdDrop,
+         statusIn(1)  => timedOut,
          statusIn(0)  => dataDrop,
          -- Output Status bit Signals (rdClk domain)  
          statusOut    => statusOut,

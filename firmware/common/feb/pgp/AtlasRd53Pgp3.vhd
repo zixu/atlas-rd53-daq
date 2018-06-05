@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-31
+-- Last update: 2018-06-02
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGPv3 communication
 -------------------------------------------------------------------------------
@@ -37,18 +37,13 @@ entity AtlasRd53Pgp3 is
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType;
       -- Streaming RD43 Data Interface (axilClk domain)
-      sDataMasters    : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      sDataMasters    : in  AxiStreamMasterArray(3 downto 0);
       sDataSlaves     : out AxiStreamSlaveArray(3 downto 0);
-      -- Streaming RD43 CMD Interface (axilClk domain)
-      sCmdMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      sCmdSlaves      : out AxiStreamSlaveArray(3 downto 0);
-      mCmdMasters     : out AxiStreamMasterArray(3 downto 0);
-      mCmdSlaves      : in  AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
       -- Streaming TLU Interface (axilClk domain)
-      sTluMaster      : in  AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+      sTluMaster      : in  AxiStreamMasterType;
       sTluSlave       : out AxiStreamSlaveType;
       mTluMaster      : out AxiStreamMasterType;
-      mTluSlave       : in  AxiStreamSlaveType               := AXI_STREAM_SLAVE_FORCE_C;
+      mTluSlave       : in  AxiStreamSlaveType;
       -- Stable Reference IDELAY Clock and Reset
       refClk300MHz    : out sl;
       refRst300MHz    : out sl;
@@ -72,10 +67,10 @@ architecture mapping of AtlasRd53Pgp3 is
    signal pgpTxIn  : Pgp3TxInArray(3 downto 0)  := (others => PGP3_TX_IN_INIT_C);
    signal pgpTxOut : Pgp3TxOutArray(3 downto 0) := (others => PGP3_TX_OUT_INIT_C);
 
-   signal pgpTxMasters : AxiStreamMasterArray(9 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpTxSlaves  : AxiStreamSlaveArray(9 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal pgpRxMasters : AxiStreamMasterArray(9 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpRxCtrl    : AxiStreamCtrlArray(9 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+   signal pgpTxMasters : AxiStreamMasterArray(5 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpTxSlaves  : AxiStreamSlaveArray(5 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal pgpRxMasters : AxiStreamMasterArray(5 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpRxCtrl    : AxiStreamCtrlArray(5 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
 
    signal pgpClk : slv(3 downto 0) := x"0";
    signal pgpRst : slv(3 downto 0) := x"0";
@@ -129,7 +124,7 @@ begin
       generic map(
          TPD_G         => TPD_G,
          NUM_LANES_G   => 1,
-         NUM_VC_G      => 10,
+         NUM_VC_G      => 6,
          RATE_G        => PGP3_RATE_G,
          REFCLK_TYPE_G => PGP3_REFCLK_312_C,
          EN_PGP_MON_G  => false,
@@ -246,25 +241,6 @@ begin
             pgpRst      => pgpRst(0),
             pgpTxMaster => pgpTxMasters(2+i),
             pgpTxSlave  => pgpTxSlaves(2+i));
-
-      U_Lane0_Vc9_Vc6 : entity work.AtlasRd53Pgp3AxisFifo
-         generic map (
-            TPD_G => TPD_G)
-         port map (
-            -- System Interface (axilClk domain)
-            sysClk      => sysClk,
-            sysRst      => sysRst,
-            sAxisMaster => sCmdMasters(i),
-            sAxisSlave  => sCmdSlaves(i),
-            mAxisMaster => mCmdMasters(i),
-            mAxisSlave  => mCmdSlaves(i),
-            -- PGP Interface (pgpClk domain)
-            pgpClk      => pgpClk(0),
-            pgpRst      => pgpRst(0),
-            pgpRxMaster => pgpRxMasters(6+i),
-            pgpRxCtrl   => pgpRxCtrl(6+i),
-            pgpTxMaster => pgpTxMasters(6+i),
-            pgpTxSlave  => pgpTxSlaves(6+i));
 
    end generate PGP_LANE;
 

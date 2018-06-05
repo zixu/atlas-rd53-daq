@@ -200,7 +200,7 @@ begin
       -- Check for trigger
       if (trig = '1') then
          -- Update the trigger detection mask
-         v.trigDet(3 - serPhase) := '1';
+         v.trigDet(serPhase) := '1';
       end if;
 
       -- Check for ECR

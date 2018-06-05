@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-31
+-- Last update: 2018-06-02
 -------------------------------------------------------------------------------
 -- Description: AD53 readout core module
 -------------------------------------------------------------------------------
@@ -144,11 +144,6 @@ architecture mapping of AtlasRd53Core is
    signal txDataMasters : AxiStreamMasterArray(3 downto 0);
    signal txDataSlaves  : AxiStreamSlaveArray(3 downto 0);
 
-   signal txCmdMasters : AxiStreamMasterArray(3 downto 0);
-   signal txCmdSlaves  : AxiStreamSlaveArray(3 downto 0);
-   signal rxCmdMasters : AxiStreamMasterArray(3 downto 0);
-   signal rxCmdSlaves  : AxiStreamSlaveArray(3 downto 0);
-
    signal txTluMaster : AxiStreamMasterType;
    signal txTluSlave  : AxiStreamSlaveType;
    signal rxTluMaster : AxiStreamMasterType;
@@ -241,11 +236,6 @@ begin
          -- Streaming RD43 Data Interface (axilClk domain)
          sDataMasters    => txDataMasters,
          sDataSlaves     => txDataSlaves,
-         -- Streaming RD43 CMD Interface (axilClk domain)
-         sCmdMasters     => txCmdMasters,
-         sCmdSlaves      => txCmdSlaves,
-         mCmdMasters     => rxCmdMasters,
-         mCmdSlaves      => rxCmdSlaves,
          -- Streaming TLU Interface (axilClk domain)
          sTluMaster      => txTluMaster,
          sTluSlave       => txTluSlave,
@@ -354,11 +344,6 @@ begin
             -- Streaming RD43 Data Interface (axilClk domain)
             mDataMaster     => txDataMasters(i),
             mDataSlave      => txDataSlaves(i),
-            -- Streaming RD43 CMD Interface (axilClk domain)
-            sCmdMaster      => rxCmdMasters(i),
-            sCmdSlave       => rxCmdSlaves(i),
-            mCmdMaster      => txCmdMasters(i),
-            mCmdSlave       => txCmdSlaves(i),
             -- Timing/Trigger Interface
             clk640MHz       => clk640MHz,
             clk160MHz       => clk160MHz,
