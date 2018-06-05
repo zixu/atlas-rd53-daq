@@ -11,6 +11,7 @@
 
 import rogue
 import rogue.hardware.axi
+import rogue.hardware.rce
 import rogue.utilities.fileio
 
 import pyrogue
@@ -23,6 +24,7 @@ import surf.xilinx as xil
 import surf.devices.micron as prom
 import surf.devices.linear as linear
 import surf.devices.nxp as nxp
+import surf.protocols.pgp as pgp
 
 import common
         
@@ -31,6 +33,7 @@ class Top(pr.Root):
             name        = "Top",
             description = "Container for FEB FPGA",
             dev         = '/dev/datadev_0',
+            hwType      = 'pcie'
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
@@ -39,6 +42,46 @@ class Top(pr.Root):
         self.add(dataWriter)
         
         ######################################################################
+        
+        if ( hwType == 'hsio-dtm' ):
+            # Create the AXI interfaces
+            rceMap = rogue.hardware.rce.MapMemory();
+            rceMap.addMap(0x80000000,0x10000)
+            rceMap.addMap(0x84000000,0x10000)
+            rceMap.addMap(0xA0000000,0x100000)
+            # Add PGPv2b to the HSIO FPGA
+            self.add(pgp.Pgp2bAxi( 
+                name    = 'Pgp2bMon',
+                memBase = rceMap,
+                offset  = 0xA0000000,
+                expand  = False,
+            ))               
+            # Add PGPv3 to the FEB
+            self.add(pgp.Pgp3AxiL( 
+                name    = 'Pgp3Mon',
+                memBase = rceMap,
+                offset  = 0xA1000000,
+                numVc   = 1,
+                writeEn = True,
+                expand  = False,
+            ))    
+        elif ( hwType == 'rce-dpm' ):
+            # Create the AXI interfaces
+            rceMap = rogue.hardware.rce.MapMemory();
+            rceMap.addMap(0x80000000,0x10000)
+            rceMap.addMap(0x84000000,0x10000)
+            rceMap.addMap(0xA0000000,0x100000)      
+            # Add PGPv3 to the FEB
+            self.add(pgp.Pgp3AxiL( 
+                name    = 'Pgp3Mon',
+                memBase = rceMap,
+                offset  = 0xA0000000,
+                numVc   = 1,
+                writeEn = True,
+                expand  = False,
+            ))           
+        
+        ######################################################################          
         
         # Create an empty stream array
         dataStream = [None] * 4
@@ -73,7 +116,7 @@ class Top(pr.Root):
             pr.streamConnect(dataStream[i],dataWriter.getChannel(i))            
             
         ######################################################################
-            
+        
         # Add devices
         self.add(axiVer.AxiVersion( 
             name    = 'AxiVersion', 
@@ -146,3 +189,4 @@ class Top(pr.Root):
             )) 
             
         ######################################################################
+        
