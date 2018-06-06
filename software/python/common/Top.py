@@ -33,7 +33,7 @@ class Top(pr.Root):
             name        = "Top",
             description = "Container for FEB FPGA",
             dev         = '/dev/datadev_0',
-            hwType      = 'pcie'
+            hwType      = 'pcie',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
