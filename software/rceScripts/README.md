@@ -1,3 +1,4 @@
+# Instructions for setuping up the RCE and running the GUI via python-pyro
 ```
 ################################################################################
 # Note: In these instructions, we assume the single RCE node is IP=192.168.1.150
@@ -53,6 +54,7 @@ $ pacman -Syu
 # Install the necessary packages for building rogue (choose default options)
 # Note: Latest instructions documented in rogue/README.md <https://github.com/slaclab/rogue/blob/master/README.md>
 $ pacman -S cmake
+$ pacman -S tcsh
 $ pacman -S python3
 $ pacman -S boost
 $ pacman -S bzip2
@@ -61,7 +63,12 @@ $ pacman -S git
 $ pacman -S zeromq
 $ pacman -S python-pyqt5
 $ pacman -S python-pyqt4
-$ pacman -S tcsh
+$ pacman -S python-yaml 
+$ pacman -S python-pyro
+$ pacman -S python-parse 
+$ pacman -S python-click 
+$ pacman -S python-pyzmq 
+$ pacman -S python-numpy 
 
 # Build the rogue software
 $ cd /mnt/host/rogue/
@@ -73,8 +80,12 @@ $ cmake ../
 $ make -j 2
 
 # Configure the latest image into the fpga.bit
-$ /mnt/host/atlas-rd53-daq/firmware/targets/AtlasRd53HsioDtm/images/<LATEST_RELEASE>.bit /mnt/boot/fpga.bit
+$ /mnt/host/atlas-rd53-daq/firmware/targets/<RCE_TARGET>/images/<LATEST_RELEASE>.bit /mnt/boot/fpga.bit
 $ sync; sync; sync
 $ reboot
 
+# On your PC client launch the GUI after the RCE is rebooted,
+$ /u1/atlas/rd53a/atlas-rd53-daq/software
+$ source setup_env_slac.csh
+$ python3 scripts/RceGuiClient.py --cltIp 192.168.1.1 --srvIp 192.168.1.151
 ```
