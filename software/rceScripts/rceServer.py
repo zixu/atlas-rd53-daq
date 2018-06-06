@@ -15,16 +15,17 @@ import Pyro4.naming
 import common as feb
 import sys
 import time
+import socket
 
 # Set base
 base = feb.Top(dev='axi_stream_dma_2',hwType='hsio-dtm')  
 
 # Start the system
 base.start(
-    pollEn   = True,
-    initRead = True,
-    pyroGroup= 'rce', 
-    pyroAddr = '192.168.2.111', # RCE IP   
+    pollEn    = True,
+    initRead  = True,
+    pyroGroup = 'rce', 
+    pyroAddr  = socket.gethostbyname(socket.gethostname()), # RCE IP   
 )
 
 # Close window and stop polling
