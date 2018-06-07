@@ -2,7 +2,7 @@
 -- File       : AtlasRd53HsioDtm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-01
--- Last update: 2018-06-05
+-- Last update: 2018-06-07
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -25,8 +25,9 @@ use work.RceG3Pkg.all;
 
 entity AtlasRd53HsioDtm is
    generic (
-      TPD_G        : time := 1 ns;
-      BUILD_INFO_G : BuildInfoType);
+      TPD_G          : time    := 1 ns;
+      DMA_LOOPBACK_G : boolean := true;
+      BUILD_INFO_G   : BuildInfoType);
    port (
       -- Debug
       led          : out   slv(1 downto 0) := "00";
@@ -191,13 +192,13 @@ begin
       port map (
          sysClk200       => ref200Clk,
          locRefClk       => locRefClk,
-         -- AXI-Lite Interface (axilClk domain)
+         -- AXI-Lite Interface (axilClk domain): 0xA1000000 - 0xA1FFFFFF
          axiClk          => axilClk,
          axiClkRst       => axilRst,
-         axiReadMaster   => axilReadMasters(0),
-         axiReadSlave    => axilReadSlaves(0),
-         axiWriteMaster  => axilWriteMasters(0),
-         axiWriteSlave   => axilWriteSlaves(0),
+         axiReadMaster   => axilReadMasters(1),
+         axiReadSlave    => axilReadSlaves(1),
+         axiWriteMaster  => axilWriteMasters(1),
+         axiWriteSlave   => axilWriteSlaves(1),
          -- DMA Interfaces (dmaClk domain)
          pgpAxisClk      => dmaClk(0),
          pgpAxisRst      => dmaRst(0),
@@ -211,11 +212,31 @@ begin
          pgpRxP          => fpgaToDtmHsP,
          pgpRxM          => fpgaToDtmHsM);
 
-   --------------------
-   -- DMA[1] = Loopback
-   --------------------
-   dmaIbMasters(1) <= dmaObMasters(1);
-   dmaObSlaves(1)  <= dmaIbSlaves(1);
+
+   GEN_LOOPBACK : if (DMA_LOOPBACK_G = true) generate
+      --------------------
+      -- DMA[1] = Loopback
+      --------------------
+      dmaIbMasters(1) <= dmaObMasters(1);
+      dmaObSlaves(1)  <= dmaIbSlaves(1);
+   end generate;
+
+   GEN_SRP_TEST : if (DMA_LOOPBACK_G = false) generate
+      --------------------
+      -- DMA[1] = SRP Test
+      --------------------
+      U_DmaSrpTest : entity work.DmaSrpTest
+         generic map (
+            TPD_G        => TPD_G,
+            BUILD_INFO_G => BUILD_INFO_G)
+         port map (
+            clk         => dmaClk(1),
+            rst         => dmaRst(1),
+            dmaObMaster => dmaObMasters(1),
+            dmaObSlave  => dmaObSlaves(1),
+            dmaIbMaster => dmaIbMasters(1),
+            dmaIbSlave  => dmaIbSlaves(1));
+   end generate;
 
    ------------------------
    -- DMA[2] = PGPv3 to FEB
@@ -240,17 +261,17 @@ begin
          dmaObSlave      => dmaObSlaves(2),
          dmaIbMaster     => dmaIbMasters(2),
          dmaIbSlave      => dmaIbSlaves(2),
-         -- AXI-Lite Interface (axilClk domain)
+         -- AXI-Lite Interface (axilClk domain): 0xA0000000 - 0xA0FFFFFF
          axilClk         => axilClk,
          axilRst         => axilRst,
-         axilReadMaster  => axilReadMasters(1),
-         axilReadSlave   => axilReadSlaves(1),
-         axilWriteMaster => axilWriteMasters(1),
-         axilWriteSlave  => axilWriteSlaves(1));
+         axilReadMaster  => axilReadMasters(0),
+         axilReadSlave   => axilReadSlaves(0),
+         axilWriteMaster => axilWriteMasters(0),
+         axilWriteSlave  => axilWriteSlaves(0));
 
-   --------------------
-   -- DMA[3] = Loopback
-   --------------------
+   -----------------------------------------
+   -- DMA[3] = Not Connected in HsioCore.vhd
+   -----------------------------------------
    dmaIbMasters(3) <= dmaObMasters(3);
    dmaObSlaves(3)  <= dmaIbSlaves(3);
 

@@ -32,8 +32,3 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks sysClk200] \
     -group [get_clocks -include_generated_clocks sysClk125] \
     -group [get_clocks -include_generated_clocks locRefClk]
-
-set_clock_groups -asynchronous \
-    -group [get_clocks dnaClk] \
-    -group [get_clocks sysClk125] \
-    -group [get_clocks -of_objects [get_pins U_HsioCore/U_RceG3Top/U_RceG3AxiCntl/U_DeviceDna/GEN_7SERIES.DeviceDna7Series_Inst/DNA_CLK_INV_BUFR/O]]
