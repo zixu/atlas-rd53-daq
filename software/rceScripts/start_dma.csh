@@ -14,8 +14,13 @@ echo driver_version = $driver_version
 echo driver_dir     = $driver_dir
 echo driver         = $driver
  
+# Remove old driver
+/sbin/rmmod -s rcestream 
+ 
 # Load the driver
-insmod ${driver} cfgTxCount0=8 cfgTxCount1=8 cfgTxCount2=8 cfgRxCount0=32 cfgRxCount1=8 cfgRxCount2=32 cfgSize0=131072 cfgSize2=131072 cfgMode2=20
+###insmod ${driver} cfgTxCount0=8 cfgTxCount1=8 cfgTxCount2=8 cfgRxCount0=32 cfgRxCount1=8 cfgRxCount2=32 cfgSize0=131072 cfgSize2=131072 cfgMode2=20
+insmod ${driver} cfgTxCount0=8 cfgTxCount2=8 cfgRxCount0=32 cfgRxCount2=32 cfgSize0=131072 cfgSize2=131072 cfgMode2=20
+#insmod ${driver} cfgTxCount0=8 cfgTxCount2=8 cfgRxCount0=32 cfgRxCount2=32 cfgSize0=131072 cfgSize2=131072
 
 # give appropriate group/permissions
 chmod a+rw /dev/axi*

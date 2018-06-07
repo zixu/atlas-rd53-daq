@@ -10,7 +10,7 @@ chsh -s /bin/tcsh
 mkdir -p /mnt/host
 
 # Setup the NFS mount
-mount -t nfs 192.168.1.1:/u1/atlas/rd53a /mnt/host
+mount -t nfs 192.168.1.1:/u1/atlas/rd53a /mnt/host -o rsize=65536,wsize=65536
 
 # Load the DMA driver
 /mnt/host/atlas-rd53-daq/software/rceScripts/start_dma.csh

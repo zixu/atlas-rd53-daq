@@ -11,16 +11,28 @@
 
 import sys
 import pyrogue as pr
-import common as feb
 import sys
 import time
 import socket
 import rogue
+import rogue.hardware.axi
+import pyrogue.utilities.prbs
 
-#rogue.Logging.setLevel(rogue.Logging.Warning)
+rogue.Logging.setLevel(rogue.Logging.Warning)
+
+# Set the DMA loopback channel
+vcPrbs = rogue.hardware.axi.AxiStreamDma("/dev/axi_stream_dma_1",0,1)
 
 # Set base
-base = feb.Top(name='rceServer',dev='/dev/axi_stream_dma_2',hwType='hsio-dtm')  
+base = pr.Root(name='rceServer',description='DPM Loopback Testing')
+
+prbsRx = pyrogue.utilities.prbs.PrbsRx(name='PrbsRx')
+pyrogue.streamConnect(vcPrbs,prbsRx)
+base.add(prbsRx)  
+    
+prbTx = pyrogue.utilities.prbs.PrbsTx(name="PrbsTx")
+pyrogue.streamConnect(prbTx, vcPrbs)
+base.add(prbTx)  
 
 # Start the system
 base.start(

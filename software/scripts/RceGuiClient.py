@@ -46,16 +46,16 @@ args = parser.parse_args()
 # Set host= to the address of a network interface to secificy the network to use
 # Set ns= to the address of the nameserver(optional)
 client = pyrogue.PyroClient(
-    group = 'rce', 
-    host  = args.cltIp, # Local IP
-    ns    = args.srvIp, # RCE IP
+    group     = 'rce', 
+    localAddr = args.cltIp, # Local IP
+    nsAddr    = args.srvIp, # RCE IP
 ) 
 
 # Create GUI
 appTop = PyQt4.QtGui.QApplication(sys.argv)
 appTop.setStyle('Fusion')
 guiTop = pyrogue.gui.GuiTop(group='rootMesh')
-guiTop.addTree(client.getRoot(name='RceServer'))
+guiTop.addTree(client.getRoot(name='rceServer'))
 
 print("Starting GUI...\n");
 

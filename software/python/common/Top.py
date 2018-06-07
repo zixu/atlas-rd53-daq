@@ -11,7 +11,6 @@
 
 import rogue
 import rogue.hardware.axi
-import rogue.hardware.rce
 import rogue.utilities.fileio
 
 import pyrogue
@@ -19,6 +18,7 @@ import pyrogue as pr
 import pyrogue.protocols
 import pyrogue.utilities.fileio
 
+import RceG3 as rceg3
 import surf.axi as axiVer
 import surf.xilinx as xil
 import surf.devices.micron as prom
@@ -43,45 +43,44 @@ class Top(pr.Root):
         
         ######################################################################
         
-        if ( hwType == 'hsio-dtm' ):
-            # Create the AXI interfaces
-            rceMap = rogue.hardware.rce.MapMemory();
-            rceMap.addMap(0x80000000,0x10000)
-            rceMap.addMap(0x84000000,0x10000)
-            rceMap.addMap(0xA0000000,0x100000)
-            # Add PGPv2b to the HSIO FPGA
-            self.add(pgp.Pgp2bAxi( 
-                name    = 'Pgp2bMon',
+        if ( hwType == 'hsio-dtm' ) or ( hwType == 'rce-dpm' ):
+            # Create the mmap interface
+            rceMap = rogue.hardware.axi.AxiMemMap(dev)
+            # Add RCE version device
+            self.add(rceg3.RceVersion( 
                 memBase = rceMap,
-                offset  = 0xA0000000,
                 expand  = False,
             ))               
             # Add PGPv3 to the FEB
             self.add(pgp.Pgp3AxiL( 
                 name    = 'Pgp3Mon',
                 memBase = rceMap,
-                offset  = 0xA1000000,
-                numVc   = 1,
-                writeEn = True,
-                expand  = False,
-            ))    
-        elif ( hwType == 'rce-dpm' ):
-            # Create the AXI interfaces
-            rceMap = rogue.hardware.rce.MapMemory();
-            rceMap.addMap(0x80000000,0x10000)
-            rceMap.addMap(0x84000000,0x10000)
-            rceMap.addMap(0xA0000000,0x100000)      
-            # Add PGPv3 to the FEB
-            self.add(pgp.Pgp3AxiL( 
-                name    = 'Pgp3Mon',
-                memBase = rceMap,
                 offset  = 0xA0000000,
                 numVc   = 1,
                 writeEn = True,
                 expand  = False,
-            ))           
-        
-        ######################################################################          
+            ))    
+            if ( hwType == 'hsio-dtm' ):
+                # Add PGPv2b to the HSIO FPGA
+                self.add(pgp.Pgp2bAxi( 
+                    name    = 'Pgp2bMon',
+                    memBase = rceMap,
+                    offset  = 0xA1000000,
+                    expand  = False,
+                ))    
+                # Connect the SRPv0 to PGPv2b.VC[1]
+                pgp2bVc1  = rogue.hardware.axi.AxiStreamDma('/dev/axi_stream_dma_0',1,True)
+                srpV0 = rogue.protocols.srp.SrpV0()                
+                pr.streamConnectBiDir( srpV0, pgp2bVc1 )  
+                # Connect the legacy AxiVersion device
+                self.add(axiVer.AxiVersionLegacy( 
+                    name    = 'HsioAxiVersion', 
+                    memBase = srpV0, 
+                    offset  = 0x00001000, 
+                    expand  = False,
+                ))
+                
+        # ######################################################################          
         
         # Create an empty stream array
         dataStream = [None] * 4

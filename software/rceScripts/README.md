@@ -84,8 +84,10 @@ $ /mnt/host/atlas-rd53-daq/firmware/targets/<RCE_TARGET>/images/<LATEST_RELEASE>
 $ sync; sync; sync
 $ reboot
 
-# On your PC client launch the GUI after the RCE is rebooted,
+# After the RCE reboot, the rceServer will lauch automatically.
+# On the PC client, lauch the GUI client
 $ /u1/atlas/rd53a/atlas-rd53-daq/software
 $ source setup_env_slac.csh
-$ python3 scripts/RceGuiClient.py --cltIp 192.168.1.1 --srvIp 192.168.1.151
+$ python3 scripts/RceGuiClient.py --cltIp 192.168.1.1 --srvIp 192.168.1.150
+
 ```
