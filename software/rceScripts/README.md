@@ -1,4 +1,7 @@
 # Instructions for setuping up the RCE and running the GUI via python-pyro
+
+If we are going to do these instructions for more than a few setups, then we will want to script the procedure below
+
 ```
 ################################################################################
 # Note: In these instructions, we assume the single RCE node is IP=192.168.1.150
