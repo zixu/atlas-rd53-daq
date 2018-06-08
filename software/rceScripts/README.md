@@ -1,6 +1,6 @@
 # Instructions for setuping up the RCE and running the GUI via python-pyro
 
-If we are going to do these instructions for more than a few setups, then we will want to script the procedure below
+If we are going to do these sets below for more than a few setups, then we will want to script the procedure below
 
 ```
 ################################################################################
