@@ -102,9 +102,9 @@ class SysReg(pr.Device):
             name         = 'PllRst',
             description  = 'PLL Reset',
             offset       = 0x804,
-            bitSize      = 1,
-            base         = pr.UInt,
-            function     = lambda cmd: cmd.toggle(1),
+            # bitSize      = 1,
+            # base         = pr.UInt,
+            function     = lambda cmd: cmd.toggle(cmd),
             hidden       = False,
         ))   
 
@@ -112,9 +112,9 @@ class SysReg(pr.Device):
             name         = 'AsicRst',
             description  = 'ASIC Reset',
             offset       = 0x808,
-            bitSize      = 1,
-            base         = pr.UInt,
-            function     = lambda cmd: cmd.toggle(1),
+            # bitSize      = 1,
+            # base         = pr.UInt,
+            function     = lambda cmd: cmd.toggle(cmd),
             hidden       = False,
         ))           
         

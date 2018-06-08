@@ -2,7 +2,7 @@
 -- File       : HsioPgpLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-29
--- Last update: 2018-05-31
+-- Last update: 2018-06-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -34,22 +34,18 @@ use work.Gtx7CfgPkg.all;
 
 entity HsioPgpLane is
    generic (
-      TPD_G : time := 1 ns
-      );
+      TPD_G : time := 1 ns);
    port (
-
       -- Sys Clocks
-      sysClk200  : in sl;
-      locRefClk  : in sl;
-
+      sysClk200       : in  sl;
+      locRefClk       : in  sl;
       -- AXI Bus
-      axiClk         : in  sl;
-      axiClkRst      : in  sl;
-      axiReadMaster  : in  AxiLiteReadMasterType;
-      axiReadSlave   : out AxiLiteReadSlaveType;
-      axiWriteMaster : in  AxiLiteWriteMasterType;
-      axiWriteSlave  : out AxiLiteWriteSlaveType;
-
+      axiClk          : in  sl;
+      axiClkRst       : in  sl;
+      axiReadMaster   : in  AxiLiteReadMasterType;
+      axiReadSlave    : out AxiLiteReadSlaveType;
+      axiWriteMaster  : in  AxiLiteWriteMasterType;
+      axiWriteSlave   : out AxiLiteWriteSlaveType;
       -- AXI Streaming
       pgpAxisClk      : in  sl;
       pgpAxisRst      : in  sl;
@@ -57,17 +53,11 @@ entity HsioPgpLane is
       pgpDataRxSlave  : in  AxiStreamSlaveType;
       pgpDataTxMaster : in  AxiStreamMasterType;
       pgpDataTxSlave  : out AxiStreamSlaveType;
-
-      -- -- Reference Clock
-      -- locRefClkP : in sl;
-      -- locRefClkM : in sl;
-
       -- PHY
-      pgpTxP : out sl;
-      pgpTxM : out sl;
-      pgpRxP : in  sl;
-      pgpRxM : in  sl
-      );
+      pgpTxP          : out sl;
+      pgpTxM          : out sl;
+      pgpRxP          : in  sl;
+      pgpRxM          : in  sl);
 end HsioPgpLane;
 
 architecture mapping of HsioPgpLane is
@@ -96,15 +86,6 @@ architecture mapping of HsioPgpLane is
 
 begin
 
-   -- -- locRefClk drives PGP
-   -- U_LocRefClkIbufds : IBUFDS_GTE2
-      -- port map (
-         -- I     => locRefClkP,
-         -- IB    => locRefClkM,
-         -- CEB   => '0',
-         -- O     => locRefClk,
-         -- ODIV2 => open);
-
    U_LocRefClkBufg : BUFG
       port map (
          I => locRefClk,
@@ -132,21 +113,21 @@ begin
 
    Pgp2bGtx7VarLat_1 : entity work.Pgp2bGtx7VarLat
       generic map (
-         TPD_G                 => TPD_G,
-         STABLE_CLOCK_PERIOD_G => 4.0E-9,
-         CPLL_REFCLK_SEL_G     => "001",
-         CPLL_FBDIV_G          => PGP_GTX_CPLL_CFG_C.CPLL_FBDIV_G,
-         CPLL_FBDIV_45_G       => PGP_GTX_CPLL_CFG_C.CPLL_FBDIV_45_G,
-         CPLL_REFCLK_DIV_G     => PGP_GTX_CPLL_CFG_C.CPLL_REFCLK_DIV_G,
-         RXOUT_DIV_G           => PGP_GTX_CPLL_CFG_C.OUT_DIV_G,
-         TXOUT_DIV_G           => PGP_GTX_CPLL_CFG_C.OUT_DIV_G,
-         RX_CLK25_DIV_G        => PGP_GTX_CPLL_CFG_C.CLK25_DIV_G,
-         TX_CLK25_DIV_G        => PGP_GTX_CPLL_CFG_C.CLK25_DIV_G,
-         TX_PLL_G              => "CPLL",
-         RX_PLL_G              => "CPLL",
-         PAYLOAD_CNT_TOP_G     => 7,
-         VC_INTERLEAVE_G       => 1,
-         NUM_VC_EN_G           => 4)
+         TPD_G             => TPD_G,
+         CPLL_FBDIV_G      => PGP_GTX_CPLL_CFG_C.CPLL_FBDIV_G,
+         CPLL_FBDIV_45_G   => PGP_GTX_CPLL_CFG_C.CPLL_FBDIV_45_G,
+         CPLL_REFCLK_DIV_G => PGP_GTX_CPLL_CFG_C.CPLL_REFCLK_DIV_G,
+         RXOUT_DIV_G       => PGP_GTX_CPLL_CFG_C.OUT_DIV_G,
+         TXOUT_DIV_G       => PGP_GTX_CPLL_CFG_C.OUT_DIV_G,
+         RX_CLK25_DIV_G    => PGP_GTX_CPLL_CFG_C.CLK25_DIV_G,
+         TX_CLK25_DIV_G    => PGP_GTX_CPLL_CFG_C.CLK25_DIV_G,
+         RXDFEXYDEN_G      => '1',
+         RX_DFE_KL_CFG2_G  => x"301148AC",
+         TX_PLL_G          => "CPLL",
+         RX_PLL_G          => "CPLL",
+         PAYLOAD_CNT_TOP_G => 7,
+         VC_INTERLEAVE_G   => 1,
+         NUM_VC_EN_G       => 4)
       port map (
          stableClk        => sysClk200,
          gtCPllRefClk     => locRefClk,
@@ -179,7 +160,9 @@ begin
          pgpRxMasters     => pgpRxMasters,
          pgpRxCtrl        => pgpRxCtrl);
 
+   ----------------------
    -- PGP Axil Controller
+   ----------------------
    U_Pgp2bAxi : entity work.Pgp2bAxi
       generic map (
          TPD_G              => TPD_G,
@@ -188,7 +171,7 @@ begin
          WRITE_EN_G         => true,
          AXI_CLK_FREQ_G     => AXIL_CLK_FREQ_C,
          STATUS_CNT_WIDTH_G => 32,
-         ERROR_CNT_WIDTH_G  => 4)
+         ERROR_CNT_WIDTH_G  => 16)
       port map (
          pgpTxClk        => pgpClk,
          pgpTxClkRst     => pgpClkRst,
@@ -198,8 +181,6 @@ begin
          pgpRxClkRst     => pgpClkRst,
          pgpRxIn         => pgpRxIn,
          pgpRxOut        => pgpRxOut,
-         statusWord      => open,
-         statusSend      => open,
          axilClk         => axiClk,
          axilRst         => axiClkRst,
          axilReadMaster  => axiReadMaster,
@@ -207,94 +188,50 @@ begin
          axilWriteMaster => axiWriteMaster,
          axilWriteSlave  => axiWriteSlave);
 
-   GEN_VEC :
-   for i in 3 downto 0 generate
-
-      PGP_FIFO : entity work.AxiStreamFifoV2
-         generic map (
-            -- General Configurations
-            TPD_G               => TPD_G,
-            INT_PIPE_STAGES_G   => 1,
-            PIPE_STAGES_G       => 1,
-            SLAVE_READY_EN_G    => false,
-            VALID_THOLD_G       => 128,  -- Hold until enough to burst into the interleaving MUX
-            VALID_BURST_MODE_G  => true,
-            -- FIFO configurations
-            BRAM_EN_G           => true,
-            GEN_SYNC_FIFO_G     => true,
-            FIFO_ADDR_WIDTH_G   => 10,
-            FIFO_FIXED_THRESH_G => true,
-            FIFO_PAUSE_THRESH_G => 512,
-            -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => SSI_PGP2B_CONFIG_C,
-            MASTER_AXI_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_C)
-         port map (
-            -- Slave Port
-            sAxisClk    => pgpClk,
-            sAxisRst    => pgpClkRst,
-            sAxisMaster => pgpRxMasters(i),
-            sAxisCtrl   => pgpRxCtrl(i),
-            -- Master Port
-            mAxisClk    => pgpAxisClk,
-            mAxisRst    => pgpAxisRst,
-            mAxisMaster => pgpDataRxMasters(i),
-            mAxisSlave  => pgpDataRxSlaves(i));
-
-   end generate GEN_VEC;
-
-   U_Mux : entity work.AxiStreamMux
+   --------------
+   -- PGP TX Path
+   --------------
+   U_Tx : entity work.PgpLaneTx
       generic map (
-         TPD_G                => TPD_G,
-         NUM_SLAVES_G         => 4,
-         ILEAVE_EN_G          => true,
-         ILEAVE_ON_NOTVALID_G => false,
-         ILEAVE_REARB_G       => 128,
-         PIPE_STAGES_G        => 1)
+         TPD_G             => TPD_G,
+         DMA_AXIS_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_C,
+         PGP_AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C,
+         NUM_VC_G          => 4)
       port map (
-         -- Clock and reset
-         axisClk      => pgpAxisClk,
-         axisRst      => pgpAxisRst,
-         -- Slaves
-         sAxisMasters => pgpDataRxMasters,
-         sAxisSlaves  => pgpDataRxSlaves,
-         -- Master
-         mAxisMaster  => pgpDataRxMaster,
-         mAxisSlave   => pgpDataRxSlave);
+         -- DMA Interface (dmaClk domain)
+         dmaClk       => pgpAxisClk,
+         dmaRst       => pgpAxisRst,
+         dmaObMaster  => pgpDataTxMaster,
+         dmaObSlave   => pgpDataTxSlave,
+         -- PGP Interface
+         pgpClk       => pgpClk,
+         pgpRst       => pgpClkRst,
+         rxlinkReady  => pgpRxOut.linkReady,
+         txlinkReady  => pgpTxOut.linkReady,
+         pgpTxMasters => pgpTxMasters,
+         pgpTxSlaves  => pgpTxSlaves);
 
-   U_TxFifo : entity work.AxiStreamFifoV2
+   --------------
+   -- PGP RX Path
+   --------------
+   U_Rx : entity work.PgpLaneRx
       generic map (
-         -- General Configurations
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 1,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => true,
-         GEN_SYNC_FIFO_G     => false,
-         FIFO_ADDR_WIDTH_G   => 9,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => RCEG3_AXIS_DMA_CONFIG_C,
-         MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
+         TPD_G             => TPD_G,
+         DMA_AXIS_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_C,
+         PGP_AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C,
+         LANE_G            => 0,
+         NUM_VC_G          => 4)
       port map (
-         sAxisClk    => pgpAxisClk,
-         sAxisRst    => pgpAxisRst,
-         sAxisMaster => pgpDataTxMaster,
-         sAxisSlave  => pgpDataTxSlave,
-         mAxisClk    => pgpClk,
-         mAxisRst    => pgpClkRst,
-         mAxisMaster => muxTxMaster,
-         mAxisSlave  => muxTxSlave);
-
-   U_PgpTxMux : entity work.AxiStreamDeMux
-      generic map (
-         TPD_G         => TPD_G,
-         NUM_MASTERS_G => 4)
-      port map (
-         axisClk      => pgpClk,
-         axisRst      => pgpClkRst,
-         sAxisMaster  => muxTxMaster,
-         sAxisSlave   => muxTxSlave,
-         mAxisMasters => pgpTxMasters,
-         mAxisSlaves  => pgpTxSlaves);
+         -- DMA Interface (dmaClk domain)
+         dmaClk       => pgpAxisClk,
+         dmaRst       => pgpAxisRst,
+         dmaIbMaster  => pgpDataRxMaster,
+         dmaIbSlave   => pgpDataRxSlave,
+         -- PGP RX Interface (pgpRxClk domain)
+         pgpClk       => pgpClk,
+         pgpRst       => pgpClkRst,
+         rxlinkReady  => pgpRxOut.linkReady,
+         pgpRxMasters => pgpRxMasters,
+         pgpRxCtrl    => pgpRxCtrl);
 
 end mapping;

@@ -1349,7 +1349,7 @@ class RxPhy(pr.Device):
             self._rawWrite(offset=(4<<2), data=0x0)            
             # Loop through the matrix
             for col in range(400>>1):
-                print (col)
+                # print (col)
                 ################################################
                 # Address[3].BIT[5:5] = PixBroadcastEn
                 # Address[3].BIT[4:4] = PixAutoCol
