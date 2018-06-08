@@ -5,23 +5,20 @@ set kernel=`uname -r`
 set version=`expr substr $kernel 1 $length`
 set driver_version=${version}.arm
 set driver_dir=/mnt/host/aes-stream-drivers/install/${driver_version}
-set driver=${driver_dir}/rcestream.ko
 
 echo kernel         = $kernel
 echo length         = $length
 echo version        = $version
 echo driver_version = $driver_version
 echo driver_dir     = $driver_dir
-echo driver         = $driver
  
-# Remove old driver
-/sbin/rmmod -s rcestream 
+# Remove old drivers
+/sbin/rmmod -s rcestream
+/sbin/rmmod -s rce_memmap 
  
-# Load the driver
-###insmod ${driver} cfgTxCount0=8 cfgTxCount1=8 cfgTxCount2=8 cfgRxCount0=32 cfgRxCount1=8 cfgRxCount2=32 cfgSize0=131072 cfgSize2=131072 cfgMode2=20
-insmod ${driver} cfgTxCount0=8 cfgTxCount2=8 cfgRxCount0=32 cfgRxCount2=32 cfgSize0=131072 cfgSize2=131072 cfgMode2=20
-#insmod ${driver} cfgTxCount0=8 cfgTxCount2=8 cfgRxCount0=32 cfgRxCount2=32 cfgSize0=131072 cfgSize2=131072
+# Load the drivers
+insmod ${driver_dir}/rcestream.ko cfgTxCount0=8 cfgTxCount2=8 cfgRxCount0=32 cfgRxCount2=32 cfgSize0=131072 cfgSize2=131072 cfgMode2=20
+insmod ${driver_dir}/rce_memmap.ko
 
-# give appropriate group/permissions
+# Give appropriate group/permissions for DMA driver
 chmod a+rw /dev/axi*
-

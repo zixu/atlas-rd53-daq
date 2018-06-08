@@ -8,6 +8,7 @@ killall python3
 echo "Pausing for 1 second"
 sleep 1
 
+# Give appropriate group/permissions for DMA driver
 chmod a+rw /dev/axi*
 
 echo "Starting new process"
