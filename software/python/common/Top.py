@@ -45,7 +45,7 @@ class Top(pr.Root):
         
         if ( hwType == 'hsio-dtm' ) or ( hwType == 'rce-dpm' ):
             # Create the mmap interface
-            rceMap = rogue.hardware.axi.AxiMemMap(dev)
+            rceMap = rogue.hardware.axi.AxiMemMap('/dev/rce_memmap')
             # Add RCE version device
             self.add(rceg3.RceVersion( 
                 memBase = rceMap,
@@ -189,3 +189,4 @@ class Top(pr.Root):
             
         ######################################################################
         
+
