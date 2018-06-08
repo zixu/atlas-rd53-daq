@@ -17,7 +17,6 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 import pyrogue.gui
-import PyQt4.QtGui
 import getopt
 import sys
 import argparse
@@ -52,10 +51,11 @@ client = pyrogue.PyroClient(
 ) 
 
 # Create GUI
-appTop = PyQt4.QtGui.QApplication(sys.argv)
-appTop.setStyle('Fusion')
+appTop = pyrogue.gui.application(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='rootMesh')
+appTop.setStyle('Fusion')
 guiTop.addTree(client.getRoot(name='rceServer'))
+guiTop.resize(600, 800)
 
 print("Starting GUI...\n");
 

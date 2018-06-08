@@ -12,7 +12,6 @@
 import sys
 import pyrogue as pr
 import pyrogue.gui
-import PyQt4.QtGui
 import argparse
 import common as feb
 
@@ -65,11 +64,11 @@ base.start(
 )
 
 # Create GUI
-appTop = PyQt4.QtGui.QApplication(sys.argv)
+appTop = pr.gui.application(sys.argv)
+guiTop = pr.gui.GuiTop(group='rootMesh')
 appTop.setStyle('Fusion')
-guiTop = pyrogue.gui.GuiTop(group='rootMesh')
 guiTop.addTree(base)
-guiTop.resize(800, 800)
+guiTop.resize(600, 800)
 
 print("Starting GUI...\n");
 
