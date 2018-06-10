@@ -82,6 +82,7 @@ begin
          NUM_LANES_G      => 1,
          NUM_VC_G         => NUM_VC_G,
          RATE_G           => "6.25Gbps",
+         -- RATE_G           => "3.125Gbps",
          REFCLK_TYPE_G    => PGP3_REFCLK_250_C,  -- 250 MHz reference clock
          REFCLK_G         => true,               -- TRUE: use pgpRefClkIn
          EN_PGP_MON_G     => true,
