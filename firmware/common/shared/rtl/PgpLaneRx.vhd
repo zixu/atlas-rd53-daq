@@ -94,7 +94,7 @@ begin
             GEN_SYNC_FIFO_G     => true,
             FIFO_ADDR_WIDTH_G   => 10,
             FIFO_FIXED_THRESH_G => true,
-            FIFO_PAUSE_THRESH_G => 512,
+            FIFO_PAUSE_THRESH_G => 256,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => PGP_AXIS_CONFIG_G,
             MASTER_AXI_CONFIG_G => DMA_AXIS_CONFIG_G)

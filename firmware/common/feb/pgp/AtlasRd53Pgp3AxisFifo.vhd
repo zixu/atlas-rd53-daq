@@ -56,7 +56,7 @@ begin
             -- General Configurations
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => true,
-            VALID_THOLD_G       => 256,  -- same as Pgp3Gtx7Wrapper.vhd's TX_CELL_WORDS_MAX_G generic 
+            VALID_THOLD_G       => 256,
             VALID_BURST_MODE_G  => true,
             -- FIFO configurations
             BRAM_EN_G           => true,
@@ -85,7 +85,7 @@ begin
             SLAVE_READY_EN_G    => false,
             BRAM_EN_G           => true,
             GEN_SYNC_FIFO_G     => false,
-            FIFO_ADDR_WIDTH_G   => 9,
+            FIFO_ADDR_WIDTH_G   => 10,
             FIFO_FIXED_THRESH_G => true,
             FIFO_PAUSE_THRESH_G => 128,
             SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,

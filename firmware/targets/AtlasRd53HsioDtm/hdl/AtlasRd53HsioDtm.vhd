@@ -2,7 +2,7 @@
 -- File       : AtlasRd53HsioDtm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-01
--- Last update: 2018-06-07
+-- Last update: 2018-06-13
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -25,8 +25,9 @@ use work.RceG3Pkg.all;
 
 entity AtlasRd53HsioDtm is
    generic (
-      TPD_G          : time    := 1 ns;
-      DMA_LOOPBACK_G : boolean := true;
+      TPD_G          : time   := 1 ns;
+      DEBUG_DMA_CH_G : string := "loopback";
+      -- DEBUG_DMA_CH_G : string  := "PGPv3";
       BUILD_INFO_G   : BuildInfoType);
    port (
       -- Debug
@@ -180,8 +181,17 @@ begin
    ----------------------------------
    -- DMA clock and reset assignments
    ----------------------------------
-   dmaClk <= (others => ref200Clk);
-   dmaRst <= (others => ref200Rst);
+   dmaClk(0) <= ref200Clk;
+   dmaRst(0) <= ref200Rst;
+
+   dmaClk(1) <= axilClk;
+   dmaRst(1) <= axilRst;
+
+   dmaClk(2) <= ref200Clk;
+   dmaRst(2) <= ref200Rst;
+
+   dmaClk(3) <= ref200Clk;
+   dmaRst(3) <= ref200Rst;
 
    ---------------------------------------   
    -- DMA[2] = PGPv2b to HSIO Artix-7 FPGA
@@ -213,7 +223,7 @@ begin
          pgpRxM          => fpgaToDtmHsM);
 
 
-   GEN_LOOPBACK : if (DMA_LOOPBACK_G = true) generate
+   GEN_LOOPBACK : if (DEBUG_DMA_CH_G = "loopback") generate
       --------------------
       -- DMA[1] = Loopback
       --------------------
@@ -221,7 +231,24 @@ begin
       dmaObSlaves(1)  <= dmaIbSlaves(1);
    end generate;
 
-   GEN_SRP_TEST : if (DMA_LOOPBACK_G = false) generate
+   GEN_PGPv3 : if (DEBUG_DMA_CH_G = "PGPv3") generate
+      ---------------------------
+      -- DMA[1] = PgpProtocolOnly
+      ---------------------------
+      U_PgpProtocolOnly : entity work.PgpProtocolOnly
+         generic map (
+            TPD_G             => TPD_G,
+            DMA_AXIS_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_C)
+         port map (
+            dmaClk      => dmaClk(1),
+            dmaRst      => dmaRst(1),
+            dmaObMaster => dmaObMasters(1),
+            dmaObSlave  => dmaObSlaves(1),
+            dmaIbMaster => dmaIbMasters(1),
+            dmaIbSlave  => dmaIbSlaves(1));
+   end generate;
+
+   GEN_SRP_TEST : if (DEBUG_DMA_CH_G = "SRPv3") generate
       --------------------
       -- DMA[1] = SRP Test
       --------------------
