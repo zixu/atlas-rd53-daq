@@ -71,14 +71,7 @@ class Top(pr.Root):
                 # Connect the SRPv0 to PGPv2b.VC[1]
                 pgp2bVc1  = rogue.hardware.axi.AxiStreamDma('/dev/axi_stream_dma_0',1,True)
                 srpV0 = rogue.protocols.srp.SrpV0()                
-                pr.streamConnectBiDir( srpV0, pgp2bVc1 )  
-                # Connect the legacy AxiVersion device
-                self.add(axiVer.AxiVersionLegacy( 
-                    name    = 'HsioAxiVersion', 
-                    memBase = srpV0, 
-                    offset  = 0x00001000, 
-                    expand  = False,
-                ))
+                pr.streamConnectBiDir( srpV0, pgp2bVc1 )
                 
         # ######################################################################          
         
