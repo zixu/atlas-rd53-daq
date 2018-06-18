@@ -82,6 +82,7 @@ begin
          NUM_LANES_G      => 1,
          NUM_VC_G         => NUM_VC_G,
          RATE_G           => "6.25Gbps",
+         -- RATE_G           => "3.125Gbps",
          REFCLK_TYPE_G    => PGP3_REFCLK_250_C,  -- 250 MHz reference clock
          REFCLK_G         => true,               -- TRUE: use pgpRefClkIn
          EN_PGP_MON_G     => true,
@@ -130,6 +131,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          DMA_AXIS_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_C,
+         PGP_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          NUM_VC_G          => NUM_VC_G)
       port map (
          -- DMA Interface (dmaClk domain)
@@ -140,8 +142,8 @@ begin
          -- PGP Interface
          pgpClk       => pgpClk,
          pgpRst       => pgpRst,
-         pgpRxOut     => pgpRxOut,
-         pgpTxOut     => pgpTxOut,
+         rxlinkReady  => pgpRxOut.linkReady,
+         txlinkReady  => pgpTxOut.linkReady,
          pgpTxMasters => pgpTxMasters,
          pgpTxSlaves  => pgpTxSlaves);
 
@@ -152,6 +154,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          DMA_AXIS_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_C,
+         PGP_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          LANE_G            => LANE_G,
          NUM_VC_G          => NUM_VC_G)
       port map (
@@ -163,7 +166,7 @@ begin
          -- PGP RX Interface (pgpRxClk domain)
          pgpClk       => pgpClk,
          pgpRst       => pgpRst,
-         pgpRxOut     => pgpRxOut,
+         rxlinkReady  => pgpRxOut.linkReady,
          pgpRxMasters => pgpRxMasters,
          pgpRxCtrl    => pgpRxCtrl);
 

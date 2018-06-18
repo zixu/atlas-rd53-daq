@@ -2,7 +2,7 @@
 -- File       : PgpLaneTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-05-01
+-- Last update: 2018-06-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -22,12 +22,12 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
 
 entity PgpLaneTx is
    generic (
       TPD_G             : time := 1 ns;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
+      PGP_AXIS_CONFIG_G : AxiStreamConfigType;
       NUM_VC_G          : positive);
    port (
       -- DMA Interface (dmaClk domain)
@@ -38,8 +38,8 @@ entity PgpLaneTx is
       -- PGP Interface (pgpClk domain)
       pgpClk       : in  sl;
       pgpRst       : in  sl;
-      pgpRxOut     : in  Pgp3RxOutType;
-      pgpTxOut     : in  Pgp3TxOutType;
+      rxlinkReady  : in  sl;
+      txlinkReady  : in  sl;
       pgpTxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0));
 end PgpLaneTx;
@@ -60,7 +60,7 @@ architecture mapping of PgpLaneTx is
 
 begin
 
-   linkReady <= pgpTxOut.linkReady and pgpRxOut.linkReady;
+   linkReady <= txlinkReady and rxlinkReady;
 
    U_FlushSync : entity work.Synchronizer
       generic map (
@@ -101,7 +101,7 @@ begin
          FIFO_PAUSE_THRESH_G => 20,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => DMA_AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
+         MASTER_AXI_CONFIG_G => PGP_AXIS_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => dmaClk,
@@ -120,8 +120,8 @@ begin
          COMMON_CLK_G        => true,
          SLAVE_FIFO_G        => false,
          MASTER_FIFO_G       => false,
-         SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => PGP_AXIS_CONFIG_G,
+         MASTER_AXI_CONFIG_G => PGP_AXIS_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => pgpClk,

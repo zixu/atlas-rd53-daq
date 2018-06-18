@@ -10,9 +10,6 @@
 [submodule "firmware/submodules/rce-gen3-fw-lib"]
 	path = firmware/submodules/rce-gen3-fw-lib
 	url = https://github.com/slaclab/rce-gen3-fw-lib
-[submodule "firmware/submodules/levkurilenko/cern_work"]
-	path = firmware/submodules/levkurilenko/cern_work
-	url = https://bitbucket.org/levkurilenko/cern_work
-[submodule "firmware/submodules/levkurilenko/aurora_rx"]
-	path = firmware/submodules/levkurilenko/aurora_rx
-	url = https://bitbucket.org/levkurilenko/aurora_rx
+[submodule "firmware/submodules/Yarr-fw"]
+	path = firmware/submodules/Yarr-fw
+	url = git@github.com:Yarr/Yarr-fw

@@ -2,7 +2,7 @@
 -- File       : PgpLaneRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-05-01
+-- Last update: 2018-06-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -22,12 +22,12 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
 
 entity PgpLaneRx is
    generic (
       TPD_G             : time := 1 ns;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
+      PGP_AXIS_CONFIG_G : AxiStreamConfigType;
       LANE_G            : natural;
       NUM_VC_G          : positive);
    port (
@@ -39,7 +39,7 @@ entity PgpLaneRx is
       -- PGP Interface (pgpClk domain)
       pgpClk       : in  sl;
       pgpRst       : in  sl;
-      pgpRxOut     : in  Pgp3RxOutType;
+      rxlinkReady  : in  sl;
       pgpRxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl    : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0));
 end PgpLaneRx;
@@ -64,13 +64,13 @@ architecture mapping of PgpLaneRx is
 
 begin
 
-   BLOWOFF_FILTER : process (pgpRxMasters, pgpRxOut) is
+   BLOWOFF_FILTER : process (pgpRxMasters, rxlinkReady) is
       variable tmp : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       variable i   : natural;
    begin
       tmp := pgpRxMasters;
       for i in NUM_VC_G-1 downto 0 loop
-         if (pgpRxOut.linkReady = '0') then
+         if (rxlinkReady = '0') then
             tmp(i).tValid := '0';
          end if;
       end loop;
@@ -94,9 +94,9 @@ begin
             GEN_SYNC_FIFO_G     => true,
             FIFO_ADDR_WIDTH_G   => 10,
             FIFO_FIXED_THRESH_G => true,
-            FIFO_PAUSE_THRESH_G => 512,
+            FIFO_PAUSE_THRESH_G => 256,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => PGP_AXIS_CONFIG_G,
             MASTER_AXI_CONFIG_G => DMA_AXIS_CONFIG_G)
          port map (
             -- Slave Port

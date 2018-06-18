@@ -10,9 +10,11 @@
 ##############################################################################
 
 import sys
+import rogue
+import rogue.hardware.axi
 import pyrogue as pr
 import pyrogue.gui
-import PyQt4.QtGui
+import pyrogue.utilities.prbs
 import argparse
 import common as feb
 
@@ -34,22 +36,6 @@ parser.add_argument(
 )  
 
 parser.add_argument(
-    "--port", 
-    type     = int,
-    required = False,
-    default  = 0,
-    help     = "KCU1500 QSFP port Number (0 or 1)",
-)  
-
-parser.add_argument(
-    "--hwEmu", 
-    type     = argBool,
-    required = False,
-    default  = False,
-    help     = "hardware emulation (false=normal operation, true=emulation)",
-)  
-
-parser.add_argument(
     "--pollEn", 
     type     = argBool,
     required = False,
@@ -65,51 +51,43 @@ parser.add_argument(
     help     = "Enable read all variables at start",
 )  
 
-parser.add_argument(
-    "--guiType", 
-    type     = str,
-    required = False,
-    default  = 'feb',
-    help     = "GUI Type: feb or pcie",
-)  
-
 # Get the arguments
 args = parser.parse_args()
 
 #################################################################
 
-# Set base
-base = pr.Root(name='base',description='')    
+# Set the DMA loopback channel
+vcPrbs = rogue.hardware.axi.AxiStreamDma(args.dev,0,1)
 
-# Add Base Device
-if ( args.guiType == 'feb' ):
-    base.add(feb.Top(
-        dev   = args.dev,
-        port  = args.port,
-        hwEmu = args.hwEmu,
-    ))
+# Set base
+base = pr.Root(name='pciServer',description='DPM Loopback Testing')
+
+prbsRx = pyrogue.utilities.prbs.PrbsRx(name='PrbsRx')
+pyrogue.streamConnect(vcPrbs,prbsRx)
+base.add(prbsRx)  
     
-elif (  args.guiType == 'pcie' ):
-    base.add(feb.Pcie(
-        dev   = args.dev,
-        hwEmu = args.hwEmu,
-    ))
-    
-else:
-    raise ValueError("Invalid guiType type (%s): must be feb or pcie" % ( args.guiType) )  
+prbTx = pyrogue.utilities.prbs.PrbsTx(name="PrbsTx")
+pyrogue.streamConnect(prbTx, vcPrbs)
+base.add(prbTx)  
+
+# Add PCIe debug registers
+base.add(feb.Pcie()) 
+
+#################################################################
 
 # Start the system
 base.start(
     pollEn   = args.pollEn,
     initRead = args.initRead,
+    timeout  = 1.0,
 )
 
 # Create GUI
-appTop = PyQt4.QtGui.QApplication(sys.argv)
+appTop = pr.gui.application(sys.argv)
+guiTop = pr.gui.GuiTop(group='rootMesh')
 appTop.setStyle('Fusion')
-guiTop = pyrogue.gui.GuiTop(group='rootMesh')
 guiTop.addTree(base)
-guiTop.resize(800, 1000)
+guiTop.resize(600, 800)
 
 print("Starting GUI...\n");
 

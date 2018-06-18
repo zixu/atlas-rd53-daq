@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-25
+-- Last update: 2018-05-31
 -------------------------------------------------------------------------------
 -- Description: ATLAS RD43 VHDL Package
 -------------------------------------------------------------------------------
@@ -24,26 +24,33 @@ use work.SsiPkg.all;
 
 package AtlasRd53Pkg is
 
-   constant BATCHER_AXIS_CONFIG_C : AxiStreamConfigType :=
-      ssiAxiStreamConfig(
-         dataBytes => 4,                -- 32-bit for batching data together
-         tKeepMode => TKEEP_COMP_C,
-         tUserMode => TUSER_FIRST_LAST_C,
-         tDestBits => 4,
-         tUserBits => 2);
-
-   type AtlasRD53DataType is record
-      valid  : sl;
-      chBond : sl;
-      sync   : Slv2Array(3 downto 0);
-      data   : Slv64Array(3 downto 0);
+   type AtlasRd53TimingTrigType is record
+      -- Timing/Trigger Interface
+      trig       : sl;
+      ecr        : sl;
+      bcr        : sl;
+      -- Global Pulse Interface
+      gPulse     : sl;
+      gPulseId   : slv(3 downto 0);
+      gPulseData : slv(3 downto 0);
+      -- Calibration Interface
+      cal        : sl;
+      calId      : slv(3 downto 0);
+      calDat     : slv(15 downto 0);
    end record;
-   type AtlasRD53DataArray is array (integer range<>) of AtlasRD53DataType;
-   constant RD53_FEB_DATA_INIT_C : AtlasRD53DataType := (
-      valid  => '0',
-      chBond => '0',
-      data   => (others => (others => '0')),
-      sync   => (others => (others => '0')));
+   constant RD53_FEB_TIMING_TRIG_INIT_C : AtlasRd53TimingTrigType := (
+      -- Timing/Trigger Interface
+      trig       => '0',
+      ecr        => '0',
+      bcr        => '0',
+      -- Global Pulse Interface
+      gPulse     => '0',
+      gPulseId   => (others => '0'),
+      gPulseData => (others => '0'),
+      -- Calibration Interface
+      cal        => '0',
+      calId      => (others => '0'),
+      calDat     => (others => '0'));
 
    type AtlasRD53ConfigType is record
       enLocalEmu  : sl;

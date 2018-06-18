@@ -2,7 +2,7 @@
 export INCLUDE_PGP3_6G = 1
 
 # Define the firmware version
-export PRJ_VERSION = 0x00000019
+export PRJ_VERSION = 0x0000001B
 
 # Define target output
 target: prom

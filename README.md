@@ -165,7 +165,7 @@ $ source setup_env_slac.sh
 > https://github.com/slaclab/rogue/blob/master/README.md
 
 # Run the programming script
-$ python3 scripts/ProgramRd53Fpga.py --mcs <PATH_TO_FEB_MCS>
+$ python3 scripts/PcieProgFeb.py --mcs <PATH_TO_FEB_MCS>
  
 ```
 
@@ -184,7 +184,7 @@ $ source setup_env_slac.sh
 > https://github.com/slaclab/rogue/blob/master/README.md
 
 # Run the programming script
-$ python3 scripts/ProgramKcu1500.py --mcs_pri <PATH_TO_PRIMARY_MCS> --mcs_sec <PATH_TO_SECONDARY_MCS>
+$ python3 scripts/PcieProgKcu1500.py --mcs_pri <PATH_TO_PRIMARY_MCS> --mcs_sec <PATH_TO_SECONDARY_MCS>
  
 # Reboot your computer
 $ sudo reboot
@@ -206,28 +206,8 @@ $ source setup_env_slac.sh
 > https://github.com/slaclab/rogue/blob/master/README.md
 
 # Run the programming script
-$ python3 scripts/DevGui.py --guiType feb
+$ python3 scripts/PcieGui.py --guiType feb
  
 ```
 
 <!--- ########################################################################################### -->
-
-# How to run the PCIe Development GUI
-
-```
-# Go to software directory
-$ cd atlas-rd53-daq/software
-
-# If you are on the SLAC AFS network, 
-$ source setup_env_slac.sh
-
-# Else you will need to clone and build rogue:
-> https://github.com/slaclab/rogue/blob/master/README.md
-
-# Run the programming script
-$ python3 scripts/DevGui.py --guiType pcie
- 
-```
-
-<!--- ########################################################################################### -->
-

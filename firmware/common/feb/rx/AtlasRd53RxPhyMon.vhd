@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhyMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-07
--- Last update: 2018-05-25
+-- Last update: 2018-05-31
 -------------------------------------------------------------------------------
 -- Description: Monitor the RX PHY status signals
 -------------------------------------------------------------------------------
@@ -30,8 +30,7 @@ entity AtlasRd53RxPhyMon is
    port (
       -- Monitoring Interface
       autoReadReg     : in  Slv32Array(3 downto 0);
-      cmdDrop         : in  sl;
-      dataDrop        : in  slv(3 downto 0);
+      dataDrop        : in  sl;
       timedOut        : in  sl;
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -44,7 +43,7 @@ end AtlasRd53RxPhyMon;
 
 architecture rtl of AtlasRd53RxPhyMon is
 
-   constant STATUS_SIZE_C : positive := 6;
+   constant STATUS_SIZE_C : positive := 2;
 
    type RegType is record
       cntRst         : sl;
@@ -132,17 +131,16 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(5)          => timedOut,
-         statusIn(4)          => cmdDrop,
-         statusIn(3 downto 0) => dataDrop,
+         statusIn(1)  => timedOut,
+         statusIn(0)  => dataDrop,
          -- Output Status bit Signals (rdClk domain)  
-         statusOut            => statusOut,
+         statusOut    => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 
-         cntRstIn             => r.cntRst,
-         rollOverEnIn         => r.rollOverEn,
-         cntOut               => statusCnt,
+         cntRstIn     => r.cntRst,
+         rollOverEnIn => r.rollOverEn,
+         cntOut       => statusCnt,
          -- Clocks and Reset Ports
-         wrClk                => axilClk,
-         rdClk                => axilClk);
+         wrClk        => axilClk,
+         rdClk        => axilClk);
 
 end rtl;
