@@ -3,6 +3,9 @@
 
 `include "array/PixelRegionLatencyMem.v"
 
+`ifndef  PIXEL_REGION_LOGIC__V
+`define  PIXEL_REGION_LOGIC__V
+
 module PixelRegionLogic (Clk, Reset, L1Trig, TrigId, TrigIdReq, Read, DataToCore, Hit,
                     TokIn, TokOut, LatCnt, LatCntReq, PwrDwn
                     );
@@ -94,3 +97,4 @@ assign pix_off_cnfg = &PwrDwn;
 
 endmodule //PixelRegionLogic
 
+`endif

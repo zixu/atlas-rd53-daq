@@ -1,3 +1,6 @@
+`ifndef  RD53_AFE_TO_IF__SV
+`define  RD53_AFE_TO_IF__SV
+
 interface RD53_AFE_TO_dig_if  ;
 
     //wire  TESTP; (global)
@@ -68,3 +71,4 @@ modport afe(
 	
 endinterface: RD53_AFE_TO_analog_if
 
+`endif

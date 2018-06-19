@@ -31,7 +31,6 @@ loadSource -sim_only -fileType {Verilog Header} -dir "$::DIR_PATH/RD53A_SIM_DAQ/
 # Fix the file type exceptions
 set_property FILE_TYPE "VHDL 2008"   [get_files {regionDigitalWriter.vhd}]
 set_property FILE_TYPE Verilog       [get_files {Serializer_TapDelayX4.v}]
-set_property FILE_TYPE {Verilog Header} [get_files {RD53_AFE_BGPV.v}]
 
 # Update messaging
 set_msg_config -suppress -id {VRFC 10-2458}; # SIM: undeclared symbol, assumed default net type wire
@@ -43,11 +42,8 @@ set_property verilog_define TEST_DC=20 [get_filesets sim_1]
 # Remove the .DCP and use the .XCI IP core instead 
 remove_files [get_files {*.dcp}]
 remove_files [get_files {DebugBridgeJtag.xci}]
-remove_files [get_files {RD53_AFE_BGPV_inf.sv}]
-remove_files [get_files {RD53_AFE_LBNL_inf.sv}]
-remove_files [get_files {RD53_AFE_TO_inf.sv}]
 
 # Set the top level synth_1 and sim_1
 set_property top {SyncTrigRateVector} [get_filesets sources_1]
 # set_property top {Rd53aTb} [get_filesets sim_1]
-set_property top {example_tb} [get_filesets sim_1]
+set_property top {tb} [get_filesets sim_1]

@@ -1,3 +1,6 @@
+`ifndef  RD53_AFE_BGPV_IF__SV
+`define  RD53_AFE_BGPV_IF__SV
+
 interface RD53_AFE_BGPV_dig_if  ;
 	
 	// Pulses driving injection circuit
@@ -47,3 +50,5 @@ interface RD53_AFE_BGPV_analog_if (
  );
 	
 endinterface: RD53_AFE_BGPV_analog_if
+
+`endif

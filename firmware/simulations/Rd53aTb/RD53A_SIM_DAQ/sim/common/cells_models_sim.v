@@ -44,7 +44,7 @@ endmodule
 
 module DFQD4 (D, CP, Q);
     input D, CP;
-    output reg Q;
+    output reg Q = 1'b0;
 
     always@(posedge CP)
         Q <= D;
@@ -71,7 +71,7 @@ endmodule
 
 module DFCNQD4 (D, CP, CDN, Q);
     input D, CP, CDN;
-    output reg Q; 
+    output reg Q = 1'b0; 
     
     always@(posedge CP or negedge CDN)
         if(!CDN)
@@ -174,7 +174,7 @@ endmodule
 
 module DFD4 (D, CP, Q, QN);
     input D, CP;
-    output reg Q; 
+    output reg Q = 1'b0; 
     output QN; 
 
     
@@ -207,13 +207,14 @@ module MUX2D4 (I0, I1, S, Z);
 
 endmodule
 
-module CKND4 (I, ZN);
-    input wire I;
-    output wire ZN;
+// Already declared on line#84
+// module CKND4 (I, ZN);
+    // input wire I;
+    // output wire ZN;
     
-    assign ZN = !I;
+    // assign ZN = !I;
     
-endmodule
+// endmodule
 
 module CKND24 (I, ZN);
     input wire I;
@@ -234,7 +235,7 @@ endmodule
 
 module DFXQD4 (DA, DB, SA, CP, Q);
     input DA, DB, SA, CP;
-    output reg Q;     
+    output reg Q = 1'b0;     
 
     always@(posedge CP) begin
         //if(SE)
@@ -279,7 +280,7 @@ endmodule
 
 module LNQD4 (D, EN, Q);
     input D, EN;
-    output reg Q;
+    output reg Q = 1'b0;
     
     
     always@(*)

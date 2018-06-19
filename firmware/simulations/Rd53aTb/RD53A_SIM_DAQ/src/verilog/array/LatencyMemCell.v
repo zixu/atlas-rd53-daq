@@ -1,3 +1,5 @@
+`ifndef  LATENCY_MEM_CELL__V
+`define  LATENCY_MEM_CELL__V
 
 `resetall
 `timescale 1ns/1ps
@@ -82,3 +84,4 @@ assign ReadyToRead = trig & !start;
 
 endmodule //LatencyMemoryCell
 
+`endif

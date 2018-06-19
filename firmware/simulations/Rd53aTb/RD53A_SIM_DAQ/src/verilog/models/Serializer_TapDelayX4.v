@@ -396,9 +396,9 @@ endspecify
 
 DFQD4 I8 ( net029, SER_CLK_PRE_BUF, net014);
 
-initial begin
-     $deposit(I8.D, 1'b0);
-end
+// initial begin
+     // $deposit(I8.D, 1'b0);
+// end
 
 Buff_Tree ClkWordTree ( .Buff12(net021), .Buff11(net027),
      .Buff(net025), .VDD(VDD), .VSS(VSS), .OUT0(WORD_CLK_BUF_LANE[0]),

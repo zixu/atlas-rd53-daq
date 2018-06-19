@@ -423,9 +423,9 @@ DFQD4 I8 ( .CP(CLK_1280), .D(net07), .Q(net018), .VDD(VDD),
      .VSS(VSS));
 
 
-initial begin
-   $deposit( I8.D, 1'b0 ) ;
-end
+// initial begin
+   // $deposit( I8.D, 1'b0 ) ;
+// end
 
 
 Serializer_TapDelay Ser[3:0] ( .CLK_640_INT(CLK_640_INT[3:0]),

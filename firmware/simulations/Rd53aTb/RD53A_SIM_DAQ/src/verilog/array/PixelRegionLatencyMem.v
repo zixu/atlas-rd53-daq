@@ -1,7 +1,8 @@
-
-
 `include "array/PixelLogic.v"
 `include "array/LatencyMemCell.v"
+
+`ifndef  PIXEL_REGION_LATENCY_MEM__V
+`define  PIXEL_REGION_LATENCY_MEM__V
 
 module PixelRegionLatencyMem(LE, L1, Reset ,Clk, TokIn, TokOut, ReadData, L1In, L1Req, EnOut,
 LeAddr, Read, LatCnfg, LatCnfg2, PixOffCnfg); 
@@ -108,3 +109,4 @@ assign read_lat_mem = (EnOut & ReadData) ? ready_to_read : 0 ;
 
 endmodule //PixelRegionLatencyMem
 
+`endif

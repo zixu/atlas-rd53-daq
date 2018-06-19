@@ -193,7 +193,7 @@ RD53A  dut (
    //
    // pixel inputs
    //
-   .ANA_HIT             ( HIT /*AnalogHitInt /* */),
+   .ANA_HIT             ( HIT /*AnalogHitInt */),
 
    //
    // external calibration

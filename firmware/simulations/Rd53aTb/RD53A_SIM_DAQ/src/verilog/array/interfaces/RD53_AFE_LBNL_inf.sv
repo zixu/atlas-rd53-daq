@@ -1,3 +1,6 @@
+`ifndef  RD53_AFE_LBNL_IF__SV
+`define  RD53_AFE_LBNL_IF__SV
+
 interface RD53_AFE_LBNL_dig_if  ;
     
     wire S0, S1 ;
@@ -30,3 +33,5 @@ modport afe(
 );
 	
 endinterface: RD53_AFE_LBNL_analog_if
+
+`endif
