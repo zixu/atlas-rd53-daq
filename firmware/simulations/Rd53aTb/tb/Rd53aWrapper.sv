@@ -30,40 +30,40 @@ module Rd53aWrapper (
    //
    // Power-on Resets (POR)
    //
-   input  wire  POR_EXT_CAP_PAD,                            // POR external-cap pin, also used to trigger POR signal
+   input  POR_EXT_CAP_PAD,                            // POR external-cap pin, also used to trigger POR signal
    //
    // Clock Data Recovery (CDR) input command/data stream [SLVS]
    //
-   input  wire  CMD_P_PAD,
-   input  wire  CMD_N_PAD,
+   input  CMD_P_PAD,
+   input  CMD_N_PAD,
    //
    // 4x general-purpose SLVS outputs, including Hit-ORs
    //
-   output wire GPLVDS0_P_PAD,
-   output wire GPLVDS0_N_PAD,
+   output GPLVDS0_P_PAD,
+   output GPLVDS0_N_PAD,
 
-   output wire GPLVDS1_P_PAD,
-   output wire GPLVDS1_N_PAD,
+   output GPLVDS1_P_PAD,
+   output GPLVDS1_N_PAD,
 
-   output wire GPLVDS2_P_PAD,
-   output wire GPLVDS2_N_PAD,
+   output GPLVDS2_P_PAD,
+   output GPLVDS2_N_PAD,
 
-   output wire GPLVDS3_P_PAD,
-   output wire GPLVDS3_N_PAD,   
+   output GPLVDS3_P_PAD,
+   output GPLVDS3_N_PAD,   
    //
    // 4x serial output data links @ 1.28 Gb/s [CML]
    //
-   output wire GTX0_P_PAD,             
-   output wire GTX0_N_PAD,
+   output GTX0_P_PAD,             
+   output GTX0_N_PAD,
 
-   output wire GTX1_P_PAD,
-   output wire GTX1_N_PAD,
+   output GTX1_P_PAD,
+   output GTX1_N_PAD,
 
-   output wire GTX2_P_PAD,
-   output wire GTX2_N_PAD,
+   output GTX2_P_PAD,
+   output GTX2_N_PAD,
 
-   output wire GTX3_P_PAD,
-   output wire GTX3_N_PAD
+   output GTX3_P_PAD,
+   output GTX3_N_PAD
 );
 
 // Get the clock from the chip
@@ -202,7 +202,7 @@ RD53A  dut (
    //
    // pixel inputs
    //
-   .ANA_HIT             ( HIT /*AnalogHitInt /* */),
+   .ANA_HIT             ( HIT /*AnalogHitInt */),
 
    //
    // external calibration

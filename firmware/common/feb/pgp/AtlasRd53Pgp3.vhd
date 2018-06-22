@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-02
+-- Last update: 2018-06-21
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGPv3 communication
 -------------------------------------------------------------------------------
@@ -26,8 +26,9 @@ use work.AtlasRd53Pkg.all;
 
 entity AtlasRd53Pgp3 is
    generic (
-      TPD_G       : time   := 1 ns;
-      PGP3_RATE_G : string := "6.25Gbps");  -- or "10.3125Gbps"  
+      TPD_G        : time    := 1 ns;
+      SIMULATION_G : boolean := false;
+      PGP3_RATE_G  : string  := "6.25Gbps");  -- or "10.3125Gbps"  
    port (
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : out sl;
@@ -70,6 +71,7 @@ architecture mapping of AtlasRd53Pgp3 is
    signal pgpTxMasters : AxiStreamMasterArray(5 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal pgpTxSlaves  : AxiStreamSlaveArray(5 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
    signal pgpRxMasters : AxiStreamMasterArray(5 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpRxSlaves  : AxiStreamSlaveArray(5 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
    signal pgpRxCtrl    : AxiStreamCtrlArray(5 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
 
    signal pgpClk : slv(3 downto 0) := x"0";
@@ -92,7 +94,8 @@ begin
 
    U_PwrUpRst : entity work.PwrUpRst
       generic map(
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         SIM_SPEEDUP_G => SIMULATION_G)
       port map (
          clk    => pgpRefClkDiv2,
          rstOut => pgpRefClkDiv2Rst);
@@ -100,6 +103,7 @@ begin
    U_MMCM : entity work.ClockManager7
       generic map(
          TPD_G              => TPD_G,
+         SIMULATION_G       => SIMULATION_G,
          TYPE_G             => "MMCM",
          INPUT_BUFG_G       => false,
          FB_BUFG_G          => false,
@@ -122,14 +126,15 @@ begin
 
    U_PGPv3 : entity work.Pgp3Gtx7Wrapper
       generic map(
-         TPD_G         => TPD_G,
-         NUM_LANES_G   => 1,
-         NUM_VC_G      => 6,
-         RATE_G        => PGP3_RATE_G,
-         REFCLK_TYPE_G => PGP3_REFCLK_312_C,
-         EN_PGP_MON_G  => false,
-         EN_GTH_DRP_G  => false,
-         EN_QPLL_DRP_G => false)
+         TPD_G          => TPD_G,
+         ROGUE_SIM_EN_G => SIMULATION_G,
+         NUM_LANES_G    => 1,
+         NUM_VC_G       => 6,
+         RATE_G         => PGP3_RATE_G,
+         REFCLK_TYPE_G  => PGP3_REFCLK_312_C,
+         EN_PGP_MON_G   => false,
+         EN_GTH_DRP_G   => false,
+         EN_QPLL_DRP_G  => false)
       port map (
          -- Stable Clock and Reset
          stableClk         => sysClk,
@@ -158,6 +163,7 @@ begin
          -- Frame Receive Interface
          pgpRxMasters      => pgpRxMasters,
          pgpRxCtrl         => pgpRxCtrl,
+         pgpRxSlaves       => pgpRxSlaves,
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk           => sysClk,
          axilRst           => sysRst,
@@ -180,7 +186,7 @@ begin
    U_Lane0_Vc0 : entity work.SrpV3AxiLite
       generic map (
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => false,
+         SLAVE_READY_EN_G    => SIMULATION_G,
          GEN_SYNC_FIFO_G     => false,
          AXI_STREAM_CONFIG_G => PGP3_AXIS_CONFIG_C)
       port map (
@@ -188,6 +194,7 @@ begin
          sAxisClk         => pgpClk(0),
          sAxisRst         => pgpRst(0),
          sAxisMaster      => pgpRxMasters(0),
+         sAxisSlave       => pgpRxSlaves(0),
          sAxisCtrl        => pgpRxCtrl(0),
          -- Streaming Master (Tx) Data Interface (mAxisClk domain)
          mAxisClk         => pgpClk(0),
@@ -204,7 +211,8 @@ begin
 
    U_Lane0_Vc1 : entity work.AtlasRd53Pgp3AxisFifo
       generic map (
-         TPD_G => TPD_G)
+         TPD_G        => TPD_G,
+         SIMULATION_G => SIMULATION_G)
       port map (
          -- System Interface (axilClk domain)
          sysClk      => sysClk,
@@ -217,6 +225,7 @@ begin
          pgpClk      => pgpClk(0),
          pgpRst      => pgpRst(0),
          pgpRxMaster => pgpRxMasters(1),
+         pgpRxSlave  => pgpRxSlaves(1),
          pgpRxCtrl   => pgpRxCtrl(1),
          pgpTxMaster => pgpTxMasters(1),
          pgpTxSlave  => pgpTxSlaves(1));
@@ -228,8 +237,9 @@ begin
 
       U_Lane0_Vc5_Vc2 : entity work.AtlasRd53Pgp3AxisFifo
          generic map (
-            TPD_G => TPD_G,
-            RX_G  => false)
+            TPD_G        => TPD_G,
+            SIMULATION_G => SIMULATION_G,
+            RX_G         => false)
          port map (
             -- System Interface (axilClk domain)
             sysClk      => sysClk,

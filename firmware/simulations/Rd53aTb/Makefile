@@ -1,3 +1,5 @@
+export REMOVE_UNUSED_CODE = 0
+
 # Firmware Version
 export PRJ_VERSION = 0x00000001
 

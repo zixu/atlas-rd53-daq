@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp3LoopbackTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-06-12
+-- Created    : 2018-06-13
 -- Last update: 2018-06-13
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the Pgp3LoopbackTb module

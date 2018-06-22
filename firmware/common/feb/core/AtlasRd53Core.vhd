@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-02
+-- Last update: 2018-06-21
 -------------------------------------------------------------------------------
 -- Description: AD53 readout core module
 -------------------------------------------------------------------------------
@@ -28,9 +28,10 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53Core is
    generic (
-      TPD_G        : time   := 1 ns;
+      TPD_G        : time    := 1 ns;
       BUILD_INFO_G : BuildInfoType;
-      PGP3_RATE_G  : string := "6.25Gbps");  -- or "10.3125Gbps"      
+      SIMULATION_G : boolean := false;
+      PGP3_RATE_G  : string  := "6.25Gbps");  -- or "10.3125Gbps"      
    port (
       -- RD53 ASIC Serial Ports
       dPortDataP    : in    Slv4Array(3 downto 0);
@@ -42,6 +43,7 @@ entity AtlasRd53Core is
       dPortAuxP     : out   slv(3 downto 0);
       dPortAuxN     : out   slv(3 downto 0);
       dPortRst      : out   slv(3 downto 0);
+      dPortRstL     : out   slv(3 downto 0);
       -- NTC SPI Ports
       dPortNtcCsL   : out   slv(3 downto 0);
       dPortNtcSck   : out   slv(3 downto 0);
@@ -168,6 +170,8 @@ architecture mapping of AtlasRd53Core is
    signal refClk300MHz : sl;
    signal refRst300MHz : sl;
 
+   signal dPortReset : slv(3 downto 0) := (others => '1');
+
    signal status : AtlasRd53StatusType := RD53_FEB_STATUS_INIT_C;
    signal config : AtlasRd53ConfigType := RD53_FEB_CONFIG_INIT_C;
 
@@ -179,7 +183,9 @@ architecture mapping of AtlasRd53Core is
 
 begin
 
-   led <= rxLinkUp;
+   led       <= rxLinkUp;
+   dPortRst  <= dPortReset;
+   dPortRstL <= not(dPortReset);
 
    U_IDELAYCTRL : IDELAYCTRL
       port map (
@@ -192,7 +198,8 @@ begin
    ----------------------
    U_Clk : entity work.AtlasRd53Clk
       generic map(
-         TPD_G => TPD_G)
+         TPD_G        => TPD_G,
+         SIMULATION_G => SIMULATION_G)
       port map(
          -- Reference Clock Ports
          intClk160MHzP => intClk160MHzP,
@@ -223,8 +230,9 @@ begin
    ---------------         
    U_Pgp : entity work.AtlasRd53Pgp3
       generic map (
-         TPD_G       => TPD_G,
-         PGP3_RATE_G => PGP3_RATE_G)
+         TPD_G        => TPD_G,
+         SIMULATION_G => SIMULATION_G,
+         PGP3_RATE_G  => PGP3_RATE_G)
       port map (
          -- AXI-Lite Interfaces (axilClk domain)
          axilClk         => axilClk,
@@ -282,6 +290,7 @@ begin
    U_System : entity work.AtlasRd53Sys
       generic map (
          TPD_G           => TPD_G,
+         SIMULATION_G    => SIMULATION_G,
          AXI_BASE_ADDR_G => XBAR_CONFIG_C(SYS_INDEX_C).baseAddr,
          BUILD_INFO_G    => BUILD_INFO_G)
       port map (
@@ -361,7 +370,7 @@ begin
             dPortCmdN       => dPortCmdN(i),
             dPortAuxP       => dPortAuxP(i),
             dPortAuxN       => dPortAuxN(i),
-            dPortRst        => dPortRst(i));
+            dPortRst        => dPortReset(i));
    end generate GEN_VEC;
 
    ---------------------

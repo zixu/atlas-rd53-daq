@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3AxisFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-25
+-- Last update: 2018-06-19
 -------------------------------------------------------------------------------
 -- Description: PGP FIFO wrapper
 -------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ use work.Pgp3Pkg.all;
 entity AtlasRd53Pgp3AxisFifo is
    generic (
       TPD_G               : time                := 1 ns;
+      SIMULATION_G        : boolean             := false;
       TX_G                : boolean             := true;
       RX_G                : boolean             := true;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := PGP3_AXIS_CONFIG_C;
@@ -41,6 +42,7 @@ entity AtlasRd53Pgp3AxisFifo is
       pgpClk      : in  sl;
       pgpRst      : in  sl;
       pgpRxMaster : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      pgpRxSlave  : out AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
       pgpRxCtrl   : out AxiStreamCtrlType   := AXI_STREAM_CTRL_UNUSED_C;
       pgpTxMaster : out AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
       pgpTxSlave  : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C);
@@ -82,7 +84,7 @@ begin
       U_Fifo : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
-            SLAVE_READY_EN_G    => false,
+            SLAVE_READY_EN_G    => SIMULATION_G,
             BRAM_EN_G           => true,
             GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 10,
@@ -95,6 +97,7 @@ begin
             sAxisClk    => pgpClk,
             sAxisRst    => pgpRst,
             sAxisMaster => pgpRxMaster,
+            sAxisSlave  => pgpRxSlave,
             sAxisCtrl   => pgpRxCtrl,
             -- Master Port
             mAxisClk    => sysClk,

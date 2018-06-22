@@ -10,3 +10,6 @@
 [submodule "firmware/submodules/rce-gen3-fw-lib"]
 	path = firmware/submodules/rce-gen3-fw-lib
 	url = https://github.com/slaclab/rce-gen3-fw-lib
+[submodule "firmware/submodules/Yarr-fw"]
+	path = firmware/submodules/Yarr-fw
+	url = https://github.com/ruck314/Yarr-fw

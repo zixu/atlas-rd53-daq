@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-06-02
+-- Last update: 2018-06-19
 -------------------------------------------------------------------------------
 -- Description: RX PHY Module
 -------------------------------------------------------------------------------
@@ -90,6 +90,9 @@ architecture mapping of AtlasRd53RxPhy is
    signal dPortCmdReg : sl;
    signal enEmu       : sl;
 
+   signal rst160MHzL : sl;
+   signal asicRstL   : sl;
+
    signal dataCtrl : AxiStreamCtrlType;
 
 begin
@@ -127,11 +130,11 @@ begin
       generic map (
          g_NUM_LANES => 4)
       port map (
-         rst_n_i      => not(rst160MHz),
+         rst_n_i      => rst160MHzL,
          clk_rx_i     => clk160MHz,        -- Fabric clock (serdes/8)
          clk_serdes_i => clk640MHz,        -- IO clock
          -- Input
-         enable_i     => not(asicRst),
+         enable_i     => asicRstL,
          rx_data_i_p  => dPortDataP,
          rx_data_i_n  => dPortDataN,
          trig_tag_i   => (others => '0'),  -- Unused
@@ -143,6 +146,9 @@ begin
    -- Placeholder for future code
    emuRdReg      <= AXIS_MASTER_INIT_C;
    emuAutoRegOut <= (others => x"0000_0000");
+
+   rst160MHzL <= not(rst160MHz);
+   asicRstL   <= not(asicRst);
 
    ----------------------------
    -- Local Emulation PHY Layer

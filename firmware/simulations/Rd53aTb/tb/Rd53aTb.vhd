@@ -2,7 +2,7 @@
 -- File       : Rd53aTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-06-18
--- Last update: 2018-06-18
+-- Last update: 2018-06-19
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the Rd53a module
 -------------------------------------------------------------------------------
@@ -24,76 +24,190 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Pgp3Pkg.all;
+use work.BuildInfoPkg.all;
 
 entity Rd53aTb is end Rd53aTb;
 
 architecture testbed of Rd53aTb is
 
-   constant CLK_PERIOD_C : time := 6.25 ns;
-   constant TPD_G        : time := CLK_PERIOD_C/4;
+   component Rd53aWrapper
+      port (
+         ------------------------
+         -- Power-on Resets (POR)
+         ------------------------
+         POR_EXT_CAP_PAD : in  sl;
+         -------------------------------------------------------------
+         -- Clock Data Recovery (CDR) input command/data stream [SLVS]
+         -------------------------------------------------------------
+         CMD_P_PAD       : in  sl;
+         CMD_N_PAD       : in  sl;
+         -----------------------------------------------------
+         -- 4x general-purpose SLVS outputs, including Hit-ORs
+         -----------------------------------------------------
+         GPLVDS0_P_PAD   : out sl;
+         GPLVDS0_N_PAD   : out sl;
+         GPLVDS1_P_PAD   : out sl;
+         GPLVDS1_N_PAD   : out sl;
+         GPLVDS2_P_PAD   : out sl;
+         GPLVDS2_N_PAD   : out sl;
+         GPLVDS3_P_PAD   : out sl;
+         GPLVDS3_N_PAD   : out sl;
+         ------------------------------------------------
+         -- 4x serial output data links @ 1.28 Gb/s [CML]
+         ------------------------------------------------
+         GTX0_P_PAD      : out sl;
+         GTX0_N_PAD      : out sl;
+         GTX1_P_PAD      : out sl;
+         GTX1_N_PAD      : out sl;
+         GTX2_P_PAD      : out sl;
+         GTX2_N_PAD      : out sl;
+         GTX3_P_PAD      : out sl;
+         GTX3_N_PAD      : out sl);
+   end component;
 
    signal clk160MHzP : sl := '0';
    signal clk160MHzN : sl := '1';
 
-   signal dPortDataP  : Slv4Array(3 downto 0) := (others => x"0");
-   signal dPortDataN  : Slv4Array(3 downto 0) := (others => x"F");
-   signal dPortHitP   : Slv4Array(3 downto 0) := (others => x"0");
-   signal dPortHitN   : Slv4Array(3 downto 0) := (others => x"F");
-   signal dPortCmdP   : slv(3 downto 0)       := (others => '0');
-   signal dPortCmdN   : slv(3 downto 0)       := (others => '1');
-   signal dPortAuxP   : slv(3 downto 0)       := (others => '0');
-   signal dPortAuxN   : slv(3 downto 0)       := (others => '1');
-   signal dPortRst    : slv(3 downto 0)       := (others => '1');
-   signal dPortRstL   : slv(3 downto 0)       := (others => '0');
-   signal dPortNtcCsL : slv(3 downto 0)       := (others => '1');
-   signal dPortNtcSck : slv(3 downto 0)       := (others => '1');
-   signal dPortNtcSdo : slv(3 downto 0)       := (others => '1');
+   signal pgpClkP : sl := '0';
+   signal pgpClkN : sl := '1';
+
+   signal dPortDataP : Slv4Array(3 downto 0) := (others => x"0");
+   signal dPortDataN : Slv4Array(3 downto 0) := (others => x"F");
+   signal dPortHitP  : Slv4Array(3 downto 0) := (others => x"0");
+   signal dPortHitN  : Slv4Array(3 downto 0) := (others => x"F");
+   signal dPortCmdP  : slv(3 downto 0)       := (others => '0');
+   signal dPortCmdN  : slv(3 downto 0)       := (others => '1');
+   signal dPortAuxP  : slv(3 downto 0)       := (others => '0');
+   signal dPortAuxN  : slv(3 downto 0)       := (others => '1');
+   signal dPortRstL  : slv(3 downto 0)       := (others => '0');
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   -------------------
+   -- Reference Clocks
+   -------------------
+   U_Clk160 : entity work.ClkRst
       generic map (
-         CLK_PERIOD_G      => 6.25 ns,
+         CLK_PERIOD_G      => 6.25 ns,  -- 160 MHz
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk160MHzP,
          clkN => clk160MHzN);
 
-   U_ASIC : entity work.Rd53aWrapper
+   U_ClkPgp : entity work.ClkRst
+      generic map (
+         CLK_PERIOD_G      => 3.2 ns,   -- 312.5 MHz
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
+         RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
-         ------------------------
-         -- Power-on Resets (POR)
-         ------------------------
-         POR_EXT_CAP_PAD => dPortRstL(0),
-         -------------------------------------------------------------
-         -- Clock Data Recovery (CDR) input command/data stream [SLVS]
-         -------------------------------------------------------------
-         CMD_P_PAD       => clk160MHzP,
-         CMD_N_PAD       => clk160MHzN,
-         -----------------------------------------------------
-         -- 4x general-purpose SLVS outputs, including Hit-ORs
-         -----------------------------------------------------
-         GPLVDS0_P_PAD   => dPortHitP(0)(0),
-         GPLVDS0_N_PAD   => dPortHitN(0)(0),
-         GPLVDS1_P_PAD   => dPortHitP(0)(1),
-         GPLVDS1_N_PAD   => dPortHitN(0)(1),
-         GPLVDS2_P_PAD   => dPortHitP(0)(2),
-         GPLVDS2_N_PAD   => dPortHitN(0)(2),
-         GPLVDS3_P_PAD   => dPortHitP(0)(3),
-         GPLVDS3_N_PAD   => dPortHitN(0)(3),
-         ------------------------------------------------
-         -- 4x serial output data links @ 1.28 Gb/s [CML]
-         ------------------------------------------------
-         GTX0_P_PAD      => dPortDataP(0)(0),
-         GTX0_N_PAD      => dPortDataN(0)(0),
-         GTX1_P_PAD      => dPortDataP(0)(1),
-         GTX1_N_PAD      => dPortDataN(0)(1),
-         GTX2_P_PAD      => dPortDataP(0)(2),
-         GTX2_N_PAD      => dPortDataN(0)(2),
-         GTX3_P_PAD      => dPortDataP(0)(3),
-         GTX3_N_PAD      => dPortDataN(0)(3));
+         clkP => pgpClkP,
+         clkN => pgpClkN);
+   
+   -- ---------------------------------------------------
+   -- -- Only simulating 1 of the 4 DPORT pair interfaces
+   -- ---------------------------------------------------
+   -- GEN_VEC : for i in 0 downto 0 generate
+      -- U_ASIC : Rd53aWrapper
+         -- port map (
+            -- ------------------------
+            -- -- Power-on Resets (POR)
+            -- ------------------------
+            -- POR_EXT_CAP_PAD => dPortRstL(i),
+            -- -------------------------------------------------------------
+            -- -- Clock Data Recovery (CDR) input command/data stream [SLVS]
+            -- -------------------------------------------------------------
+            -- CMD_P_PAD       => clk160MHzP,
+            -- CMD_N_PAD       => clk160MHzN,
+            -- -----------------------------------------------------
+            -- -- 4x general-purpose SLVS outputs, including Hit-ORs
+            -- -----------------------------------------------------
+            -- GPLVDS0_P_PAD   => dPortHitP(i)(0),
+            -- GPLVDS0_N_PAD   => dPortHitN(i)(0),
+            -- GPLVDS1_P_PAD   => dPortHitP(i)(1),
+            -- GPLVDS1_N_PAD   => dPortHitN(i)(1),
+            -- GPLVDS2_P_PAD   => dPortHitP(i)(2),
+            -- GPLVDS2_N_PAD   => dPortHitN(i)(2),
+            -- GPLVDS3_P_PAD   => dPortHitP(i)(3),
+            -- GPLVDS3_N_PAD   => dPortHitN(i)(3),
+            -- ------------------------------------------------
+            -- -- 4x serial output data links @ 1.28 Gb/s [CML]
+            -- ------------------------------------------------
+            -- GTX0_P_PAD      => dPortDataP(i)(0),
+            -- GTX0_N_PAD      => dPortDataN(i)(0),
+            -- GTX1_P_PAD      => dPortDataP(i)(1),
+            -- GTX1_N_PAD      => dPortDataN(i)(1),
+            -- GTX2_P_PAD      => dPortDataP(i)(2),
+            -- GTX2_N_PAD      => dPortDataN(i)(2),
+            -- GTX3_P_PAD      => dPortDataP(i)(3),
+            -- GTX3_N_PAD      => dPortDataN(i)(3));
+   -- end generate GEN_VEC;
 
-   dPortRstL <= not(dPortRst);
+   U_Feb : entity work.AtlasRd53Core
+      generic map (
+         TPD_G        => 1 ns,
+         SIMULATION_G => true,
+         BUILD_INFO_G => BUILD_INFO_C)
+      port map (
+         -- RD53 ASIC Serial Ports
+         dPortDataP    => dPortDataP,
+         dPortDataN    => dPortDataN,
+         dPortHitP     => dPortHitP,
+         dPortHitN     => dPortHitN,
+         dPortCmdP     => dPortCmdP,
+         dPortCmdN     => dPortCmdN,
+         dPortAuxP     => dPortAuxP,
+         dPortAuxN     => dPortAuxN,
+         dPortRstL     => dPortRstL,
+         -- NTC SPI Ports
+         dPortNtcCsL   => open,
+         dPortNtcSck   => open,
+         dPortNtcSdo   => (others => '0'),
+         -- Trigger and hits Ports
+         trigInL       => '1',
+         hitInL        => '1',
+         hitOut        => open,
+         -- TLU Ports
+         tluTrgClkP    => open,
+         tluTrgClkN    => open,
+         tluBsyP       => open,
+         tluBsyN       => open,
+         tluIntP       => '0',
+         tluIntN       => '1',
+         tluRstP       => '0',
+         tluRstN       => '1',
+         -- Reference Clock
+         intClk160MHzP => clk160MHzP,
+         intClk160MHzN => clk160MHzN,
+         extClk160MHzP => (others => '0'),
+         extClk160MHzN => (others => '1'),
+         -- QSFP Ports
+         qsfpScl       => open,
+         qsfpSda       => open,
+         qsfpLpMode    => open,
+         qsfpRst       => open,
+         qsfpSel       => open,
+         qsfpIntL      => '1',
+         qsfpPrstL     => '1',
+         -- PGP Ports
+         pgpClkP       => pgpClkP,
+         pgpClkN       => pgpClkN,
+         pgpRxP        => (others => '0'),
+         pgpRxN        => (others => '1'),
+         pgpTxP        => open,
+         pgpTxN        => open,
+         -- Boot Memory Ports
+         bootCsL       => open,
+         bootMosi      => open,
+         bootMiso      => '1',
+         -- Misc Ports
+         led           => open,
+         pwrSyncSclk   => open,
+         pwrSyncFclk   => open,
+         pwrScl        => open,
+         pwrSda        => open,
+         tempAlertL    => '1',
+         vPIn          => 'Z',
+         vNIn          => 'Z');
 
 end testbed;
