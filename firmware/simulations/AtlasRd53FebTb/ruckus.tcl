@@ -8,10 +8,10 @@ loadRuckusTcl $::env(PROJ_DIR)/../../common/feb
 # Load Timon's source code
 loadSource -path "$::env(PROJ_DIR)/../../submodules/Yarr-fw/rtl/common/rr_arbiter.vhd"
 loadSource -dir  "$::env(PROJ_DIR)/../../submodules/Yarr-fw/rtl/kintex7/rx-core"
-loadIpCore -dir  "$::env(PROJ_DIR)/../../submodules/Yarr-fw/ip-cores/kintex7/rx_channel_fifo"
+# loadIpCore -dir  "$::env(PROJ_DIR)/../../submodules/Yarr-fw/ip-cores/kintex7/rx_channel_fifo"
 
 # Load target's source code and constraints
-loadSource -sim_only -fileType VHDL            -path "$::env(PROJ_DIR)/tb/Rd53aTb.vhd"
+loadSource -sim_only -fileType VHDL            -path "$::env(PROJ_DIR)/tb/AtlasRd53FebTb.vhd"
 
 
 
@@ -52,6 +52,6 @@ loadSource -sim_only -fileType VHDL            -path "$::env(PROJ_DIR)/tb/Rd53aT
 remove_files [get_files {*.dcp}]
 
 # Set the top level synth_1 and sim_1
-set_property top {AtlasRd53Core} [get_filesets sources_1]
-set_property top {Rd53aTb}       [get_filesets sim_1]
-# set_property top {tb}          [get_filesets sim_1]
+set_property top {AtlasRd53Core}  [get_filesets sources_1]
+set_property top {AtlasRd53FebTb} [get_filesets sim_1]
+# set_property top {tb}           [get_filesets sim_1]

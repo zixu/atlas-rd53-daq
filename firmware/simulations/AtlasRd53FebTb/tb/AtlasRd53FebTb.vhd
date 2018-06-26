@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : Rd53aTb.vhd
+-- File       : AtlasRd53FebTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-06-18
 -- Last update: 2018-06-19
@@ -26,9 +26,9 @@ use work.AxiStreamPkg.all;
 use work.Pgp3Pkg.all;
 use work.BuildInfoPkg.all;
 
-entity Rd53aTb is end Rd53aTb;
+entity AtlasRd53FebTb is end AtlasRd53FebTb;
 
-architecture testbed of Rd53aTb is
+architecture testbed of AtlasRd53FebTb is
 
    component Rd53aWrapper
       port (
