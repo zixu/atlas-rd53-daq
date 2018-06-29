@@ -30,7 +30,7 @@ entity AtlasRd53RxPhy is
    port (
       -- Misc. Interfaces
       enLocalEmu      : in  sl;
-      asicRst         : in  sl;
+      asicRstIn       : in  sl; -- TBD interface
       iDelayCtrlRdy   : in  sl;
       -- RD53 ASIC Serial Ports
       dPortDataP      : in  slv(3 downto 0);
@@ -91,6 +91,7 @@ architecture mapping of AtlasRd53RxPhy is
    signal enEmu       : sl;
 
    signal rst160MHzL : sl;
+   signal asicRst    : sl;
    signal asicRstL   : sl;
 
    signal dataCtrl : AxiStreamCtrlType;
@@ -120,6 +121,8 @@ begin
          -- Read Back Register Interface (clk160MHz domain)
          rdReg           => rdRegOut,
          -- Command Serial Interface (clk160MHz domain)
+         asicRst         => asicRst,
+         asicRstL        => asicRstL,
          cmdOutP         => dPortCmdP,
          cmdOutN         => dPortCmdN);
 
@@ -148,7 +151,6 @@ begin
    emuAutoRegOut <= (others => x"0000_0000");
 
    rst160MHzL <= not(rst160MHz);
-   asicRstL   <= not(asicRst);
 
    ----------------------------
    -- Local Emulation PHY Layer
@@ -183,7 +185,8 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         SYNTH_MODE_G        => "xpm",
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations

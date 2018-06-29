@@ -105,7 +105,7 @@ begin
          INPUT_BUFG_G     => false,
          FB_BUFG_G        => true,
          NUM_CLOCKS_G     => 4,
-         CLKIN_PERIOD_G   => 6.25,      -- 160 MHz
+         CLKIN_PERIOD_G   => 6.256,     -- 160 MHz
          DIVCLK_DIVIDE_G  => 1,         -- 160 MHz = 160 MHz/1
          CLKFBOUT_MULT_G  => 8,         -- 1.28 GHz = 160 MHz x 8
          CLKOUT0_DIVIDE_G => 2,         -- 640 MHz = 1.28 GHz/2

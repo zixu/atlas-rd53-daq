@@ -131,7 +131,7 @@ begin
       port map (
          -- Misc. Interfaces
          enLocalEmu      => enLocalEmu,
-         asicRst         => asicRst,
+         asicRstIn       => asicRst,
          iDelayCtrlRdy   => iDelayCtrlRdy,
          -- RD53 ASIC Serial Ports
          dPortDataP      => dPortDataP,

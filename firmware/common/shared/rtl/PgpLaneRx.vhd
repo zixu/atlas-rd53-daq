@@ -90,7 +90,8 @@ begin
             VALID_THOLD_G       => 128,  -- Hold until enough to burst into the interleaving MUX
             VALID_BURST_MODE_G  => true,
             -- FIFO configurations
-            BRAM_EN_G           => true,
+            SYNTH_MODE_G        => "xpm",
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => true,
             FIFO_ADDR_WIDTH_G   => 10,
             FIFO_FIXED_THRESH_G => true,
@@ -142,7 +143,8 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         SYNTH_MODE_G        => "xpm",
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations

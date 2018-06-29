@@ -92,6 +92,7 @@ RD53A  dut (
    //
    .POR_EXT_CAP_PAD     ( POR_EXT_CAP_PAD ),
    .POR_OUT_B_PAD       (                 ),
+   .PLL_RST_B_PAD       ( POR_EXT_CAP_PAD ), // PLL_RST_B and POR_OUT_B connected to each other with 2-pin jumper
 
    //
    // Clock Data Recovery (CDR) input command/data stream [SLVS]

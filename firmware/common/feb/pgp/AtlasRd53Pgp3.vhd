@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-21
+-- Last update: 2018-06-27
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGPv3 communication
 -------------------------------------------------------------------------------
@@ -126,15 +126,16 @@ begin
 
    U_PGPv3 : entity work.Pgp3Gtx7Wrapper
       generic map(
-         TPD_G          => TPD_G,
-         ROGUE_SIM_EN_G => SIMULATION_G,
-         NUM_LANES_G    => 1,
-         NUM_VC_G       => 6,
-         RATE_G         => PGP3_RATE_G,
-         REFCLK_TYPE_G  => PGP3_REFCLK_312_C,
-         EN_PGP_MON_G   => false,
-         EN_GTH_DRP_G   => false,
-         EN_QPLL_DRP_G  => false)
+         TPD_G               => TPD_G,
+         ROGUE_SIM_EN_G      => SIMULATION_G,
+         ROGUE_SIM_USER_ID_G => 12,
+         NUM_LANES_G         => 1,
+         NUM_VC_G            => 6,
+         RATE_G              => PGP3_RATE_G,
+         REFCLK_TYPE_G       => PGP3_REFCLK_312_C,
+         EN_PGP_MON_G        => false,
+         EN_GTH_DRP_G        => false,
+         EN_QPLL_DRP_G       => false)
       port map (
          -- Stable Clock and Reset
          stableClk         => sysClk,

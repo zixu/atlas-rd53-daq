@@ -61,7 +61,8 @@ begin
             VALID_THOLD_G       => 256,
             VALID_BURST_MODE_G  => true,
             -- FIFO configurations
-            BRAM_EN_G           => true,
+            SYNTH_MODE_G        => "xpm",
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => true,
             FIFO_ADDR_WIDTH_G   => 9,
             -- AXI Stream Port Configurations
@@ -85,7 +86,8 @@ begin
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => SIMULATION_G,
-            BRAM_EN_G           => true,
+            SYNTH_MODE_G        => "xpm",
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 10,
             FIFO_FIXED_THRESH_G => true,

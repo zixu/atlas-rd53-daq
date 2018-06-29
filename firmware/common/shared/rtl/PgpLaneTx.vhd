@@ -95,7 +95,8 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
+         SYNTH_MODE_G        => "xpm",
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 5,
          FIFO_PAUSE_THRESH_G => 20,
