@@ -2,7 +2,7 @@
 -- File       : PgpLaneTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-06-08
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -25,7 +25,8 @@ use work.AxiStreamPkg.all;
 
 entity PgpLaneTx is
    generic (
-      TPD_G             : time := 1 ns;
+      TPD_G             : time   := 1 ns;
+      SYNTH_MODE_G      : string := "inferred";
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       PGP_AXIS_CONFIG_G : AxiStreamConfigType;
       NUM_VC_G          : positive);
@@ -95,7 +96,7 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         SYNTH_MODE_G        => "xpm",
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 5,

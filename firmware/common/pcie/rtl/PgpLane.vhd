@@ -2,7 +2,7 @@
 -- File       : PgpLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-06-08
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -28,7 +28,8 @@ use work.Pgp3Pkg.all;
 
 entity PgpLane is
    generic (
-      TPD_G           : time := 1 ns;
+      TPD_G           : time   := 1 ns;
+      SYNTH_MODE_G    : string := "inferred";
       LANE_G          : natural;
       NUM_VC_G        : positive;
       RATE_G          : string;
@@ -81,6 +82,7 @@ begin
    U_Pgp : entity work.Pgp3GthUs
       generic map (
          TPD_G            => TPD_G,
+         SYNTH_MODE_G     => SYNTH_MODE_G,
          RATE_G           => RATE_G,
          NUM_VC_G         => NUM_VC_G,
          AXIL_CLK_FREQ_G  => (SYS_CLK_FREQ_C/2.0),
@@ -128,6 +130,7 @@ begin
    U_Tx : entity work.PgpLaneTx
       generic map (
          TPD_G             => TPD_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
          PGP_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          NUM_VC_G          => NUM_VC_G)
@@ -151,6 +154,7 @@ begin
    U_Rx : entity work.PgpLaneRx
       generic map (
          TPD_G             => TPD_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
          PGP_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          LANE_G            => LANE_G,

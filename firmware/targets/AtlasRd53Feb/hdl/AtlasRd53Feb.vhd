@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Feb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-05-23
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 6.0 Gbps PGPv3 communication
 --
@@ -39,7 +39,7 @@ entity AtlasRd53Feb is
       dPortCmdN     : out   slv(3 downto 0);
       dPortAuxP     : out   slv(3 downto 0);
       dPortAuxN     : out   slv(3 downto 0);
-      dPortRst      : out   slv(3 downto 0); -- Inverted in HW on FPGA board before dport connector
+      dPortRst      : out   slv(3 downto 0);  -- Inverted in HW on FPGA board before dport connector
       -- NTC SPI Ports
       dPortNtcCsL   : out   slv(3 downto 0);
       dPortNtcSck   : out   slv(3 downto 0);
@@ -99,6 +99,7 @@ begin
    U_Core : entity work.AtlasRd53Core
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => "xpm",
          PGP3_RATE_G  => "6.25Gbps",
          BUILD_INFO_G => BUILD_INFO_G)
       port map (

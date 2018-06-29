@@ -2,7 +2,7 @@
 -- File       : PgpProtocolOnly.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-06-12
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -28,14 +28,15 @@ use work.Pgp3Pkg.all;
 entity PgpProtocolOnly is
    generic (
       TPD_G             : time     := 1 ns;
+      SYNTH_MODE_G      : string   := "inferred";
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       NUM_VC_G          : positive := 1);
    port (
       -- DMA Interface (dmaClk domain)
       dmaClk      : in  sl;
       dmaRst      : in  sl;
-      pgpTxOut     : out Pgp3TxOutType;
-      pgpRxOut     : out Pgp3RxOutType;
+      pgpTxOut    : out Pgp3TxOutType;
+      pgpRxOut    : out Pgp3RxOutType;
       dmaIbMaster : out AxiStreamMasterType;
       dmaIbSlave  : in  AxiStreamSlaveType;
       dmaObMaster : in  AxiStreamMasterType;
@@ -57,6 +58,7 @@ begin
    U_Tx : entity work.PgpLaneTx
       generic map (
          TPD_G             => TPD_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
          PGP_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          NUM_VC_G          => NUM_VC_G)
@@ -76,8 +78,9 @@ begin
 
    U_Pgp3Core : entity work.Pgp3Core
       generic map (
-         TPD_G    => TPD_G,
-         NUM_VC_G => NUM_VC_G)
+         TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
+         NUM_VC_G     => NUM_VC_G)
       port map (
          -- Tx User interface
          pgpTxClk        => dmaClk,
@@ -119,6 +122,7 @@ begin
    U_Rx : entity work.PgpLaneRx
       generic map (
          TPD_G             => TPD_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
          PGP_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          LANE_G            => 0,
