@@ -2,7 +2,7 @@
 -- File       : AtlasRd53TxCmd.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-25
--- Last update: 2018-05-31
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Module to generate CMD serial stream to RD53 ASIC
 -- 
@@ -149,7 +149,6 @@ architecture rtl of AtlasRd53TxCmd is
       syncCntL : slv(4 downto 0);
       init     : slv(7 downto 0);
       trigDet  : slv(3 downto 0);
-      trigTag  : slv(4 downto 0);
       data     : Slv5Array(5 downto 0);
       index    : natural range 0 to 6;
       state    : StateType;
@@ -165,7 +164,6 @@ architecture rtl of AtlasRd53TxCmd is
       syncCntL => (others => '0'),
       init     => x"FF",
       trigDet  => (others => '0'),
-      trigTag  => (others => '0'),
       data     => (others => (others => '0')),
       index    => 0,
       state    => INIT_S);
@@ -189,6 +187,7 @@ begin
       v.rdReady := '0';
 
       -- Update the shift register
+      -- v.shiftReg := '0' & r.shiftReg(15 downto 1);
       v.shiftReg := r.shiftReg(14 downto 0) & '0';
 
       -- Increment the counter
@@ -236,9 +235,7 @@ begin
                if (v.trigDet /= 0) then
                   -- Update shift reg value
                   v.shiftReg(15 downto 8) := TRIG_ROM_C(conv_integer(v.trigDet));  -- Going into the chip, the command bits go in first and the tag goes in second.
-                  v.shiftReg(7 downto 0)  := DATA_ROM_C(conv_integer(r.trigTag));  -- Going into the chip, the command bits go in first and the tag goes in second.
-                  -- Increment the counter
-                  v.trigTag               := r.trigTag + 1;
+                  v.shiftReg(7 downto 0)  := TRIG_ROM_C(conv_integer(v.trigDet));  -- Going into the chip, the command bits go in first and the tag goes in second.
 
                -- Check for ECR
                elsif (v.ecr = '1') then
@@ -266,10 +263,10 @@ begin
                   -- Update shift reg value
                   v.shiftReg := CAL_C;
                   -- Setup for data transfer
-                  v.data(5)  := (calId & calDat(15));
-                  v.data(4)  := calDat(14 downto 10);
-                  v.data(3)  := calDat(9 downto 5);
-                  v.data(2)  := calDat(4 downto 0);
+                  v.data(5)  := calDat(9 downto 5);
+                  v.data(4)  := calDat(4 downto 0);
+                  v.data(3)  := (calId & calDat(15));
+                  v.data(2)  := calDat(14 downto 10);
                   v.index    := 2;
                   -- Next state
                   v.state    := SEND_S;
@@ -285,12 +282,12 @@ begin
                   -- Update shift reg value
                   v.shiftReg := WR_REG_C;
                   -- Setup for data transfer
-                  v.data(5)  := (wrRegId & '0');
-                  v.data(4)  := wrRegAddr(8 downto 4);
+                  v.data(5)  := wrRegData(9 downto 5);
+                  v.data(4)  := wrRegData(4 downto 0);
                   v.data(3)  := (wrRegAddr(3 downto 0) & wrRegData(15));
                   v.data(2)  := wrRegData(14 downto 10);
-                  v.data(1)  := wrRegData(9 downto 5);
-                  v.data(0)  := wrRegData(4 downto 0);
+                  v.data(1)  := (wrRegId & '0');
+                  v.data(0)  := wrRegAddr(8 downto 4);
                   v.index    := 0;
                   -- Next state
                   v.state    := SEND_S;
@@ -302,10 +299,10 @@ begin
                   -- Update shift reg value
                   v.shiftReg := RD_REG_C;
                   -- Setup for data transfer
-                  v.data(5)  := (wrRegId & '0');
-                  v.data(4)  := wrRegAddr(8 downto 4);
-                  v.data(3)  := (wrRegAddr(3 downto 0) & '0');
-                  v.data(2)  := "00000";
+                  v.data(5)  := (wrRegAddr(3 downto 0) & '0');
+                  v.data(4)  := "00000";
+                  v.data(3)  := (wrRegId & '0');
+                  v.data(2)  := wrRegAddr(8 downto 4);
                   v.index    := 2;
                   -- Next state
                   v.state    := SEND_S;
@@ -317,9 +314,7 @@ begin
                if (v.trigDet /= 0) then
                   -- Update shift reg value
                   v.shiftReg(15 downto 8) := TRIG_ROM_C(conv_integer(v.trigDet));  -- Going into the chip, the command bits go in first and the tag goes in second.
-                  v.shiftReg(7 downto 0)  := DATA_ROM_C(conv_integer(r.trigTag));  -- Going into the chip, the command bits go in first and the tag goes in second.
-                  -- Increment the counter
-                  v.trigTag               := r.trigTag + 1;
+                  v.shiftReg(7 downto 0)  := TRIG_ROM_C(conv_integer(v.trigDet));  -- Going into the chip, the command bits go in first and the tag goes in second.
                else
                   -- Update shift reg value
                   v.shiftReg(15 downto 8) := DATA_ROM_C(conv_integer(r.data(r.index+1)));
@@ -353,7 +348,7 @@ begin
       end if;
 
       -- Combinatorial Outputs
-      wrReady <= v.rdReady;
+      wrReady <= v.wrReady;
       rdReady <= v.rdReady;
 
       -- Reset

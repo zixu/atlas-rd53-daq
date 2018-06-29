@@ -1,16 +1,16 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp3LoopbackTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-06-12
+-- Created    : 2018-06-13
 -- Last update: 2018-06-13
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the Pgp3LoopbackTb module
 -------------------------------------------------------------------------------
--- This file is part of 'LCLS2 AMC Development'.
+-- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 AMC Development', including this file, 
+-- No part of 'ATLAS RD53 DEV', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

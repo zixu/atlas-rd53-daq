@@ -17,6 +17,7 @@ import pyrogue
 import pyrogue as pr
 import pyrogue.protocols
 import pyrogue.utilities.fileio
+import pyrogue.interfaces.simulation
 
 import RceG3 as rceg3
 import surf.axi as axiVer
@@ -92,18 +93,24 @@ class Top(pr.Root):
         # PGPv3.[VC=5] = RD53[DPORT=3] Streaming Data Interface
         ######################################################################
         
+        if (hwType == 'simulation'):
+            srpStream         = pr.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=12, ssi=True)
+            self.tluStream    = pr.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=12, ssi=True)          
+            for i in range(4):
+                dataStream[i] = pr.interfaces.simulation.StreamSim(host='localhost', dest=2+i, uid=12, ssi=True)     
+        else:
+            srpStream         = rogue.hardware.axi.AxiStreamDma(dev,0,True)
+            self.tluStream    = rogue.hardware.axi.AxiStreamDma(dev,1,True)            
+            for i in range(4):
+                dataStream[i] = rogue.hardware.axi.AxiStreamDma(dev,2+i,True)
+                
+        ######################################################################
+        
         # Connect the SRPv3 to PGPv3.VC[0]
-        srpStream  = rogue.hardware.axi.AxiStreamDma(dev,0,True)
         memMap = rogue.protocols.srp.SrpV3()                
         pr.streamConnectBiDir( memMap, srpStream )             
-        
-        # Create the TLU stream interface to PGPv3.VC[1]
-        self.tluStream = rogue.hardware.axi.AxiStreamDma(dev,1,True)            
-        
-        for i in range(4):
-            # Create the RD53 Data stream interface to PGPv3.VC[2+i]
-            dataStream[i] = rogue.hardware.axi.AxiStreamDma(dev,2+i,True)
-            
+                
+        for i in range(4):            
             # Add data stream to file as channel [i] to dataStream[i]
             pr.streamConnect(dataStream[i],dataWriter.getChannel(i))            
             

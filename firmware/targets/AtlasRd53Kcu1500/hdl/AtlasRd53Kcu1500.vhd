@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Kcu1500.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-24
--- Last update: 2018-05-08
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -29,7 +29,8 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53Kcu1500 is
    generic (
-      TPD_G        : time := 1 ns;
+      TPD_G        : time   := 1 ns;
+      SYNTH_MODE_G : string := "xpm";
       BUILD_INFO_G : BuildInfoType);
    port (
       ---------------------
@@ -134,6 +135,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          BUILD_INFO_G => BUILD_INFO_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          DMA_SIZE_G   => 8)
       port map (
          ------------------------      
@@ -209,7 +211,8 @@ begin
    U_Pgp : entity work.PgpLaneWrapper
       generic map (
          TPD_G           => TPD_G,
-         RATE_G     => "6.25Gbps",
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         RATE_G          => "6.25Gbps",
          AXI_BASE_ADDR_G => BAR0_BASE_ADDR_C)
       port map (
          -- QSFP[0] Ports

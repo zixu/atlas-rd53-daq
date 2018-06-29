@@ -27,7 +27,7 @@ create_generated_clock -name dnaClkInv [get_pins {U_Core/U_System/U_AxiVersion/G
 
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {iprogClk}]
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {dnaClk}]  -group [get_clocks {dnaClkInv}] 
-set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks -of_objects [get_pins {U_Core/U_Pgp/U_PGPv3/U_TX_PLL/PllGen.U_Pll/CLKOUT1}]] 
+set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks -of_objects [get_pins {U_Core/U_Pgp/U_PGPv3/REAL_PGP.U_TX_PLL/PllGen.U_Pll/CLKOUT1}]] 
 
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks -of_objects [get_pins -hier -filter {name=~*gt0_Pgp3Gtx7Ip6G_i*gtxe2_i*TXOUTCLK}]] \

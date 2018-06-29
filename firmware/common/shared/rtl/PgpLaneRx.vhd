@@ -2,7 +2,7 @@
 -- File       : PgpLaneRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-06-08
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -25,7 +25,8 @@ use work.AxiStreamPkg.all;
 
 entity PgpLaneRx is
    generic (
-      TPD_G             : time := 1 ns;
+      TPD_G             : time   := 1 ns;
+      SYNTH_MODE_G      : string := "inferred";
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       PGP_AXIS_CONFIG_G : AxiStreamConfigType;
       LANE_G            : natural;
@@ -90,7 +91,8 @@ begin
             VALID_THOLD_G       => 128,  -- Hold until enough to burst into the interleaving MUX
             VALID_BURST_MODE_G  => true,
             -- FIFO configurations
-            BRAM_EN_G           => true,
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => true,
             FIFO_ADDR_WIDTH_G   => 10,
             FIFO_FIXED_THRESH_G => true,
@@ -142,7 +144,8 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations

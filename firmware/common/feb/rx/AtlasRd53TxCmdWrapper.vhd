@@ -2,7 +2,7 @@
 -- File       : AtlasRd53TxCmdWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-31
--- Last update: 2018-06-04
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AtlasRd53TxCmd
 -------------------------------------------------------------------------------
@@ -31,7 +31,8 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53TxCmdWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SYNTH_MODE_G : string := "inferred");
    port (
       -- AXI Stream Interface (axilClk domain)
       axilClk         : in  sl;
@@ -92,16 +93,17 @@ architecture rtl of AtlasRd53TxCmdWrapper is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal axiWriteMaster : AxiLiteWriteMasterType;
-   signal axiWriteSlave  : AxiLiteWriteSlaveType;
-   signal axiReadMaster  : AxiLiteReadMasterType;
-   signal axiReadSlave   : AxiLiteReadSlaveType;
+   signal axiWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axiWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal axiReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axiReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
 
-   signal rdRegMaster : AxiStreamMasterType;
-   signal rdRegSlave  : AxiStreamSlaveType;
+   signal rdRegMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal rdRegSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
    signal ramDout : slv(15 downto 0);
 
+   signal wrReadyL  : sl;
    signal wrReady   : sl;
    signal wrValid   : sl;
    signal wrRdy     : sl;
@@ -122,6 +124,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          COMMON_CLK_G    => false,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
          NUM_ADDR_BITS_G => 16)
       port map (
          -- Slave Interface
@@ -175,6 +178,8 @@ begin
          -- Serial Output Interface
          cmdOut     => cmd);
 
+   cmdOut <= cmd;
+
    U_ODDR : ODDR
       generic map(
          DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
@@ -198,28 +203,33 @@ begin
    ----------------------------------
    -- Command Write Transaction Queue
    ----------------------------------
-   U_WrFifo : entity work.FifoSync
+   U_WrFifo : entity work.Fifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => true,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 29,
-         ADDR_WIDTH_G => 10)
+         TPD_G           => TPD_G,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         MEMORY_TYPE_G   => "block",
+         GEN_SYNC_FIFO_G => true,
+         FWFT_EN_G       => true,
+         DATA_WIDTH_G    => 29,
+         ADDR_WIDTH_G    => 10)
       port map (
-         clk                => clk160MHz,
          rst                => rst160MHz,
          -- Write interface
+         wr_clk             => clk160MHz,
          wr_en              => r.wrValid,
-         almost_full        => wrReady,
+         almost_full        => wrReadyL,
          din(28 downto 25)  => r.regId,
          din(24 downto 16)  => r.regAddr,
          din(15 downto 0)   => r.regData,
          -- Read interface
+         rd_clk             => clk160MHz,
          valid              => wrValid,
          rd_en              => wrRdy,
          dout(28 downto 25) => wrRegId,
          dout(24 downto 16) => wrRegAddr,
          dout(15 downto 0)  => wrRegData);
+
+   wrReady <= not(wrReadyL);
 
    comb : process (axiReadMaster, axiWriteMaster, r, ramDout, rdReady,
                    rdRegMaster, rst160MHz, wrReady) is
@@ -260,9 +270,9 @@ begin
          end if;
          -- Check for R/nW op-code
          if(axiWriteMaster.wdata(31) = '0') then
-            v.rdValid := '1';
-         else
             v.wrValid := '1';
+         else
+            v.rdValid := '1';
          end if;
          -- Send Write bus response
          axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_OK_C);
@@ -359,7 +369,8 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
@@ -378,11 +389,11 @@ begin
 
    U_RdBackRam : entity work.SimpleDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => true,
-         DOB_REG_G    => true,
-         DATA_WIDTH_G => 16,
-         ADDR_WIDTH_G => 10)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "block",
+         DOB_REG_G     => true,
+         DATA_WIDTH_G  => 16,
+         ADDR_WIDTH_G  => 10)
       port map (
          -- Port A     
          clka  => clk160MHz,

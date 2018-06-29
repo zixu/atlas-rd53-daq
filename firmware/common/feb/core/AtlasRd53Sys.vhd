@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Sys.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-25
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: System Level Modules
 -------------------------------------------------------------------------------
@@ -31,6 +31,8 @@ use unisim.vcomponents.all;
 entity AtlasRd53Sys is
    generic (
       TPD_G           : time             := 1 ns;
+      SIMULATION_G    : boolean          := false;
+      SYNTH_MODE_G    : string           := "inferred";
       BUILD_INFO_G    : BuildInfoType;
       AXI_CLK_FREQ_G  : real             := 156.25E+6;  -- units of Hz
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
@@ -46,20 +48,20 @@ entity AtlasRd53Sys is
       axilWriteMaster : in    AxiLiteWriteMasterType;
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       -- NTC SPI Ports
-      dPortNtcCsL     : out   slv(3 downto 0);
-      dPortNtcSck     : out   slv(3 downto 0);
+      dPortNtcCsL     : out   slv(3 downto 0) := x"F";
+      dPortNtcSck     : out   slv(3 downto 0) := x"F";
       dPortNtcSdo     : in    slv(3 downto 0);
       -- QSFP Ports
       qsfpScl         : inout sl;
       qsfpSda         : inout sl;
-      qsfpLpMode      : out   sl;
-      qsfpRst         : out   sl;
-      qsfpSel         : out   sl;
+      qsfpLpMode      : out   sl              := '0';
+      qsfpRst         : out   sl              := '0';
+      qsfpSel         : out   sl              := '0';
       qsfpIntL        : in    sl;
       qsfpPrstL       : in    sl;
       -- Boot Memory Ports
-      bootCsL         : out   sl;
-      bootMosi        : out   sl;
+      bootCsL         : out   sl              := '1';
+      bootMosi        : out   sl              := '1';
       bootMiso        : in    sl;
       -- Misc Ports
       pwrScl          : inout sl;
@@ -107,9 +109,9 @@ architecture mapping of AtlasRd53Sys is
          connectivity  => x"FFFF"));
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_OK_C);
 
    constant PWR_I2C_C : I2cAxiLiteDevArray(1 downto 0) := (
       0              => MakeI2cAxiLiteDevType(
@@ -183,72 +185,13 @@ begin
          axiClk         => axilClk,
          axiRst         => axilRst);
 
-   -----------------------
-   -- AXI-Lite XADC Module
-   -----------------------
-   U_Xadc : entity work.AxiXadcMinimumCore
-      port map (
-         -- XADC Ports
-         vPIn           => vPIn,
-         vNIn           => vNIn,
-         -- AXI-Lite Register Interface
-         axiReadMaster  => axilReadMasters(XADC_INDEX_C),
-         axiReadSlave   => axilReadSlaves(XADC_INDEX_C),
-         axiWriteMaster => axilWriteMasters(XADC_INDEX_C),
-         axiWriteSlave  => axilWriteSlaves(XADC_INDEX_C),
-         -- Clocks and Resets
-         axiClk         => axilClk,
-         axiRst         => axilRst);
-
-   ------------------------------
-   -- AXI-Lite: Boot Flash Module
-   ------------------------------
-   U_BootProm : entity work.AxiMicronN25QCore
-      generic map (
-         TPD_G           => TPD_G,
-         MEM_ADDR_MASK_G => x"00000000",  -- Using hardware write protection
-         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G,        -- units of Hz
-         SPI_CLK_FREQ_G  => (AXI_CLK_FREQ_G/8.0))  -- units of Hz
-      port map (
-         -- FLASH Memory Ports
-         csL            => bootCsL,
-         sck            => bootSck,
-         mosi           => bootMosi,
-         miso           => bootMiso,
-         -- AXI-Lite Register Interface
-         axiReadMaster  => axilReadMasters(BOOT_MEM_INDEX_C),
-         axiReadSlave   => axilReadSlaves(BOOT_MEM_INDEX_C),
-         axiWriteMaster => axilWriteMasters(BOOT_MEM_INDEX_C),
-         axiWriteSlave  => axilWriteSlaves(BOOT_MEM_INDEX_C),
-         -- Clocks and Resets
-         axiClk         => axilClk,
-         axiRst         => axilRst);
-
-   -----------------------------------------------------
-   -- Using the STARTUPE2 to access the FPGA's CCLK port
-   -----------------------------------------------------
-   STARTUPE2_Inst : STARTUPE2
-      port map (
-         CFGCLK    => open,  -- 1-bit output: Configuration main clock output
-         CFGMCLK   => open,  -- 1-bit output: Configuration internal oscillator clock output
-         EOS       => open,  -- 1-bit output: Active high output signal indicating the End Of Startup.
-         PREQ      => open,  -- 1-bit output: PROGRAM request to fabric output
-         CLK       => '0',  -- 1-bit input: User start-up clock input
-         GSR       => '0',  -- 1-bit input: Global Set/Reset input (GSR cannot be used for the port name)
-         GTS       => '0',  -- 1-bit input: Global 3-state input (GTS cannot be used for the port name)
-         KEYCLEARB => '0',  -- 1-bit input: Clear AES Decrypter Key input from Battery-Backed RAM (BBRAM)
-         PACK      => '0',  -- 1-bit input: PROGRAM acknowledge input
-         USRCCLKO  => bootSck,          -- 1-bit input: User CCLK input
-         USRCCLKTS => '0',  -- 1-bit input: User CCLK 3-state enable input
-         USRDONEO  => '1',  -- 1-bit input: User DONE pin output control
-         USRDONETS => '1');  -- 1-bit input: User DONE 3-state enable output            
-
    -----------------------------------
    -- AXI-Lite: System Register Module
    -----------------------------------
    U_SysReg : entity work.AtlasRd53SysReg
       generic map (
          TPD_G          => TPD_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G,
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
       port map (
          -- AXI-Lite Interface
@@ -262,71 +205,135 @@ begin
          status          => status,
          config          => config);
 
-   --------------------
-   -- AXI-Lite: NTC SPI
-   --------------------
-   U_NtcSpi : entity work.AxiSpiMaster
-      generic map (
-         TPD_G             => TPD_G,
-         ADDRESS_SIZE_G    => 0,
-         DATA_SIZE_G       => 11,        -- 10-bit + sign output code
-         MODE_G            => "RO",      -- "RO" (read only)
-         CLK_PERIOD_G      => (1/AXI_CLK_FREQ_G),
-         SPI_SCLK_PERIOD_G => (1.0E-6),  -- 1us = 1/(1 MHz)
-         SPI_NUM_CHIPS_G   => 4)
-      port map (
-         -- AXI-Lite Register Interface
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiReadMaster  => axilReadMasters(NTC_INDEX_C),
-         axiReadSlave   => axilReadSlaves(NTC_INDEX_C),
-         axiWriteMaster => axilWriteMasters(NTC_INDEX_C),
-         axiWriteSlave  => axilWriteSlaves(NTC_INDEX_C),
-         -- SPI Ports
-         coreSclk       => ntcClk,
-         coreSDin       => ntcSdi,
-         coreMCsb       => ntcCsL);
+   NOT_SIM : if (SIMULATION_G = false) generate
 
-   process(dPortNtcSdo, ntcClk, ntcCsL)
-      variable sclk : slv(3 downto 0);
-      variable din  : sl;
-   begin
-      -- Set the default values
-      sclk := x"0";
-      din  := '0';
-      -- Check the chip select bus
-      for i in 3 downto 0 loop
-         if ntcCsL(i) = '0' then
-            sclk(i) := ntcClk;
-            din     := dPortNtcSdo(i);
-         end if;
-      end loop;
-      -- Return the results
-      dPortNtcCsL <= ntcCsL;
-      dPortNtcSck <= sclk;
-      ntcSdi      <= din;
-   end process;
+      -----------------------
+      -- AXI-Lite XADC Module
+      -----------------------
+      U_Xadc : entity work.AxiXadcMinimumCore
+         port map (
+            -- XADC Ports
+            vPIn           => vPIn,
+            vNIn           => vNIn,
+            -- AXI-Lite Register Interface
+            axiReadMaster  => axilReadMasters(XADC_INDEX_C),
+            axiReadSlave   => axilReadSlaves(XADC_INDEX_C),
+            axiWriteMaster => axilWriteMasters(XADC_INDEX_C),
+            axiWriteSlave  => axilWriteSlaves(XADC_INDEX_C),
+            -- Clocks and Resets
+            axiClk         => axilClk,
+            axiRst         => axilRst);
 
-   ----------------------
-   -- AXI-Lite: Power I2C
-   ----------------------
-   U_PwrI2C : entity work.AxiI2cRegMaster
-      generic map (
-         TPD_G          => TPD_G,
-         DEVICE_MAP_G   => PWR_I2C_C,
-         I2C_SCL_FREQ_G => 400.0E+3,    -- units of Hz
-         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
-      port map (
-         -- I2C Ports
-         scl            => pwrScl,
-         sda            => pwrSda,
-         -- AXI-Lite Register Interface
-         axiReadMaster  => axilReadMasters(PWR_INDEX_C),
-         axiReadSlave   => axilReadSlaves(PWR_INDEX_C),
-         axiWriteMaster => axilWriteMasters(PWR_INDEX_C),
-         axiWriteSlave  => axilWriteSlaves(PWR_INDEX_C),
-         -- Clocks and Resets
-         axiClk         => axilClk,
-         axiRst         => axilRst);
+      ------------------------------
+      -- AXI-Lite: Boot Flash Module
+      ------------------------------
+      U_BootProm : entity work.AxiMicronN25QCore
+         generic map (
+            TPD_G           => TPD_G,
+            MEM_ADDR_MASK_G => x"00000000",  -- Using hardware write protection
+            AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G,        -- units of Hz
+            SPI_CLK_FREQ_G  => (AXI_CLK_FREQ_G/8.0))  -- units of Hz
+         port map (
+            -- FLASH Memory Ports
+            csL            => bootCsL,
+            sck            => bootSck,
+            mosi           => bootMosi,
+            miso           => bootMiso,
+            -- AXI-Lite Register Interface
+            axiReadMaster  => axilReadMasters(BOOT_MEM_INDEX_C),
+            axiReadSlave   => axilReadSlaves(BOOT_MEM_INDEX_C),
+            axiWriteMaster => axilWriteMasters(BOOT_MEM_INDEX_C),
+            axiWriteSlave  => axilWriteSlaves(BOOT_MEM_INDEX_C),
+            -- Clocks and Resets
+            axiClk         => axilClk,
+            axiRst         => axilRst);
+
+      -----------------------------------------------------
+      -- Using the STARTUPE2 to access the FPGA's CCLK port
+      -----------------------------------------------------
+      STARTUPE2_Inst : STARTUPE2
+         port map (
+            CFGCLK    => open,  -- 1-bit output: Configuration main clock output
+            CFGMCLK   => open,  -- 1-bit output: Configuration internal oscillator clock output
+            EOS       => open,  -- 1-bit output: Active high output signal indicating the End Of Startup.
+            PREQ      => open,  -- 1-bit output: PROGRAM request to fabric output
+            CLK       => '0',  -- 1-bit input: User start-up clock input
+            GSR       => '0',  -- 1-bit input: Global Set/Reset input (GSR cannot be used for the port name)
+            GTS       => '0',  -- 1-bit input: Global 3-state input (GTS cannot be used for the port name)
+            KEYCLEARB => '0',  -- 1-bit input: Clear AES Decrypter Key input from Battery-Backed RAM (BBRAM)
+            PACK      => '0',  -- 1-bit input: PROGRAM acknowledge input
+            USRCCLKO  => bootSck,       -- 1-bit input: User CCLK input
+            USRCCLKTS => '0',  -- 1-bit input: User CCLK 3-state enable input
+            USRDONEO  => '1',  -- 1-bit input: User DONE pin output control
+            USRDONETS => '1');  -- 1-bit input: User DONE 3-state enable output            
+
+      --------------------
+      -- AXI-Lite: NTC SPI
+      --------------------
+      U_NtcSpi : entity work.AxiSpiMaster
+         generic map (
+            TPD_G             => TPD_G,
+            ADDRESS_SIZE_G    => 0,
+            DATA_SIZE_G       => 11,        -- 10-bit + sign output code
+            MODE_G            => "RO",      -- "RO" (read only)
+            CLK_PERIOD_G      => (1/AXI_CLK_FREQ_G),
+            SPI_SCLK_PERIOD_G => (1.0E-6),  -- 1us = 1/(1 MHz)
+            SPI_NUM_CHIPS_G   => 4)
+         port map (
+            -- AXI-Lite Register Interface
+            axiClk         => axilClk,
+            axiRst         => axilRst,
+            axiReadMaster  => axilReadMasters(NTC_INDEX_C),
+            axiReadSlave   => axilReadSlaves(NTC_INDEX_C),
+            axiWriteMaster => axilWriteMasters(NTC_INDEX_C),
+            axiWriteSlave  => axilWriteSlaves(NTC_INDEX_C),
+            -- SPI Ports
+            coreSclk       => ntcClk,
+            coreSDin       => ntcSdi,
+            coreMCsb       => ntcCsL);
+
+      process(dPortNtcSdo, ntcClk, ntcCsL)
+         variable sclk : slv(3 downto 0);
+         variable din  : sl;
+      begin
+         -- Set the default values
+         sclk := x"0";
+         din  := '0';
+         -- Check the chip select bus
+         for i in 3 downto 0 loop
+            if ntcCsL(i) = '0' then
+               sclk(i) := ntcClk;
+               din     := dPortNtcSdo(i);
+            end if;
+         end loop;
+         -- Return the results
+         dPortNtcCsL <= ntcCsL;
+         dPortNtcSck <= sclk;
+         ntcSdi      <= din;
+      end process;
+
+      ----------------------
+      -- AXI-Lite: Power I2C
+      ----------------------
+      U_PwrI2C : entity work.AxiI2cRegMaster
+         generic map (
+            TPD_G          => TPD_G,
+            DEVICE_MAP_G   => PWR_I2C_C,
+            I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz
+            AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
+         port map (
+            -- I2C Ports
+            scl            => pwrScl,
+            sda            => pwrSda,
+            -- AXI-Lite Register Interface
+            axiReadMaster  => axilReadMasters(PWR_INDEX_C),
+            axiReadSlave   => axilReadSlaves(PWR_INDEX_C),
+            axiWriteMaster => axilWriteMasters(PWR_INDEX_C),
+            axiWriteSlave  => axilWriteSlaves(PWR_INDEX_C),
+            -- Clocks and Resets
+            axiClk         => axilClk,
+            axiRst         => axilRst);
+
+   end generate;
 
 end mapping;
