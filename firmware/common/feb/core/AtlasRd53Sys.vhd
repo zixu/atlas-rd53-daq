@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Sys.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-06-21
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: System Level Modules
 -------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ entity AtlasRd53Sys is
    generic (
       TPD_G           : time             := 1 ns;
       SIMULATION_G    : boolean          := false;
+      SYNTH_MODE_G    : string           := "inferred";
       BUILD_INFO_G    : BuildInfoType;
       AXI_CLK_FREQ_G  : real             := 156.25E+6;  -- units of Hz
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
@@ -190,6 +191,7 @@ begin
    U_SysReg : entity work.AtlasRd53SysReg
       generic map (
          TPD_G          => TPD_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G,
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
       port map (
          -- AXI-Lite Interface

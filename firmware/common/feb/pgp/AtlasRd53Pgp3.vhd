@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-27
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGPv3 communication
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ entity AtlasRd53Pgp3 is
    generic (
       TPD_G        : time    := 1 ns;
       SIMULATION_G : boolean := false;
+      SYNTH_MODE_G : string  := "inferred";
       PGP3_RATE_G  : string  := "6.25Gbps");  -- or "10.3125Gbps"  
    port (
       -- AXI-Lite Interface (axilClk domain)
@@ -129,6 +130,7 @@ begin
          TPD_G               => TPD_G,
          ROGUE_SIM_EN_G      => SIMULATION_G,
          ROGUE_SIM_USER_ID_G => 12,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          NUM_LANES_G         => 1,
          NUM_VC_G            => 6,
          RATE_G              => PGP3_RATE_G,
@@ -188,6 +190,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => SIMULATION_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          GEN_SYNC_FIFO_G     => false,
          AXI_STREAM_CONFIG_G => PGP3_AXIS_CONFIG_C)
       port map (
@@ -213,6 +216,7 @@ begin
    U_Lane0_Vc1 : entity work.AtlasRd53Pgp3AxisFifo
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          SIMULATION_G => SIMULATION_G)
       port map (
          -- System Interface (axilClk domain)
@@ -239,6 +243,7 @@ begin
       U_Lane0_Vc5_Vc2 : entity work.AtlasRd53Pgp3AxisFifo
          generic map (
             TPD_G        => TPD_G,
+            SYNTH_MODE_G => SYNTH_MODE_G,
             SIMULATION_G => SIMULATION_G,
             RX_G         => false)
          port map (

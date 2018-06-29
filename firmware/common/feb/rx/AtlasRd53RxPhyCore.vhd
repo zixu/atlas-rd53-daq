@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhyCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-06-04
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: RX PHY Core module
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ use work.AtlasRd53Pkg.all;
 entity AtlasRd53RxPhyCore is
    generic (
       TPD_G           : time             := 1 ns;
+      SYNTH_MODE_G    : string           := "inferred";
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- Misc. Interfaces
@@ -63,8 +64,7 @@ entity AtlasRd53RxPhyCore is
       dPortCmdP       : out sl;
       dPortCmdN       : out sl;
       dPortAuxP       : out sl;
-      dPortAuxN       : out sl;
-      dPortRst        : out sl);
+      dPortAuxN       : out sl);
 end AtlasRd53RxPhyCore;
 
 architecture mapping of AtlasRd53RxPhyCore is
@@ -127,7 +127,8 @@ begin
    --------------------------------
    U_RxPhy : entity work.AtlasRd53RxPhy
       generic map (
-         TPD_G => TPD_G)
+         TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
          -- Misc. Interfaces
          enLocalEmu      => enLocalEmu,
@@ -138,7 +139,6 @@ begin
          dPortDataN      => dPortDataN,
          dPortCmdP       => dPortCmdP,
          dPortCmdN       => dPortCmdN,
-         dPortRst        => dPortRst,
          -- Timing/Trigger Interface
          clk640MHz       => clk640MHz,
          clk160MHz       => clk160MHz,

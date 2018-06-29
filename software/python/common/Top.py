@@ -94,10 +94,10 @@ class Top(pr.Root):
         ######################################################################
         
         if (hwType == 'simulation'):
-            srpStream         = pr.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=1, ssi=True)
-            self.tluStream    = pr.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=1, ssi=True)          
+            srpStream         = pr.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=12, ssi=True)
+            self.tluStream    = pr.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=12, ssi=True)          
             for i in range(4):
-                dataStream[i] = pr.interfaces.simulation.StreamSim(host='localhost', dest=2+i, uid=1, ssi=True)     
+                dataStream[i] = pr.interfaces.simulation.StreamSim(host='localhost', dest=2+i, uid=12, ssi=True)     
         else:
             srpStream         = rogue.hardware.axi.AxiStreamDma(dev,0,True)
             self.tluStream    = rogue.hardware.axi.AxiStreamDma(dev,1,True)            

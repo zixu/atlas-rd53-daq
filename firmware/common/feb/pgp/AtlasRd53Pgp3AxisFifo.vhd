@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3AxisFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-19
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: PGP FIFO wrapper
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ entity AtlasRd53Pgp3AxisFifo is
    generic (
       TPD_G               : time                := 1 ns;
       SIMULATION_G        : boolean             := false;
+      SYNTH_MODE_G        : string              := "inferred";
       TX_G                : boolean             := true;
       RX_G                : boolean             := true;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := PGP3_AXIS_CONFIG_C;
@@ -61,7 +62,7 @@ begin
             VALID_THOLD_G       => 256,
             VALID_BURST_MODE_G  => true,
             -- FIFO configurations
-            SYNTH_MODE_G        => "xpm",
+            SYNTH_MODE_G        => SYNTH_MODE_G,
             MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => true,
             FIFO_ADDR_WIDTH_G   => 9,
@@ -86,7 +87,7 @@ begin
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => SIMULATION_G,
-            SYNTH_MODE_G        => "xpm",
+            SYNTH_MODE_G        => SYNTH_MODE_G,
             MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 10,

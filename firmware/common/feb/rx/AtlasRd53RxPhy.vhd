@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-06-19
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: RX PHY Module
 -------------------------------------------------------------------------------
@@ -26,18 +26,18 @@ use work.AtlasRd53Pkg.all;
 
 entity AtlasRd53RxPhy is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SYNTH_MODE_G : string := "inferred");
    port (
       -- Misc. Interfaces
       enLocalEmu      : in  sl;
-      asicRstIn       : in  sl; -- TBD interface
+      asicRstIn       : in  sl;                       -- TBD interface
       iDelayCtrlRdy   : in  sl;
       -- RD53 ASIC Serial Ports
       dPortDataP      : in  slv(3 downto 0);
       dPortDataN      : in  slv(3 downto 0);
       dPortCmdP       : out sl;
       dPortCmdN       : out sl;
-      dPortRst        : out sl;
       -- Timing/Trigger Interface
       clk640MHz       : in  sl;
       clk160MHz       : in  sl;
@@ -91,21 +91,18 @@ architecture mapping of AtlasRd53RxPhy is
    signal enEmu       : sl;
 
    signal rst160MHzL : sl;
-   signal asicRst    : sl;
-   signal asicRstL   : sl;
 
    signal dataCtrl : AxiStreamCtrlType;
 
 begin
-
-   dPortRst <= rst160MHz or asicRst;  -- Inverted in HW on FPGA board before dport connector
 
    ------------------------
    -- CMD Generation Module
    ------------------------
    U_Cmd : entity work.AtlasRd53TxCmdWrapper
       generic map (
-         TPD_G => TPD_G)
+         TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
          -- AXI Stream Interface (axilClk domain)
          axilClk         => axilClk,
@@ -121,8 +118,6 @@ begin
          -- Read Back Register Interface (clk160MHz domain)
          rdReg           => rdRegOut,
          -- Command Serial Interface (clk160MHz domain)
-         asicRst         => asicRst,
-         asicRstL        => asicRstL,
          cmdOutP         => dPortCmdP,
          cmdOutN         => dPortCmdN);
 
@@ -137,7 +132,7 @@ begin
          clk_rx_i     => clk160MHz,        -- Fabric clock (serdes/8)
          clk_serdes_i => clk640MHz,        -- IO clock
          -- Input
-         enable_i     => asicRstL,
+         enable_i     => rst160MHzL,
          rx_data_i_p  => dPortDataP,
          rx_data_i_n  => dPortDataN,
          trig_tag_i   => (others => '0'),  -- Unused
@@ -185,7 +180,7 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         SYNTH_MODE_G        => "xpm",
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
@@ -217,6 +212,7 @@ begin
       U_autoReadReg : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            SYNTH_MODE_G => SYNTH_MODE_G,
             DATA_WIDTH_G => 32)
          port map (
             wr_clk => clk160MHz,

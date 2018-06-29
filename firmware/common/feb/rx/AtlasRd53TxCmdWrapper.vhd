@@ -2,7 +2,7 @@
 -- File       : AtlasRd53TxCmdWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-31
--- Last update: 2018-06-28
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AtlasRd53TxCmd
 -------------------------------------------------------------------------------
@@ -31,7 +31,8 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53TxCmdWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SYNTH_MODE_G : string := "inferred");
    port (
       -- AXI Stream Interface (axilClk domain)
       axilClk         : in  sl;
@@ -47,8 +48,6 @@ entity AtlasRd53TxCmdWrapper is
       -- Read Back Register Interface (clk160MHz domain)
       rdReg           : in  AxiStreamMasterType;
       -- Command Serial Interface (clk160MHz domain)
-      asicRst         : out sl;
-      asicRstL        : out sl;
       cmdOut          : out sl;         -- Copy of CMD for local emulation
       cmdOutP         : out sl;
       cmdOutN         : out sl);
@@ -115,7 +114,6 @@ architecture rtl of AtlasRd53TxCmdWrapper is
    signal rdReady : sl;
    signal cmd     : sl;
    signal cmdReg  : sl;
-   signal cmdRst  : sl;
 
 begin
 
@@ -126,6 +124,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          COMMON_CLK_G    => false,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
          NUM_ADDR_BITS_G => 16)
       port map (
          -- Slave Interface
@@ -177,12 +176,9 @@ begin
          rdRegId    => r.regId,
          rdRegAddr  => r.regAddr,
          -- Serial Output Interface
-         cmdRstOut  => cmdRst,
-         cmdDataOut => cmd);
+         cmdOut     => cmd);
 
-   asicRst  <= cmdRst;
-   asicRstL <= not(cmdRst);
-   cmdOut   <= cmd;
+   cmdOut <= cmd;
 
    U_ODDR : ODDR
       generic map(
@@ -207,23 +203,26 @@ begin
    ----------------------------------
    -- Command Write Transaction Queue
    ----------------------------------
-   U_WrFifo : entity work.FifoSync
+   U_WrFifo : entity work.Fifo
       generic map (
-         TPD_G         => TPD_G,
-         MEMORY_TYPE_G => "block",
-         FWFT_EN_G     => true,
-         DATA_WIDTH_G  => 29,
-         ADDR_WIDTH_G  => 10)
+         TPD_G           => TPD_G,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         MEMORY_TYPE_G   => "block",
+         GEN_SYNC_FIFO_G => true,
+         FWFT_EN_G       => true,
+         DATA_WIDTH_G    => 29,
+         ADDR_WIDTH_G    => 10)
       port map (
-         clk                => clk160MHz,
          rst                => rst160MHz,
          -- Write interface
+         wr_clk             => clk160MHz,
          wr_en              => r.wrValid,
          almost_full        => wrReadyL,
          din(28 downto 25)  => r.regId,
          din(24 downto 16)  => r.regAddr,
          din(15 downto 0)   => r.regData,
          -- Read interface
+         rd_clk             => clk160MHz,
          valid              => wrValid,
          rd_en              => wrRdy,
          dout(28 downto 25) => wrRegId,
@@ -370,7 +369,7 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         SYNTH_MODE_G        => "xpm",
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 9,

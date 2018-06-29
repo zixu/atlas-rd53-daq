@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-21
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: AD53 readout core module
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ entity AtlasRd53Core is
       TPD_G        : time    := 1 ns;
       BUILD_INFO_G : BuildInfoType;
       SIMULATION_G : boolean := false;
+      SYNTH_MODE_G : string  := "inferred";
       PGP3_RATE_G  : string  := "6.25Gbps");  -- or "10.3125Gbps"      
    port (
       -- RD53 ASIC Serial Ports
@@ -170,8 +171,6 @@ architecture mapping of AtlasRd53Core is
    signal refClk300MHz : sl;
    signal refRst300MHz : sl;
 
-   signal dPortReset : slv(3 downto 0) := (others => '1');
-
    signal status : AtlasRd53StatusType := RD53_FEB_STATUS_INIT_C;
    signal config : AtlasRd53ConfigType := RD53_FEB_CONFIG_INIT_C;
 
@@ -184,8 +183,8 @@ architecture mapping of AtlasRd53Core is
 begin
 
    led       <= rxLinkUp;
-   dPortRst  <= dPortReset;
-   dPortRstL <= not(dPortReset);
+   dPortRst  <= (others => axilRst);
+   dPortRstL <= (others => not(axilRst));
 
    U_IDELAYCTRL : IDELAYCTRL
       port map (
@@ -232,6 +231,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          SIMULATION_G => SIMULATION_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          PGP3_RATE_G  => PGP3_RATE_G)
       port map (
          -- AXI-Lite Interfaces (axilClk domain)
@@ -291,6 +291,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIMULATION_G,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
          AXI_BASE_ADDR_G => XBAR_CONFIG_C(SYS_INDEX_C).baseAddr,
          BUILD_INFO_G    => BUILD_INFO_G)
       port map (
@@ -334,6 +335,7 @@ begin
       U_RxPhy : entity work.AtlasRd53RxPhyCore
          generic map (
             TPD_G           => TPD_G,
+            SYNTH_MODE_G    => SYNTH_MODE_G,
             AXI_BASE_ADDR_G => XBAR_CONFIG_C(DPORT0_INDEX_C+i).baseAddr)
          port map (
             -- Misc. Interfaces
@@ -369,8 +371,7 @@ begin
             dPortCmdP       => dPortCmdP(i),
             dPortCmdN       => dPortCmdN(i),
             dPortAuxP       => dPortAuxP(i),
-            dPortAuxN       => dPortAuxN(i),
-            dPortRst        => dPortReset(i));
+            dPortAuxN       => dPortAuxN(i));
    end generate GEN_VEC;
 
    ---------------------

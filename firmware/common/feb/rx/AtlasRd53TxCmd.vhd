@@ -2,7 +2,7 @@
 -- File       : AtlasRd53TxCmd.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-25
--- Last update: 2018-06-28
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Module to generate CMD serial stream to RD53 ASIC
 -- 
@@ -56,8 +56,7 @@ entity AtlasRd53TxCmd is
       rdRegId    : in  slv(3 downto 0);
       rdRegAddr  : in  slv(8 downto 0);
       -- Serial Output Interface
-      cmdRstOut  : out sl;
-      cmdDataOut : out sl);
+      cmdOut     : out sl);
 end AtlasRd53TxCmd;
 
 architecture rtl of AtlasRd53TxCmd is
@@ -140,7 +139,6 @@ architecture rtl of AtlasRd53TxCmd is
       SEND_S);
 
    type RegType is record
-      cmdRst   : sl;
       cmd      : sl;
       ecr      : sl;
       bcr      : sl;
@@ -156,7 +154,6 @@ architecture rtl of AtlasRd53TxCmd is
       state    : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      cmdRst   => '1',
       cmd      => '0',
       ecr      => '0',
       bcr      => '0',
@@ -229,10 +226,8 @@ begin
                v.init := r.init -1;
                -- Check initialization completed
                if (r.init = 0) then
-                  -- Reset the flag
-                  v.cmdRst := '0';
                   -- Next state
-                  v.state  := RDY_S;
+                  v.state := RDY_S;
                end if;
             ----------------------------------------------------------------------
             when RDY_S =>
@@ -365,8 +360,7 @@ begin
       rin <= v;
 
       -- Registered Outputs
-      cmdRstOut  <= r.cmdRst;
-      cmdDataOut <= r.shiftReg(15);
+      cmdOut <= r.shiftReg(15);
 
    end process comb;
 

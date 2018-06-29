@@ -16,9 +16,9 @@ import rogue
 import argparse
 import common as feb
 
-rogue.Logging.setLevel(rogue.Logging.Warning)
-rogue.Logging.setFilter("pyrogue.SrpV3",rogue.Logging.Debug)
-rogue.Logging.setLevel(rogue.Logging.Debug)
+# rogue.Logging.setLevel(rogue.Logging.Warning)
+# rogue.Logging.setFilter("pyrogue.SrpV3",rogue.Logging.Debug)
+# rogue.Logging.setLevel(rogue.Logging.Debug)
 
 #################################################################
 
@@ -41,7 +41,7 @@ parser.add_argument(
     "--initRead", 
     type     = argBool,
     required = False,
-    default  = True,
+    default  = False,
     help     = "Enable read all variables at start",
 )  
 
