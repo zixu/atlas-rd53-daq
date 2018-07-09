@@ -54,6 +54,18 @@ entity AtlasRd53HsioDtm is
       ethMdc       : out   Slv(1 downto 0);
       ethMio       : inout Slv(1 downto 0);
       ethResetL    : out   Slv(1 downto 0);
+
+      busyOutP    : out sl;
+      busyOutM    : out sl;
+      lolInP      : in sl;
+      lolInM      : in sl;
+      sdInP       : in sl;
+      sdInM       : in sl;
+      idpmFbP: in slv(3 downto 0);
+      idpmFbM: in slv(3 downto 0);
+      odpmFbP: out slv(3 downto 0);
+      odpmFbM: out slv(3 downto 0);
+
       -- IPMI
       dtmToIpmiP   : out   slv(1 downto 0);
       dtmToIpmiM   : out   slv(1 downto 0);
@@ -100,6 +112,11 @@ architecture TOP_LEVEL of AtlasRd53HsioDtm is
    signal ref200Clk : sl;
    signal ref200Rst : sl;
    signal locRefClk : sl;
+
+   signal idpmFb              : slv(3 downto 0);
+   signal odpmFb              : slv(3 downto 0);
+   signal lol                 : sl;
+
 
 begin
 
@@ -301,5 +318,44 @@ begin
    -----------------------------------------
    dmaIbMasters(3) <= dmaObMasters(3);
    dmaObSlaves(3)  <= dmaIbSlaves(3);
+
+  -- DPM Feedback Signals
+   U_DpmFbGen : for i in 0 to 3 generate
+      U_DpmFbIn : IBUFDS
+         generic map ( DIFF_TERM => true ) 
+         port map(
+            I      => idpmFbP(i),
+            IB     => idpmFbM(i),
+            O      => idpmFb(i)
+         );
+      U_DpmFbOut : OBUFDS
+         port map(
+            O      => odpmFbP(i),
+            OB     => odpmFbM(i),
+            I      => odpmFb(i)
+         );
+   end generate;
+      U_BusyOut : OBUFDS
+         port map(
+            O      => busyOutP,
+            OB     => busyOutM,
+            I      => idpmFb(0) 
+         );
+      U_sdIn : IBUFDS
+         generic map ( DIFF_TERM => true ) 
+         port map(
+            I      => sdInP,
+            IB     => sdInM,
+            O      => odpmFb(0)
+         );
+      U_lolIn : IBUFDS
+         generic map ( DIFF_TERM => true ) 
+         port map(
+            I      => lolInP,
+            IB     => lolInM,
+            O      => lol
+         );
+   odpmFb(1)<= not lol;
+ 
 
 end architecture TOP_LEVEL;
