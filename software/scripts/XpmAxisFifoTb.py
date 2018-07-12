@@ -17,6 +17,10 @@ import pyrogue.gui
 import pyrogue.utilities.prbs
 import pyrogue.interfaces.simulation
 
+rogue.Logging.setLevel(rogue.Logging.Warning)
+# rogue.Logging.setFilter("pyrogue.interfaces.simulation.StreamSim",rogue.Logging.Info)
+rogue.Logging.setLevel(rogue.Logging.Debug)
+
 #################################################################
 
 base = pr.Root(name='simulation',description='')
