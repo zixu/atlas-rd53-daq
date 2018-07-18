@@ -96,7 +96,7 @@ Top:
     CmlInvTap: 0
     CmlEnTap: 1 # Default=3
     CmlEn: 0xF
-    CML_TAP_BIAS[0]: 600 # Default=500
+    CML_TAP_BIAS[0]: 1023 # Default=500 (1023 for MAX. diff swing)
     CML_TAP_BIAS[1]: 0
     CML_TAP_BIAS[2]: 0
     AuroraCcWait: 25
