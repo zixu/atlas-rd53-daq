@@ -28,6 +28,8 @@ use work.StdRtlPkg.all;
 entity AtlasRd53Feb is
    generic (
       TPD_G        : time := 1 ns;
+      -- SYNTH_MODE_G : string := "xpm";
+      SYNTH_MODE_G : string := "inferred";      
       BUILD_INFO_G : BuildInfoType);
    port (
       -- RD53 ASIC Serial Ports
@@ -99,7 +101,7 @@ begin
    U_Core : entity work.AtlasRd53Core
       generic map (
          TPD_G        => TPD_G,
-         SYNTH_MODE_G => "xpm",
+         SYNTH_MODE_G => SYNTH_MODE_G,
          PGP3_RATE_G  => "6.25Gbps",
          BUILD_INFO_G => BUILD_INFO_G)
       port map (

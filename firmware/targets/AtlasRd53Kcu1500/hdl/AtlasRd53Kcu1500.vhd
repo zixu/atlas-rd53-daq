@@ -30,7 +30,8 @@ use unisim.vcomponents.all;
 entity AtlasRd53Kcu1500 is
    generic (
       TPD_G        : time   := 1 ns;
-      SYNTH_MODE_G : string := "xpm";
+      -- SYNTH_MODE_G : string := "xpm";
+      SYNTH_MODE_G : string := "inferred";
       BUILD_INFO_G : BuildInfoType);
    port (
       ---------------------

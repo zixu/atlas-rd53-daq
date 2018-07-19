@@ -32,7 +32,6 @@ class RxPhyMon(pr.Device):
             offset       = 0x000,
             bitSize      = 32,
             mode         = 'RO',
-            base         = pr.UInt,
             pollInterval = pollInterval,
         )) 
         
@@ -42,33 +41,94 @@ class RxPhyMon(pr.Device):
             offset       = 0x004,
             bitSize      = 32, 
             mode         = 'RO',
-            base         = pr.UInt,
             pollInterval = pollInterval,
         ))         
+        
+        self.addRemoteVariables(   
+            name         = 'LinkUpCnt',
+            description  = 'Status counter for link up',
+            offset       = 0x008,
+            bitSize      = 32,
+            mode         = 'RO',
+            number       = 4,
+            stride       = 4,
+            pollInterval = pollInterval,
+        )
+
+        self.add(pr.RemoteVariable(
+            name         = 'ChBondCnt',
+            description  = 'Status counter for channel bonding',
+            offset       = 0x018,
+            bitSize      = 32,
+            mode         = 'RO',
+            pollInterval = pollInterval,
+        ))        
+        
+        self.add(pr.RemoteVariable(
+            name         = 'LinkUp',
+            description  = 'link up',
+            offset       = 0x400,
+            bitSize      = 4, 
+            bitOffset    = 2,
+            mode         = 'RO',
+            pollInterval = pollInterval,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'ChBond',
+            description  = 'channel bonding',
+            offset       = 0x400,
+            bitSize      = 1, 
+            bitOffset    = 6,
+            mode         = 'RO',
+            pollInterval = pollInterval,
+        ))  
         
         self.addRemoteVariables(   
             name         = 'AutoRead',
             description  = 'RD53 auto-read register',
             offset       = 0x410,
             bitSize      = 32,
-            base         = pr.UInt,
             mode         = 'RO',
             number       = 4,
             stride       = 4,
             pollInterval = pollInterval,
-        )               
+        )   
         
         ##################
         # Status Registers 
         ##################        
         
         self.add(pr.RemoteVariable(
+            name         = 'EnLane', 
+            description  = 'Enable Lane Mask',
+            offset       = 0x800,
+            bitSize      = 4, 
+            mode         = 'RW',
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'InvData', 
+            description  = 'Invert the serial data bits',
+            offset       = 0x804,
+            bitSize      = 4, 
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'InvCmd', 
+            description  = 'Invert the serial CMD bit',
+            offset       = 0x808,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))        
+        
+        self.add(pr.RemoteVariable(
             name         = 'RollOverEn', 
             description  = 'Rollover enable for status counters',
             offset       = 0xFF8,
-            bitSize      = 2, 
+            bitSize      = 7, 
             mode         = 'RW',
-            base         = pr.UInt,
         ))        
         
         self.add(pr.RemoteCommand(   
@@ -77,7 +137,6 @@ class RxPhyMon(pr.Device):
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 0x00,
-            base         = pr.UInt,
             function     = lambda cmd: cmd.post(1),
             hidden       = False,
         ))  

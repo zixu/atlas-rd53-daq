@@ -26,6 +26,7 @@ create_generated_clock -name dnaClk    [get_pins {U_Core/U_System/U_AxiVersion/G
 create_generated_clock -name dnaClkInv [get_pins {U_Core/U_System/U_AxiVersion/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/DNA_CLK_INV_BUFR/O}] 
 
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {iprogClk}]
+# set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {clk300}]
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks {dnaClk}]  -group [get_clocks {dnaClkInv}] 
 set_clock_groups -asynchronous -group [get_clocks {clk156}] -group [get_clocks -of_objects [get_pins {U_Core/U_Pgp/U_PGPv3/REAL_PGP.U_TX_PLL/PllGen.U_Pll/CLKOUT1}]] 
 
@@ -41,3 +42,6 @@ set_clock_groups -asynchronous \
     
 set_case_analysis 1 [get_pins {U_Core/U_Clk/U_BUFGMUX_0/S}]
 set_case_analysis 1 [get_pins {U_Core/U_Clk/U_BUFGMUX_1/S}]    
+
+# set_property IODELAY_GROUP xapp_idelay [get_cells U_Core/U_IDELAYCTRL]
+# set_property IODELAY_GROUP xapp_idelay [get_cells U_Core/GEN_VEC[*].U_RxPhy/U_RxPhy/U_RxPhyLayer/GEN_LANE[*].U_Rx/custom_serdes.IDELAYE2_inst]

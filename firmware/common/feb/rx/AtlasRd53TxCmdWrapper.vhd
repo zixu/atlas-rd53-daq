@@ -2,7 +2,7 @@
 -- File       : AtlasRd53TxCmdWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-31
--- Last update: 2018-06-29
+-- Last update: 2018-07-18
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AtlasRd53TxCmd
 -------------------------------------------------------------------------------
@@ -48,6 +48,7 @@ entity AtlasRd53TxCmdWrapper is
       -- Read Back Register Interface (clk160MHz domain)
       rdReg           : in  AxiStreamMasterType;
       -- Command Serial Interface (clk160MHz domain)
+      invCmd          : in  sl;
       cmdOut          : out sl;         -- Copy of CMD for local emulation
       cmdOutP         : out sl;
       cmdOutN         : out sl);
@@ -113,6 +114,7 @@ architecture rtl of AtlasRd53TxCmdWrapper is
 
    signal rdReady : sl;
    signal cmd     : sl;
+   signal cmdMask : sl;
    signal cmdReg  : sl;
 
 begin
@@ -180,14 +182,16 @@ begin
 
    cmdOut <= cmd;
 
+   cmdMask <= cmd xor invCmd;
+
    U_ODDR : ODDR
       generic map(
          DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
          INIT         => '0',  -- Initial value for Q port ('1' or '0')
          SRTYPE       => "SYNC")        -- Reset Type ("ASYNC" or "SYNC")
       port map (
-         D1 => cmd,                     -- 1-bit data input (positive edge)
-         D2 => cmd,                     -- 1-bit data input (negative edge)
+         D1 => cmdMask,                 -- 1-bit data input (positive edge)
+         D2 => cmdMask,                 -- 1-bit data input (negative edge)
          Q  => cmdReg,                  -- 1-bit DDR output
          C  => clk160MHz,               -- 1-bit clock input
          CE => '1',                     -- 1-bit clock enable input

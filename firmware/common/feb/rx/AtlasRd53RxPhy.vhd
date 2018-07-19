@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-06-29
+-- Last update: 2018-07-18
 -------------------------------------------------------------------------------
 -- Description: RX PHY Module
 -------------------------------------------------------------------------------
@@ -33,6 +33,11 @@ entity AtlasRd53RxPhy is
       enLocalEmu      : in  sl;
       asicRstIn       : in  sl;                       -- TBD interface
       iDelayCtrlRdy   : in  sl;
+      invCmd          : in  sl;
+      enable          : in  slv(3 downto 0);
+      invData         : in  slv(3 downto 0);
+      linkUp          : out slv(3 downto 0);
+      chBond          : out sl;
       -- RD53 ASIC Serial Ports
       dPortDataP      : in  slv(3 downto 0);
       dPortDataN      : in  slv(3 downto 0);
@@ -89,8 +94,8 @@ architecture mapping of AtlasRd53RxPhy is
    signal dPortCmd    : sl;
    signal dPortCmdReg : sl;
    signal enEmu       : sl;
-
-   signal rst160MHzL : sl;
+   signal enableSync  : slv(3 downto 0);
+   signal invDataSync : slv(3 downto 0);
 
    signal dataCtrl : AxiStreamCtrlType;
 
@@ -118,34 +123,52 @@ begin
          -- Read Back Register Interface (clk160MHz domain)
          rdReg           => rdRegOut,
          -- Command Serial Interface (clk160MHz domain)
+         invCmd          => invCmd,
          cmdOutP         => dPortCmdP,
          cmdOutN         => dPortCmdN);
 
    ---------------
    -- RX PHY Layer
    ---------------
-   U_RxPhyLayer : entity work.aurora_rx_channel
+   U_RxPhyLayer : entity work.AuroraRxChannel
       generic map (
-         g_NUM_LANES => 4)
+         TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
-         rst_n_i      => rst160MHzL,
-         clk_rx_i     => clk160MHz,        -- Fabric clock (serdes/8)
-         clk_serdes_i => clk640MHz,        -- IO clock
-         -- Input
-         enable_i     => rst160MHzL,
-         rx_data_i_p  => dPortDataP,
-         rx_data_i_n  => dPortDataN,
-         trig_tag_i   => (others => '0'),  -- Unused
-         -- Output
-         rx_data_o    => rx.tData(63 downto 0),
-         rx_valid_o   => rx.tValid,
-         rx_stat_o    => open);
+         -- RD53 ASIC Serial Ports
+         dPortDataP     => dPortDataP,
+         dPortDataN     => dPortDataN,
+         -- Timing Interface
+         clk640MHz      => clk640MHz,
+         clk160MHz      => clk160MHz,
+         rst160MHz      => rst160MHz,
+         -- Control Interface
+         enable         => enableSync,
+         invData        => invDataSync,
+         linkUp         => linkUp,
+         chBond         => chBond,
+         -- AutoReg and Read back Interface
+         axisData       => rx,
+         autoReadReg    => autoReg,
+         rdReg          => rdReg);
 
-   -- Placeholder for future code
-   emuRdReg      <= AXIS_MASTER_INIT_C;
-   emuAutoRegOut <= (others => x"0000_0000");
-
-   rst160MHzL <= not(rst160MHz);
+   U_enable : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 4)
+      port map (
+         clk     => clk160MHz,
+         dataIn  => enable,
+         dataOut => enableSync);
+         
+   U_invData : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 4)
+      port map (
+         clk     => clk160MHz,
+         dataIn  => invData,
+         dataOut => invDataSync);         
 
    ----------------------------
    -- Local Emulation PHY Layer

@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhyMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-07
--- Last update: 2018-05-31
+-- Last update: 2018-07-19
 -------------------------------------------------------------------------------
 -- Description: Monitor the RX PHY status signals
 -------------------------------------------------------------------------------
@@ -32,6 +32,11 @@ entity AtlasRd53RxPhyMon is
       autoReadReg     : in  Slv32Array(3 downto 0);
       dataDrop        : in  sl;
       timedOut        : in  sl;
+      enable          : out slv(3 downto 0);
+      invData         : out slv(3 downto 0);
+      invCmd          : out sl;
+      linkUp          : in  slv(3 downto 0);
+      chBond          : in  sl;
       -- AXI-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -43,26 +48,34 @@ end AtlasRd53RxPhyMon;
 
 architecture rtl of AtlasRd53RxPhyMon is
 
-   constant STATUS_SIZE_C : positive := 2;
+   constant STATUS_SIZE_C : positive := 7;
 
    type RegType is record
+      invData        : slv(3 downto 0);
+      invCmd         : sl;
       cntRst         : sl;
       rollOverEn     : slv(STATUS_SIZE_C-1 downto 0);
+      enable         : slv(3 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
 
    constant REG_INIT_C : RegType := (
+      invData        => (others => '1'),  -- Invert by default
+      invCmd         => '0',
       cntRst         => '1',
       rollOverEn     => (others => '0'),
+      enable         => x"F",
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
-   signal statusCnt : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
+   signal chBondSync : sl;
+   signal linkUpSync : slv(3 downto 0);
+   signal statusOut  : slv(STATUS_SIZE_C-1 downto 0);
+   signal statusCnt  : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
 
    -- attribute dont_touch               : string;
    -- attribute dont_touch of r          : signal is "TRUE";
@@ -94,6 +107,10 @@ begin
       axiSlaveRegisterR(regCon, x"418", 0, autoReadReg(2));
       axiSlaveRegisterR(regCon, x"41C", 0, autoReadReg(3));
 
+      axiSlaveRegister(regCon, x"800", 0, v.enable);
+      axiSlaveRegister(regCon, x"804", 0, v.invData);
+      axiSlaveRegister(regCon, x"808", 0, v.invCmd);
+
       axiSlaveRegister(regCon, x"FF8", 0, v.rollOverEn);
       axiSlaveRegister(regCon, x"FFC", 0, v.cntRst);
 
@@ -111,6 +128,9 @@ begin
       -- Outputs
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
+      enable         <= r.enable;
+      invData        <= r.invData;
+      invCmd         <= r.invCmd;
 
    end process comb;
 
@@ -120,6 +140,23 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_chBond : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => chBond,
+         dataOut => chBondSync);
+
+   U_linkUp : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 4)
+      port map (
+         clk     => axilClk,
+         dataIn  => linkUp,
+         dataOut => linkUpSync);
 
    U_SyncStatusVector : entity work.SyncStatusVector
       generic map (
@@ -131,16 +168,18 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(1)  => timedOut,
-         statusIn(0)  => dataDrop,
+         statusIn(6)          => chBondSync,
+         statusIn(5 downto 2) => linkUpSync,
+         statusIn(1)          => timedOut,
+         statusIn(0)          => dataDrop,
          -- Output Status bit Signals (rdClk domain)  
-         statusOut    => statusOut,
+         statusOut            => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 
-         cntRstIn     => r.cntRst,
-         rollOverEnIn => r.rollOverEn,
-         cntOut       => statusCnt,
+         cntRstIn             => r.cntRst,
+         rollOverEnIn         => r.rollOverEn,
+         cntOut               => statusCnt,
          -- Clocks and Reset Ports
-         wrClk        => axilClk,
-         rdClk        => axilClk);
+         wrClk                => axilClk,
+         rdClk                => axilClk);
 
 end rtl;

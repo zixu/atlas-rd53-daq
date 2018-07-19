@@ -29,6 +29,8 @@ entity XpmAxisFifoTb is end XpmAxisFifoTb;
 
 architecture testbed of XpmAxisFifoTb is
 
+   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := genAxiLiteConfig(2, x"00800000", 22, 22);
+
    signal pgpRefClk : sl := '0';
    signal clk       : sl := '0';
    signal rst       : sl := '1';
@@ -46,34 +48,35 @@ begin
       port map (
          clkP => pgpRefClk);
 
-   U_RoguePgp3Sim : entity work.RoguePgp3Sim
-      generic map (
-         TPD_G         => 1 ns,
-         SYNTH_MODE_G  => "xpm",
-         MEMORY_TYPE_G => "block",
-         USER_ID_G     => 1,
-         NUM_VC_G      => 4)
-      port map (
-         -- GT Ports
-         pgpRefClk    => pgpRefClk,
-         pgpGtRxP     => '0',
-         pgpGtRxN     => '1',
-         pgpGtTxP     => open,
-         pgpGtTxN     => open,
-         -- PGP Clock and Reset
-         pgpClk       => clk,
-         pgpClkRst    => rst,
-         -- Non VC Rx Signals
-         pgpRxIn      => PGP3_RX_IN_INIT_C,
-         pgpRxOut     => open,
-         -- Non VC Tx Signals
-         pgpTxIn      => PGP3_TX_IN_INIT_C,
-         pgpTxOut     => open,
-         -- Frame Transmit Interface
-         pgpTxMasters => pgpMasters,
-         pgpTxSlaves  => pgpSlaves,
-         -- Frame Receive Interface
-         pgpRxMasters => pgpMasters,
-         pgpRxSlaves  => pgpSlaves);
+--   U_RoguePgp3Sim : entity work.RoguePgp3Sim
+--      generic map (
+--         TPD_G         => 1 ns,
+--         -- SYNTH_MODE_G  => "xpm",
+--         SYNTH_MODE_G  => "inferred",
+--         MEMORY_TYPE_G => "block",
+--         USER_ID_G     => 1,
+--         NUM_VC_G      => 4)
+--      port map (
+--         -- GT Ports
+--         pgpRefClk    => pgpRefClk,
+--         pgpGtRxP     => '0',
+--         pgpGtRxN     => '1',
+--         pgpGtTxP     => open,
+--         pgpGtTxN     => open,
+--         -- PGP Clock and Reset
+--         pgpClk       => clk,
+--         pgpClkRst    => rst,
+--         -- Non VC Rx Signals
+--         pgpRxIn      => PGP3_RX_IN_INIT_C,
+--         pgpRxOut     => open,
+--         -- Non VC Tx Signals
+--         pgpTxIn      => PGP3_TX_IN_INIT_C,
+--         pgpTxOut     => open,
+--         -- Frame Transmit Interface
+--         pgpTxMasters => pgpMasters,
+--         pgpTxSlaves  => pgpSlaves,
+--         -- Frame Receive Interface
+--         pgpRxMasters => pgpMasters,
+--         pgpRxSlaves  => pgpSlaves);
 
 end testbed;

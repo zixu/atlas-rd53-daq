@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-29
+-- Last update: 2018-07-18
 -------------------------------------------------------------------------------
 -- Description: AD53 readout core module
 -------------------------------------------------------------------------------
@@ -365,6 +365,7 @@ begin
             rst80MHz        => rst80MHz,
             rst40MHz        => rst40MHz,
             ttc             => ttc,
+            refClk300MHz    => refClk300MHz,
             -- RD53 Ports
             dPortDataP      => dPortDataP(i),
             dPortDataN      => dPortDataN(i),

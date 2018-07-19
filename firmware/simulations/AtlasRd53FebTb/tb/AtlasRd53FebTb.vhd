@@ -2,7 +2,7 @@
 -- File       : AtlasRd53FebTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-06-18
--- Last update: 2018-06-27
+-- Last update: 2018-07-19
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the Rd53a module
 -------------------------------------------------------------------------------
@@ -30,8 +30,13 @@ entity AtlasRd53FebTb is end AtlasRd53FebTb;
 
 architecture testbed of AtlasRd53FebTb is
 
+   constant TPD_G      : time     := 1 ns;
+   constant CNT_SIZE_C : positive := 384*400;
+
    component Rd53aWrapper
       port (
+         HIT_CLK         : out sl;
+         HIT             : in  slv(CNT_SIZE_C-1 downto 0);
          ------------------------
          -- Power-on Resets (POR)
          ------------------------
@@ -81,7 +86,28 @@ architecture testbed of AtlasRd53FebTb is
    signal dPortAuxN  : slv(3 downto 0)       := (others => '1');
    signal dPortRstL  : slv(3 downto 0)       := (others => '0');
 
+   signal hitClk  : sl                            := '0';
+   signal cnt     : slv(3 downto 0)               := (others => '0');
+   signal hit     : slv(CNT_SIZE_C-1 downto 0)    := (others => '0');
+   signal hitPntr : natural range 0 to CNT_SIZE_C := 0;
+
 begin
+
+   process(hitClk)
+   begin
+      if rising_edge(hitClk) then
+         hit <= toSlv(1, CNT_SIZE_C) after TPD_G;
+         cnt <= cnt + 1              after TPD_G;
+         if cnt = x"F" then
+            hit(hitPntr) <= '1' after TPD_G;
+            if hitPntr = CNT_SIZE_C-1 then
+               hitPntr <= 0 after TPD_G;
+            else
+               hitPntr <= hitPntr + 1 after TPD_G;
+            end if;
+         end if;
+      end if;
+   end process;
 
    -------------------
    -- Reference Clocks
@@ -110,6 +136,8 @@ begin
    GEN_VEC : for i in 0 downto 0 generate
       U_ASIC : Rd53aWrapper
          port map (
+            HIT_CLK         => hitClk,
+            HIT             => hit,
             ------------------------
             -- Power-on Resets (POR)
             ------------------------
@@ -145,13 +173,13 @@ begin
 
    U_Feb : entity work.AtlasRd53Core
       generic map (
-         TPD_G        => 1 ns,
+         TPD_G        => TPD_G,
          SIMULATION_G => true,
          BUILD_INFO_G => BUILD_INFO_C)
       port map (
          -- RD53 ASIC Serial Ports
-         dPortDataP    => dPortDataP,
-         dPortDataN    => dPortDataN,
+         dPortDataP    => dPortDataN,   -- Inverter in hardware somewhere
+         dPortDataN    => dPortDataP,  -- Inverter in hardware somewhere              
          dPortHitP     => dPortHitP,
          dPortHitN     => dPortHitN,
          dPortCmdP     => dPortCmdP,

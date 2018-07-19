@@ -1160,13 +1160,12 @@ class RxPhy(pr.Device):
         ))        
                 
         def getPixValue(col,row):
-            # en     = self.node(f'pix_{col}_{row}_en').get()
-            # injen  = self.node(f'pix_{col}_{row}_injen').get()
-            # hitbus = self.node(f'pix_{col}_{row}_hitbus').get()
-            # tdac   = self.node(f'pix_{col}_{row}_tdac').get()
-            # sign   = self.node(f'pix_{col}_{row}_sign').get()
-            # return (sign<<7) | (tdac<<3) | (hitbus<<2) | (injen<<1) | en
-            return 0
+            en     = self.node(f'pix_en{col}_{row}').get()
+            injen  = self.node(f'pix_injen{col}_{row}').get()
+            hitbus = self.node(f'pix_hitbus{col}_{row}').get()
+            tdac   = self.node(f'pix_tdac{col}_{row}').get()
+            sign   = self.node(f'pix_sign{col}_{row}').get()
+            return (sign<<7) | (tdac<<3) | (hitbus<<2) | (injen<<1) | en
 
         ##############################
         # Commands
@@ -1188,7 +1187,7 @@ class RxPhy(pr.Device):
                 ################################################
                 config[0] = (3 << 16) | 0x8 # PixAutoCol enabled
                 ################################################
-                # Address[2].BIT[8:0] = PixRegionRow
+                # Address[2].BIT[8:0] = PixRegionRow (always beginning of row)
                 ################################################
                 config[1] = (2 << 16) | 0 
                 ################################################

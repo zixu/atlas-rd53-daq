@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhyCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-06-29
+-- Last update: 2018-07-18
 -------------------------------------------------------------------------------
 -- Description: RX PHY Core module
 -------------------------------------------------------------------------------
@@ -58,6 +58,7 @@ entity AtlasRd53RxPhyCore is
       rst80MHz        : in  sl;
       rst40MHz        : in  sl;
       ttc             : in  AtlasRd53TimingTrigType;  -- clk160MHz domain
+      refClk300MHz    : in  sl;
       -- RD53 ASIC Serial Ports
       dPortDataP      : in  slv(3 downto 0);
       dPortDataN      : in  slv(3 downto 0);
@@ -85,18 +86,25 @@ architecture mapping of AtlasRd53RxPhyCore is
    signal dataDrop : sl;
    signal timedOut : sl;
 
+   signal enable : slv(3 downto 0);
+   signal linkUp : slv(3 downto 0);
+   signal chBond : sl;
+
+   signal invData : slv(3 downto 0);
+   signal invCmd  : sl;
+
 begin
 
-   -----------------------------------------------
-   -- Provide 40 MHz reference clock to remote EMU
-   -----------------------------------------------
+   ------------------------------------------------
+   -- Provide 160 MHz reference clock to remote EMU
+   ------------------------------------------------
    U_dPortAux : entity work.ClkOutBufDiff
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '0',         -- Active LOW reset
          XIL_DEVICE_G   => "7SERIES")
       port map (
-         clkIn   => clk40MHz,
+         clkIn   => clk160MHz,
          rstIn   => enAuxClk,
          clkOutP => dPortAuxP,
          clkOutN => dPortAuxN);
@@ -134,6 +142,11 @@ begin
          enLocalEmu      => enLocalEmu,
          asicRstIn       => asicRst,
          iDelayCtrlRdy   => iDelayCtrlRdy,
+         enable          => enable,
+         invData         => invData,
+         invCmd          => invCmd,
+         linkUp          => linkUp,
+         chBond          => chBond,
          -- RD53 ASIC Serial Ports
          dPortDataP      => dPortDataP,
          dPortDataN      => dPortDataN,
@@ -193,6 +206,11 @@ begin
          autoReadReg     => autoReadReg,
          dataDrop        => dataDrop,
          timedOut        => timedOut,
+         enable          => enable,
+         invData         => invData,
+         invCmd          => invCmd,
+         linkUp          => linkUp,
+         chBond          => chBond,
          -- AXI-Lite Interface
          axilClk         => axilClk,
          axilRst         => axilRst,
