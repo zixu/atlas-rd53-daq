@@ -71,7 +71,7 @@ Top:
     ###         I/O       ###
     #########################
     DEBUG_CONFIG: 0
-    DataReadDelay: 3
+    DataReadDelay: 0
     OutputSerType: 0
     ActiveLanes: 0xF # Default=1 (0xF = all lanes active)
     OutputFormat: 0
@@ -105,7 +105,7 @@ Top:
     AuroraCbSend: 0
     AuroraCbWaitHigh: 15
     AURORA_INIT_WAIT: 32
-    MON_FRAME_SKIP: 255 # Default=50
+    MON_FRAME_SKIP: 250 # Default=50
     AUTO_READ_A[0]: 136
     AUTO_READ_B[0]: 130
     AUTO_READ_A[1]: 118
