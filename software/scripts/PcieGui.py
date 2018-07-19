@@ -10,10 +10,15 @@
 ##############################################################################
 
 import sys
+import rogue
 import pyrogue as pr
 import pyrogue.gui
 import argparse
 import common as feb
+
+# rogue.Logging.setLevel(rogue.Logging.Warning)
+# rogue.Logging.setFilter("pyrogue.SrpV3",rogue.Logging.Debug)
+# rogue.Logging.setLevel(rogue.Logging.Debug)
 
 #################################################################
 

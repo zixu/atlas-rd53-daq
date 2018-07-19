@@ -27,6 +27,11 @@
 module Rd53aWrapper (
    //------------------------------   DIGITAL INTERFACE   ------------------------------//
 
+   // 
+   // HIT Interface
+   // 
+   input [384*400-1:0] HIT,
+   output HIT_CLK,   
    //
    // Power-on Resets (POR)
    //
@@ -68,8 +73,9 @@ module Rd53aWrapper (
 
 // Get the clock from the chip
 assign CMD_CLK = dut.ACB.CDR_PLL.pll_clk_160MHz;
-wire [384*400-1:0] HIT;
-assign HIT = 0;
+assign HIT_CLK = CMD_CLK;
+// wire [384*400-1:0] HIT;
+// assign HIT = 0;
 
 wire STATUS_PAD;
 // initial begin

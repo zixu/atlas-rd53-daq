@@ -27,6 +27,8 @@ import surf.devices.linear as linear
 import surf.devices.nxp as nxp
 import surf.protocols.pgp as pgp
 
+import axipcie as pcie
+
 import common
         
 class Top(pr.Root):
@@ -74,7 +76,29 @@ class Top(pr.Root):
                 srpV0 = rogue.protocols.srp.SrpV0()                
                 pr.streamConnectBiDir( srpV0, pgp2bVc1 )
                 
-        # ######################################################################          
+                
+        if ( hwType == 'pcie' ):
+
+            axiMemMap = rogue.hardware.axi.AxiMemMap(dev)         
+                
+            self.add(pcie.AxiPcieCore(
+                memBase = axiMemMap ,
+                offset  = 0x00000000, 
+                expand  = False, 
+            ))
+                
+            # for i in range(8):
+                # self.add(pgp.Pgp3AxiL( 
+                    # memBase         = axiMemMap,
+                    # name            = ('Pgp3Mon[%d]' % i),
+                    # offset          = (0x00800000 + i*0x10000),  
+                    # numVc           = 16,
+                    # writeEn         = True,
+                    # expand          = False,
+                # ))                
+                
+                
+        ######################################################################          
         
         # Create an empty stream array
         dataStream = [None] * 4
@@ -189,5 +213,3 @@ class Top(pr.Root):
             
         ######################################################################
         
-
-

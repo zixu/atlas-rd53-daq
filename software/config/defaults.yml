@@ -1,6 +1,5 @@
 Top:
-  # RxPhy[:]:
-  RxPhy[0]:  
+  RxPhy[:]:
     ###################################
     ###     Synchronous Front End   ###
     ###################################  
@@ -74,7 +73,7 @@ Top:
     DEBUG_CONFIG: 0
     DataReadDelay: 0
     OutputSerType: 0
-    ActiveLanes: 0xF # Default=1
+    ActiveLanes: 0xF # Default=1 (0xF = all lanes active)
     OutputFormat: 0
     JTAG_TDO: 0
     STATUS_EN: 1
@@ -89,15 +88,15 @@ Top:
     CDR_PD_DEL: 8
     CDR_EN_GCK2: 0
     CDR_VCO_GAIN: 3
-    CDR_SEL_SER_CLK: 3 # Default=0
+    CDR_SEL_SER_CLK: 3 # Default 0 = 1.28 GHz from PLL (3 = 160 Mbps/lane)
     VCO_BUFF_BIAS: 400
     CDR_CP_IBIAS: 50
     VCO_IBIAS: 500
     SER_SEL_OUT[:]: 1
     CmlInvTap: 0
-    CmlEnTap: 1 # Default=3
+    CmlEnTap: 3
     CmlEn: 0xF
-    CML_TAP_BIAS[0]: 600 # Default=500
+    CML_TAP_BIAS[0]: 1023 # Default=500 (1023 for MAX. diff swing)
     CML_TAP_BIAS[1]: 0
     CML_TAP_BIAS[2]: 0
     AuroraCcWait: 25
@@ -106,7 +105,7 @@ Top:
     AuroraCbSend: 0
     AuroraCbWaitHigh: 15
     AURORA_INIT_WAIT: 32
-    MON_FRAME_SKIP: 200 # Default=50
+    MON_FRAME_SKIP: 250 # Default=50
     AUTO_READ_A[0]: 136
     AUTO_READ_B[0]: 130
     AUTO_READ_A[1]: 118
