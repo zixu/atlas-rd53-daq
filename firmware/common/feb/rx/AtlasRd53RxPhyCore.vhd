@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhyCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-07-18
+-- Last update: 2018-07-30
 -------------------------------------------------------------------------------
 -- Description: RX PHY Core module
 -------------------------------------------------------------------------------
@@ -45,6 +45,11 @@ entity AtlasRd53RxPhyCore is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
+      -- Streaming RD53 Config Interface (clk160MHz domain)
+      sConfigMaster   : in  AxiStreamMasterType;
+      sConfigSlave    : out AxiStreamSlaveType;
+      mConfigMaster   : out AxiStreamMasterType;
+      mConfigSlave    : in  AxiStreamSlaveType;
       -- Streaming RD43 Data Interface (axilClk domain)
       mDataMaster     : out AxiStreamMasterType;
       mDataSlave      : in  AxiStreamSlaveType;
@@ -169,6 +174,11 @@ begin
          axilReadSlave   => axilReadSlaves(0),
          axilWriteMaster => axilWriteMasters(0),
          axilWriteSlave  => axilWriteSlaves(0),
+         -- Streaming RD53 Config Interface (clk160MHz domain)
+         sConfigMaster   => sConfigMaster,
+         sConfigSlave    => sConfigSlave,
+         mConfigMaster   => mConfigMaster,
+         mConfigSlave    => mConfigSlave,
          -- Outbound Data/Auto-Read Interface (axilClk domain)
          mDataMaster     => dataMaster,
          mDataSlave      => dataSlave,

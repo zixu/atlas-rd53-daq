@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Feb.vhd
+-- File       : AtlasRd53Feb1GbE.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-29
+-- Last update: 2018-07-30
 -------------------------------------------------------------------------------
--- Description: Top-Level module using four lanes of 6.0 Gbps PGPv3 communication
---
--- Note: 10 Gbps is the standard link rate for PGPv3.  This means the back-end 
---       receiver will need to have special firmware to run at this 
---       non-standard rate of 6 Gpbs
---
+-- Description: Top-Level module using 1 GbE communication
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -25,11 +20,11 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 
-entity AtlasRd53Feb is
+entity AtlasRd53Feb1GbE is
    generic (
-      TPD_G        : time := 1 ns;
+      TPD_G        : time   := 1 ns;
       -- SYNTH_MODE_G : string := "xpm";
-      SYNTH_MODE_G : string := "inferred";      
+      SYNTH_MODE_G : string := "inferred";
       BUILD_INFO_G : BuildInfoType);
    port (
       -- RD53 ASIC Serial Ports
@@ -92,18 +87,21 @@ entity AtlasRd53Feb is
       tempAlertL    : in    sl;
       vPIn          : in    sl;
       vNIn          : in    sl);
-end AtlasRd53Feb;
+end AtlasRd53Feb1GbE;
 
-architecture top_level of AtlasRd53Feb is
+architecture top_level of AtlasRd53Feb1GbE is
 
 begin
 
    U_Core : entity work.AtlasRd53Core
       generic map (
          TPD_G        => TPD_G,
+         BUILD_INFO_G => BUILD_INFO_G,
          SYNTH_MODE_G => SYNTH_MODE_G,
-         PGP3_RATE_G  => "6.25Gbps",
-         BUILD_INFO_G => BUILD_INFO_G)
+         COM_TYPE_G   => "ETH",
+         ETH_10G_G    => false,          -- 1 GbE 
+         DHCP_G       => true,
+         IP_ADDR_G    => x"0A01A8C0")  -- 192.168.1.10 (before DHCP)            
       port map (
          -- RD53 ASIC Serial Ports
          dPortDataP    => dPortDataP,

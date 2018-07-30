@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-07-18
+-- Last update: 2018-07-30
 -------------------------------------------------------------------------------
 -- Description: RX PHY Module
 -------------------------------------------------------------------------------
@@ -60,6 +60,11 @@ entity AtlasRd53RxPhy is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
+      -- Streaming RD53 Config Interface (clk160MHz domain)
+      sConfigMaster   : in  AxiStreamMasterType;
+      sConfigSlave    : out AxiStreamSlaveType;
+      mConfigMaster   : out AxiStreamMasterType;
+      mConfigSlave    : in  AxiStreamSlaveType;
       -- Outbound Reg/Data Interface (axilClk domain)
       mDataMaster     : out AxiStreamMasterType;
       mDataSlave      : in  AxiStreamSlaveType;
@@ -116,6 +121,11 @@ begin
          axilReadSlave   => axilReadSlave,
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave,
+         -- Streaming RD53 Config Interface (clk160MHz domain)
+         sConfigMaster   => sConfigMaster,
+         sConfigSlave    => sConfigSlave,
+         mConfigMaster   => mConfigMaster,
+         mConfigSlave    => mConfigSlave,
          -- Timing Interface (clk160MHz domain)
          clk160MHz       => clk160MHz,
          rst160MHz       => rst160MHz,
@@ -136,21 +146,21 @@ begin
          SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
          -- RD53 ASIC Serial Ports
-         dPortDataP     => dPortDataP,
-         dPortDataN     => dPortDataN,
+         dPortDataP  => dPortDataP,
+         dPortDataN  => dPortDataN,
          -- Timing Interface
-         clk640MHz      => clk640MHz,
-         clk160MHz      => clk160MHz,
-         rst160MHz      => rst160MHz,
+         clk640MHz   => clk640MHz,
+         clk160MHz   => clk160MHz,
+         rst160MHz   => rst160MHz,
          -- Control Interface
-         enable         => enableSync,
-         invData        => invDataSync,
-         linkUp         => linkUp,
-         chBond         => chBond,
+         enable      => enableSync,
+         invData     => invDataSync,
+         linkUp      => linkUp,
+         chBond      => chBond,
          -- AutoReg and Read back Interface
-         axisData       => rx,
-         autoReadReg    => autoReg,
-         rdReg          => rdReg);
+         axisData    => rx,
+         autoReadReg => autoReg,
+         rdReg       => rdReg);
 
    U_enable : entity work.SynchronizerVector
       generic map (
@@ -160,7 +170,7 @@ begin
          clk     => clk160MHz,
          dataIn  => enable,
          dataOut => enableSync);
-         
+
    U_invData : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
@@ -168,7 +178,7 @@ begin
       port map (
          clk     => clk160MHz,
          dataIn  => invData,
-         dataOut => invDataSync);         
+         dataOut => invDataSync);
 
    ----------------------------
    -- Local Emulation PHY Layer

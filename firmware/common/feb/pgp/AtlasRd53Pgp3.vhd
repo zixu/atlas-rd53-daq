@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-06-29
+-- Last update: 2018-07-30
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGPv3 communication
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 use work.Pgp3Pkg.all;
 use work.AtlasRd53Pkg.all;
 
@@ -38,14 +39,16 @@ entity AtlasRd53Pgp3 is
       axilReadSlave   : in  AxiLiteReadSlaveType;
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType;
+      -- Streaming RD53 Config Interface (clk160MHz domain)
+      clk160MHz       : in  sl;
+      rst160MHz       : in  sl;
+      sConfigMasters  : in  AxiStreamMasterArray(3 downto 0);
+      sConfigSlaves   : out AxiStreamSlaveArray(3 downto 0);
+      mConfigMasters  : out AxiStreamMasterArray(3 downto 0);
+      mConfigSlaves   : in  AxiStreamSlaveArray(3 downto 0);
       -- Streaming RD43 Data Interface (axilClk domain)
       sDataMasters    : in  AxiStreamMasterArray(3 downto 0);
       sDataSlaves     : out AxiStreamSlaveArray(3 downto 0);
-      -- Streaming TLU Interface (axilClk domain)
-      sTluMaster      : in  AxiStreamMasterType;
-      sTluSlave       : out AxiStreamSlaveType;
-      mTluMaster      : out AxiStreamMasterType;
-      mTluSlave       : in  AxiStreamSlaveType;
       -- Stable Reference IDELAY Clock and Reset
       refClk300MHz    : out sl;
       refRst300MHz    : out sl;
@@ -69,11 +72,11 @@ architecture mapping of AtlasRd53Pgp3 is
    signal pgpTxIn  : Pgp3TxInArray(3 downto 0)  := (others => PGP3_TX_IN_INIT_C);
    signal pgpTxOut : Pgp3TxOutArray(3 downto 0) := (others => PGP3_TX_OUT_INIT_C);
 
-   signal pgpTxMasters : AxiStreamMasterArray(5 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpTxSlaves  : AxiStreamSlaveArray(5 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal pgpRxMasters : AxiStreamMasterArray(5 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpRxSlaves  : AxiStreamSlaveArray(5 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal pgpRxCtrl    : AxiStreamCtrlArray(5 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+   signal pgpTxMasters : AxiStreamMasterArray(8 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpTxSlaves  : AxiStreamSlaveArray(8 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal pgpRxMasters : AxiStreamMasterArray(8 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpRxSlaves  : AxiStreamSlaveArray(8 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal pgpRxCtrl    : AxiStreamCtrlArray(8 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
 
    signal pgpClk : slv(3 downto 0) := x"0";
    signal pgpRst : slv(3 downto 0) := x"0";
@@ -132,7 +135,7 @@ begin
          ROGUE_SIM_USER_ID_G => 12,
          SYNTH_MODE_G        => SYNTH_MODE_G,
          NUM_LANES_G         => 1,
-         NUM_VC_G            => 6,
+         NUM_VC_G            => 9,
          RATE_G              => PGP3_RATE_G,
          REFCLK_TYPE_G       => PGP3_REFCLK_312_C,
          EN_PGP_MON_G        => false,
@@ -213,34 +216,36 @@ begin
          mAxilWriteMaster => axilWriteMaster,
          mAxilWriteSlave  => axilWriteSlave);
 
-   U_Lane0_Vc1 : entity work.AtlasRd53Pgp3AxisFifo
-      generic map (
-         TPD_G        => TPD_G,
-         SYNTH_MODE_G => SYNTH_MODE_G,
-         SIMULATION_G => SIMULATION_G)
-      port map (
-         -- System Interface (axilClk domain)
-         sysClk      => sysClk,
-         sysRst      => sysRst,
-         sAxisMaster => sTluMaster,
-         sAxisSlave  => sTluSlave,
-         mAxisMaster => mTluMaster,
-         mAxisSlave  => mTluSlave,
-         -- PGP Interface (pgpClk domain)
-         pgpClk      => pgpClk(0),
-         pgpRst      => pgpRst(0),
-         pgpRxMaster => pgpRxMasters(1),
-         pgpRxSlave  => pgpRxSlaves(1),
-         pgpRxCtrl   => pgpRxCtrl(1),
-         pgpTxMaster => pgpTxMasters(1),
-         pgpTxSlave  => pgpTxSlaves(1));
-
    PGP_LANE : for i in 3 downto 0 generate
 
       rxLinkUp(i) <= pgpRxOut(i).linkReady;
       txLinkUp(i) <= pgpTxOut(i).linkReady;
 
-      U_Lane0_Vc5_Vc2 : entity work.AtlasRd53Pgp3AxisFifo
+      U_Lane0_Vc4_Vc1 : entity work.AtlasRd53Pgp3AxisFifo
+         generic map (
+            TPD_G               => TPD_G,
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            SIMULATION_G        => SIMULATION_G,
+            SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+            MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
+         port map (
+            -- System Interface (axilClk domain)
+            sysClk      => clk160MHz,
+            sysRst      => rst160MHz,
+            sAxisMaster => sConfigMasters(i),
+            sAxisSlave  => sConfigSlaves(i),
+            mAxisMaster => mConfigMasters(i),
+            mAxisSlave  => mConfigSlaves(i),
+            -- PGP Interface (pgpClk domain)
+            pgpClk      => pgpClk(0),
+            pgpRst      => pgpRst(0),
+            pgpRxMaster => pgpRxMasters(1+i),
+            pgpRxSlave  => pgpRxSlaves(1+i),
+            pgpRxCtrl   => pgpRxCtrl(1+i),
+            pgpTxMaster => pgpTxMasters(1+i),
+            pgpTxSlave  => pgpTxSlaves(1+i));
+
+      U_Lane0_Vc8_Vc5 : entity work.AtlasRd53Pgp3AxisFifo
          generic map (
             TPD_G        => TPD_G,
             SYNTH_MODE_G => SYNTH_MODE_G,
@@ -255,8 +260,8 @@ begin
             -- PGP Interface (pgpClk domain)
             pgpClk      => pgpClk(0),
             pgpRst      => pgpRst(0),
-            pgpTxMaster => pgpTxMasters(2+i),
-            pgpTxSlave  => pgpTxSlaves(2+i));
+            pgpTxMaster => pgpTxMasters(5+i),
+            pgpTxSlave  => pgpTxSlaves(5+i));
 
    end generate PGP_LANE;
 
