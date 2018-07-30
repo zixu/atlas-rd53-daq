@@ -2,7 +2,7 @@
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-08
--- Last update: 2018-07-18
+-- Last update: 2018-07-30
 -------------------------------------------------------------------------------
 -- Description: AD53 readout core module
 -------------------------------------------------------------------------------
@@ -28,11 +28,15 @@ use unisim.vcomponents.all;
 
 entity AtlasRd53Core is
    generic (
-      TPD_G        : time    := 1 ns;
+      TPD_G        : time             := 1 ns;
       BUILD_INFO_G : BuildInfoType;
-      SIMULATION_G : boolean := false;
-      SYNTH_MODE_G : string  := "inferred";
-      PGP3_RATE_G  : string  := "6.25Gbps");  -- or "10.3125Gbps"      
+      SIMULATION_G : boolean          := false;
+      SYNTH_MODE_G : string           := "inferred";
+      COM_TYPE_G   : string           := "PGPv3";
+      ETH_10G_G    : boolean          := false;
+      DHCP_G       : boolean          := true;
+      IP_ADDR_G    : slv(31 downto 0) := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)      
+      PGP3_RATE_G  : string           := "6.25Gbps");  -- or "10.3125Gbps"      
    port (
       -- RD53 ASIC Serial Ports
       dPortDataP    : in    Slv4Array(3 downto 0);
@@ -147,10 +151,10 @@ architecture mapping of AtlasRd53Core is
    signal txDataMasters : AxiStreamMasterArray(3 downto 0);
    signal txDataSlaves  : AxiStreamSlaveArray(3 downto 0);
 
-   signal txTluMaster : AxiStreamMasterType;
-   signal txTluSlave  : AxiStreamSlaveType;
-   signal rxTluMaster : AxiStreamMasterType;
-   signal rxTluSlave  : AxiStreamSlaveType;
+   signal txConfigMasters : AxiStreamMasterArray(3 downto 0);
+   signal txConfigSlaves  : AxiStreamSlaveArray(3 downto 0);
+   signal rxConfigMasters : AxiStreamMasterArray(3 downto 0);
+   signal rxConfigSlaves  : AxiStreamSlaveArray(3 downto 0);
 
    signal rxLinkUp : slv(3 downto 0);
    signal txLinkUp : slv(3 downto 0);
@@ -227,41 +231,90 @@ begin
    ---------------
    -- PGPv3 Module
    ---------------         
-   U_Pgp : entity work.AtlasRd53Pgp3
-      generic map (
-         TPD_G        => TPD_G,
-         SIMULATION_G => SIMULATION_G,
-         SYNTH_MODE_G => SYNTH_MODE_G,
-         PGP3_RATE_G  => PGP3_RATE_G)
-      port map (
-         -- AXI-Lite Interfaces (axilClk domain)
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave,
-         -- Streaming RD43 Data Interface (axilClk domain)
-         sDataMasters    => txDataMasters,
-         sDataSlaves     => txDataSlaves,
-         -- Streaming TLU Interface (axilClk domain)
-         sTluMaster      => txTluMaster,
-         sTluSlave       => txTluSlave,
-         mTluMaster      => rxTluMaster,
-         mTluSlave       => rxTluSlave,
-         -- Stable Reference IDELAY Clock and Reset
-         refClk300MHz    => refClk300MHz,
-         refRst300MHz    => refRst300MHz,
-         -- Link Status
-         rxLinkUp        => rxLinkUp,
-         txLinkUp        => txLinkUp,
-         -- PGP Ports
-         pgpClkP         => pgpClkP,
-         pgpClkN         => pgpClkN,
-         pgpRxP          => pgpRxP,
-         pgpRxN          => pgpRxN,
-         pgpTxP          => pgpTxP,
-         pgpTxN          => pgpTxN);
+   GEN_PGP : if (COM_TYPE_G = "PGPv3") generate
+      U_Pgp : entity work.AtlasRd53Pgp3
+         generic map (
+            TPD_G        => TPD_G,
+            SIMULATION_G => SIMULATION_G,
+            SYNTH_MODE_G => SYNTH_MODE_G,
+            PGP3_RATE_G  => PGP3_RATE_G)
+         port map (
+            -- AXI-Lite Interfaces (axilClk domain)
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMaster,
+            axilReadSlave   => axilReadSlave,
+            axilWriteMaster => axilWriteMaster,
+            axilWriteSlave  => axilWriteSlave,
+            -- Streaming RD53 Config Interface (clk160MHz domain)
+            clk160MHz       => clk160MHz,
+            rst160MHz       => rst160MHz,
+            sConfigMasters  => txConfigMasters,
+            sConfigSlaves   => txConfigSlaves,
+            mConfigMasters  => rxConfigMasters,
+            mConfigSlaves   => rxConfigSlaves,
+            -- Streaming RD43 Data Interface (axilClk domain)
+            sDataMasters    => txDataMasters,
+            sDataSlaves     => txDataSlaves,
+            -- Stable Reference IDELAY Clock and Reset
+            refClk300MHz    => refClk300MHz,
+            refRst300MHz    => refRst300MHz,
+            -- Link Status
+            rxLinkUp        => rxLinkUp,
+            txLinkUp        => txLinkUp,
+            -- PGP Ports
+            pgpClkP         => pgpClkP,
+            pgpClkN         => pgpClkN,
+            pgpRxP          => pgpRxP,
+            pgpRxN          => pgpRxN,
+            pgpTxP          => pgpTxP,
+            pgpTxN          => pgpTxN);
+   end generate;
+
+   ---------------
+   -- PGPv3 Module
+   ---------------         
+   GEN_ETH : if (COM_TYPE_G = "ETH") generate
+      U_ETH : entity work.AtlasRd53Eth
+         generic map (
+            TPD_G        => TPD_G,
+            SIMULATION_G => SIMULATION_G,
+            SYNTH_MODE_G => SYNTH_MODE_G,
+            ETH_10G_G    => ETH_10G_G,
+            DHCP_G       => DHCP_G,
+            IP_ADDR_G    => IP_ADDR_G)
+         port map (
+            -- AXI-Lite Interfaces (axilClk domain)
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMaster,
+            axilReadSlave   => axilReadSlave,
+            axilWriteMaster => axilWriteMaster,
+            axilWriteSlave  => axilWriteSlave,
+            -- Streaming RD53 Config Interface (clk160MHz domain)
+            clk160MHz       => clk160MHz,
+            rst160MHz       => rst160MHz,
+            sConfigMasters  => txConfigMasters,
+            sConfigSlaves   => txConfigSlaves,
+            mConfigMasters  => rxConfigMasters,
+            mConfigSlaves   => rxConfigSlaves,
+            -- Streaming RD43 Data Interface (axilClk domain)
+            sDataMasters    => txDataMasters,
+            sDataSlaves     => txDataSlaves,
+            -- Stable Reference IDELAY Clock and Reset
+            refClk300MHz    => refClk300MHz,
+            refRst300MHz    => refRst300MHz,
+            -- Link Status
+            rxLinkUp        => rxLinkUp,
+            txLinkUp        => txLinkUp,
+            -- PGP Ports
+            ethClkP         => pgpClkP,
+            ethClkN         => pgpClkN,
+            ethRxP          => pgpRxP,
+            ethRxN          => pgpRxN,
+            ethTxP          => pgpTxP,
+            ethTxN          => pgpTxN);
+   end generate;
 
    --------------------------
    -- AXI-Lite: Crossbar Core
@@ -352,6 +405,11 @@ begin
             axilReadSlave   => axilReadSlaves(DPORT0_INDEX_C+i),
             axilWriteMaster => axilWriteMasters(DPORT0_INDEX_C+i),
             axilWriteSlave  => axilWriteSlaves(DPORT0_INDEX_C+i),
+            -- Streaming RD43 Config Interface (clk160MHz domain)
+            sConfigMaster   => rxConfigMasters(i),
+            sConfigSlave    => rxConfigSlaves(i),
+            mConfigMaster   => txConfigMasters(i),
+            mConfigSlave    => txConfigSlaves(i),
             -- Streaming RD43 Data Interface (axilClk domain)
             mDataMaster     => txDataMasters(i),
             mDataSlave      => txDataSlaves(i),
@@ -390,11 +448,6 @@ begin
          axilReadSlave   => axilReadSlaves(TLU_INDEX_C),
          axilWriteMaster => axilWriteMasters(TLU_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(TLU_INDEX_C),
-         -- Streaming TLU Interface (axilClk domain)
-         sTluMaster      => rxTluMaster,
-         sTluSlave       => rxTluSlave,
-         mTluMaster      => txTluMaster,
-         mTluSlave       => txTluSlave,
          -- Timing/Trigger Interface
          clk640MHz       => clk640MHz,
          clk160MHz       => clk160MHz,

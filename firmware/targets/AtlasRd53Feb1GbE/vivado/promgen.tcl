@@ -7,13 +7,6 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-
-set_property DIFF_TERM true [get_ports {dtmClkP[*]}]
-
-create_clock -name locRefClk -period 4.0 [get_ports locRefClkP]
-
-set_clock_groups -asynchronous \
-    -group [get_clocks -include_generated_clocks sysClk200] \
-    -group [get_clocks -include_generated_clocks sysClk125] \
-    -group [get_clocks -include_generated_clocks -of_objects [get_pins -hier -filter {name=~*gt0_Pgp3Gtx7Ip6G_i*gtxe2_i*TXOUTCLK}]] \
-    -group [get_clocks -include_generated_clocks -of_objects [get_pins -hier -filter {name=~*gt0_Pgp3Gtx7Ip6G_i*gtxe2_i*RXOUTCLK}]]
+set format     "mcs"
+set inteface   "spix1"
+set size       "256"

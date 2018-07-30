@@ -39,11 +39,6 @@ entity AtlasRd53HitTrig is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-      -- Streaming TLU Interface (axilClk domain)
-      sTluMaster      : in  AxiStreamMasterType;
-      sTluSlave       : out AxiStreamSlaveType;
-      mTluMaster      : out AxiStreamMasterType;
-      mTluSlave       : in  AxiStreamSlaveType;
       -- Timing/Trigger Interface
       clk640MHz       : in  sl;
       clk160MHz       : in  sl;
@@ -127,8 +122,6 @@ begin
    -- Place holder for future code
    axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
    axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-   sTluSlave      <= AXI_STREAM_SLAVE_FORCE_C;
-   mTluMaster     <= AXI_STREAM_MASTER_INIT_C;
    ttc            <= RD53_FEB_TIMING_TRIG_INIT_C;
 
 end mapping;

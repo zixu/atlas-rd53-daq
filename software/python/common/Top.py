@@ -37,6 +37,7 @@ class Top(pr.Root):
             description = "Container for FEB FPGA",
             dev         = '/dev/datadev_0',
             hwType      = 'pcie',
+            ip          = '10.0.0.1',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
@@ -100,8 +101,9 @@ class Top(pr.Root):
                 
         ######################################################################          
         
-        # Create an empty stream array
-        dataStream = [None] * 4
+        # Create an empty stream arrays
+        configStream = [None] * 4
+        dataStream   = [None] * 4
         
         ########################################################################################################################
         # https://github.com/slaclab/rogue/blob/master/include/rogue/hardware/axi/AxiStreamDma.h
@@ -110,23 +112,32 @@ class Top(pr.Root):
     
         ######################################################################
         # PGPv3.[VC=0] = FEB SRPv3 Register Access
-        # PGPv3.[VC=1] = TLU Streaming Interface
-        # PGPv3.[VC=2] = RD53[DPORT=0] Streaming Data Interface
-        # PGPv3.[VC=3] = RD53[DPORT=1] Streaming Data Interface
-        # PGPv3.[VC=4] = RD53[DPORT=2] Streaming Data Interface
-        # PGPv3.[VC=5] = RD53[DPORT=3] Streaming Data Interface
+        # PGPv3.[VC=1] = RD53[DPORT=0] Streaming ASIC Configuration Interface
+        # PGPv3.[VC=2] = RD53[DPORT=1] Streaming ASIC Configuration Interface
+        # PGPv3.[VC=3] = RD53[DPORT=2] Streaming ASIC Configuration Interface
+        # PGPv3.[VC=4] = RD53[DPORT=3] Streaming ASIC Configuration Interface
+        # PGPv3.[VC=5] = RD53[DPORT=0] Streaming Data Interface
+        # PGPv3.[VC=6] = RD53[DPORT=1] Streaming Data Interface
+        # PGPv3.[VC=7] = RD53[DPORT=2] Streaming Data Interface
+        # PGPv3.[VC=8] = RD53[DPORT=3] Streaming Data Interface
         ######################################################################
         
         if (hwType == 'simulation'):
-            srpStream         = pr.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=12, ssi=True)
-            self.tluStream    = pr.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=12, ssi=True)          
+            srpStream = pr.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=12, ssi=True)
             for i in range(4):
-                dataStream[i] = pr.interfaces.simulation.StreamSim(host='localhost', dest=2+i, uid=12, ssi=True)     
+                configStream[i] = pr.interfaces.simulation.StreamSim(host='localhost', dest=1+i, uid=12, ssi=True)     
+                dataStream[i]   = pr.interfaces.simulation.StreamSim(host='localhost', dest=5+i, uid=12, ssi=True)     
+        elif (hwType == 'eth'):
+            rudp = pr.protocols.UdpRssiPack(host=ip,port=8192,packVer=2)        
+            srpStream = rudp.application(0)
+            for i in range(4):
+                configStream[i] = rudp.application(1+i)
+                dataStream[i]   = rudp.application(5+i)       
         else:
-            srpStream         = rogue.hardware.axi.AxiStreamDma(dev,0,True)
-            self.tluStream    = rogue.hardware.axi.AxiStreamDma(dev,1,True)            
+            srpStream = rogue.hardware.axi.AxiStreamDma(dev,0,True)        
             for i in range(4):
-                dataStream[i] = rogue.hardware.axi.AxiStreamDma(dev,2+i,True)
+                configStream[i] = rogue.hardware.axi.AxiStreamDma(dev,1+i,True)
+                dataStream[i]   = rogue.hardware.axi.AxiStreamDma(dev,5+i,True)
                 
         ######################################################################
         

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Dpm10GbE.vhd
+-- File       : AtlasRd53Dpm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-01
 -- Last update: 2018-05-01
@@ -26,7 +26,7 @@ use work.RceG3Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity AtlasRd53Dpm10GbE is
+entity AtlasRd53Dpm is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -37,10 +37,10 @@ entity AtlasRd53Dpm10GbE is
       i2cSda      : inout sl;
       i2cScl      : inout sl;
       -- Ethernet
-      ethRxP      : in    slv(3 downto 0);
-      ethRxM      : in    slv(3 downto 0);
-      ethTxP      : out   slv(3 downto 0);
-      ethTxM      : out   slv(3 downto 0);
+      ethRxP      : in    slv(0 downto 0);
+      ethRxM      : in    slv(0 downto 0);
+      ethTxP      : out   slv(0 downto 0);
+      ethTxM      : out   slv(0 downto 0);
       ethRefClkP  : in    sl;
       ethRefClkM  : in    sl;
       -- RTM Interface
@@ -58,9 +58,14 @@ entity AtlasRd53Dpm10GbE is
       -- Clock Select
       clkSelA     : out   slv(1 downto 0);
       clkSelB     : out   slv(1 downto 0));
-end AtlasRd53Dpm10GbE;
+end AtlasRd53Dpm;
 
-architecture TOP_LEVEL of AtlasRd53Dpm10GbE is
+architecture TOP_LEVEL of AtlasRd53Dpm is
+
+   signal iethRxP : slv(3 downto 0);
+   signal iethRxM : slv(3 downto 0);
+   signal iethTxP : slv(3 downto 0);
+   signal iethTxM : slv(3 downto 0);
 
    signal ref200Clk : sl;
    signal ref200Rst : sl;
@@ -90,16 +95,16 @@ begin
          TPD_G          => TPD_G,
          BUILD_INFO_G   => BUILD_INFO_G,
          RCE_DMA_MODE_G => RCE_DMA_AXISV2_C,  -- AXIS V2 Driver
-         ETH_10G_EN_G   => true)              -- 10 GbE XAUI
+         ETH_10G_EN_G   => false)             -- 1 GbE
       port map (
          -- I2C
          i2cSda             => i2cSda,
          i2cScl             => i2cScl,
          -- Ethernet
-         ethRxP             => ethRxP,
-         ethRxM             => ethRxM,
-         ethTxP             => ethTxP,
-         ethTxM             => ethTxM,
+         ethRxP             => iethRxP,
+         ethRxM             => iethRxM,
+         ethTxP             => iethTxP,
+         ethTxM             => iethTxM,
          ethRefClkP         => ethRefClkP,
          ethRefClkM         => ethRefClkM,
          -- Clock Select
@@ -124,6 +129,13 @@ begin
          dmaObSlave         => dmaObSlaves,
          dmaIbMaster        => dmaIbMasters,
          dmaIbSlave         => dmaIbSlaves);
+
+   ethTxP(0)           <= iethTxP(0);
+   ethTxM(0)           <= iethTxM(0);
+   iethRxP(0)          <= ethRxP(0);
+   iethRxM(0)          <= ethRxM(0);
+   iethRxP(3 downto 1) <= (others => '0');
+   iethRxM(3 downto 1) <= (others => '0');
 
    ----------------------------------
    -- DMA clock and reset assignments

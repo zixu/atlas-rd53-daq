@@ -2,7 +2,7 @@
 -- File       : AtlasRd53TxCmdWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-31
--- Last update: 2018-07-18
+-- Last update: 2018-07-30
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AtlasRd53TxCmd
 -------------------------------------------------------------------------------
@@ -41,6 +41,11 @@ entity AtlasRd53TxCmdWrapper is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
+      -- Streaming RD53 Config Interface (clk160MHz domain)
+      sConfigMaster   : in  AxiStreamMasterType;
+      sConfigSlave    : out AxiStreamSlaveType;
+      mConfigMaster   : out AxiStreamMasterType;
+      mConfigSlave    : in  AxiStreamSlaveType;
       -- Timing Interface (clk160MHz domain)
       clk160MHz       : in  sl;
       rst160MHz       : in  sl;
@@ -62,13 +67,17 @@ architecture rtl of AtlasRd53TxCmdWrapper is
 
    type RegType is record
       wrValid       : sl;
+      wrRegId       : slv(3 downto 0);
+      wrRegAddr     : slv(8 downto 0);
+      wrRegData     : slv(15 downto 0);
       rdValid       : sl;
-      regId         : slv(3 downto 0);
-      regAddr       : slv(8 downto 0);
-      regData       : slv(15 downto 0);
+      rdRegId       : slv(3 downto 0);
+      rdRegAddr     : slv(8 downto 0);
       ramWr         : sl;
       ramAddr       : slv(9 downto 0);
       ramDin        : slv(15 downto 0);
+      mConfigMaster : AxiStreamMasterType;
+      sConfigSlave  : AxiStreamSlaveType;
       rdRegSlave    : AxiStreamSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
       axiReadSlave  : AxiLiteReadSlaveType;
@@ -78,13 +87,17 @@ architecture rtl of AtlasRd53TxCmdWrapper is
 
    constant REG_INIT_C : RegType := (
       wrValid       => '0',
+      wrRegId       => (others => '0'),
+      wrRegAddr     => (others => '0'),
+      wrRegData     => (others => '0'),
       rdValid       => '0',
-      regId         => (others => '0'),
-      regAddr       => (others => '0'),
-      regData       => (others => '0'),
+      rdRegId       => (others => '0'),
+      rdRegAddr     => (others => '0'),
       ramWr         => '0',
       ramAddr       => (others => '0'),
       ramDin        => (others => '0'),
+      mConfigMaster => AXI_STREAM_MASTER_INIT_C,
+      sConfigSlave  => AXI_STREAM_SLAVE_INIT_C,
       rdRegSlave    => AXI_STREAM_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -104,15 +117,9 @@ architecture rtl of AtlasRd53TxCmdWrapper is
 
    signal ramDout : slv(15 downto 0);
 
-   signal wrReadyL  : sl;
-   signal wrReady   : sl;
-   signal wrValid   : sl;
-   signal wrRdy     : sl;
-   signal wrRegId   : slv(3 downto 0);
-   signal wrRegAddr : slv(8 downto 0);
-   signal wrRegData : slv(15 downto 0);
-
+   signal wrReady : sl;
    signal rdReady : sl;
+
    signal cmd     : sl;
    signal cmdMask : sl;
    signal cmdReg  : sl;
@@ -167,16 +174,16 @@ begin
          calId      => ttc.calId,
          calDat     => ttc.calDat,
          -- Write Register Interface
-         wrValid    => wrValid,
-         wrReady    => wrRdy,
-         wrRegId    => wrRegId,
-         wrRegAddr  => wrRegAddr,
-         wrRegData  => wrRegData,
+         wrValid    => r.wrValid,
+         wrReady    => wrReady,
+         wrRegId    => r.wrRegId,
+         wrRegAddr  => r.wrRegAddr,
+         wrRegData  => r.wrRegData,
          -- Read Register Interface
          rdValid    => r.rdValid,
          rdReady    => rdReady,
-         rdRegId    => r.regId,
-         rdRegAddr  => r.regAddr,
+         rdRegId    => r.rdRegId,
+         rdRegAddr  => r.rdRegAddr,
          -- Serial Output Interface
          cmdOut     => cmd);
 
@@ -204,39 +211,8 @@ begin
          O  => cmdOutP,
          OB => cmdOutN);
 
-   ----------------------------------
-   -- Command Write Transaction Queue
-   ----------------------------------
-   U_WrFifo : entity work.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         SYNTH_MODE_G    => SYNTH_MODE_G,
-         MEMORY_TYPE_G   => "block",
-         GEN_SYNC_FIFO_G => true,
-         FWFT_EN_G       => true,
-         DATA_WIDTH_G    => 29,
-         ADDR_WIDTH_G    => 10)
-      port map (
-         rst                => rst160MHz,
-         -- Write interface
-         wr_clk             => clk160MHz,
-         wr_en              => r.wrValid,
-         almost_full        => wrReadyL,
-         din(28 downto 25)  => r.regId,
-         din(24 downto 16)  => r.regAddr,
-         din(15 downto 0)   => r.regData,
-         -- Read interface
-         rd_clk             => clk160MHz,
-         valid              => wrValid,
-         rd_en              => wrRdy,
-         dout(28 downto 25) => wrRegId,
-         dout(24 downto 16) => wrRegAddr,
-         dout(15 downto 0)  => wrRegData);
-
-   wrReady <= not(wrReadyL);
-
-   comb : process (axiReadMaster, axiWriteMaster, r, ramDout, rdReady,
-                   rdRegMaster, rst160MHz, wrReady) is
+   comb : process (axiReadMaster, axiWriteMaster, mConfigSlave, r, ramDout,
+                   rdReady, rdRegMaster, rst160MHz, sConfigMaster, wrReady) is
       variable v          : RegType;
       variable axiStatus  : AxiLiteStatusType;
       variable decAddrInt : integer;
@@ -245,38 +221,47 @@ begin
       v := r;
 
       -- Reset the strobes
-      v.ramWr             := '0';
-      v.rdRegSlave.tReady := '0';
+      v.ramWr               := '0';
+      v.rdRegSlave.tReady   := '0';
+      v.sConfigSlave.tReady := '0';
       if (wrReady = '1') then
          v.wrValid := '0';
       end if;
       if (rdReady = '1') then
          v.rdValid := '0';
       end if;
+      if (mConfigSlave.tReady = '1') then
+         v.mConfigMaster.tValid := '0';
+      end if;
+
+      -- Check for AXI stream transaction
+      if (sConfigMaster.tValid = '1') and (v.mConfigMaster.tValid = '0') and (v.wrValid = '0') then
+         -- Accept the data 
+         v.sConfigSlave.tReady := '1';
+         -- Write data to the CMD sequencer 
+         v.wrValid             := '1';
+         v.wrRegId             := sConfigMaster.tData(28 downto 25);
+         v.wrRegAddr           := sConfigMaster.tData(24 downto 16);
+         v.wrRegData           := sConfigMaster.tData(15 downto 0);
+         -- Echo back the data
+         v.mConfigMaster       := sConfigMaster;
+      end if;
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       -- Check for write transaction
-      if (axiStatus.writeEnable = '1') and (r.wrValid = '0') and (r.rdValid = '0') then
-         -- Check for standard memory mapped access
-         if (axiWriteMaster.awaddr(15) = '0') then
-            -- Update the data/address fields
-            v.regId   := axiWriteMaster.awaddr(14 downto 11);
-            v.regAddr := axiWriteMaster.awaddr(10 downto 2);
-            v.regData := axiWriteMaster.wdata(15 downto 0);
-         -- Encode the address into the data field
-         else
-            -- Update the data/address fields
-            v.regId   := axiWriteMaster.wdata(28 downto 25);
-            v.regAddr := axiWriteMaster.wdata(24 downto 16);
-            v.regData := axiWriteMaster.wdata(15 downto 0);
-         end if;
+      if (axiStatus.writeEnable = '1') and (v.wrValid = '0') and (v.rdValid = '0') then
          -- Check for R/nW op-code
          if(axiWriteMaster.wdata(31) = '0') then
-            v.wrValid := '1';
+            v.wrValid   := '1';
+            v.wrRegId   := axiWriteMaster.awaddr(14 downto 11);
+            v.wrRegAddr := axiWriteMaster.awaddr(10 downto 2);
+            v.wrRegData := axiWriteMaster.wdata(15 downto 0);
          else
-            v.rdValid := '1';
+            v.rdValid   := '1';
+            v.rdRegId   := axiWriteMaster.awaddr(14 downto 11);
+            v.rdRegAddr := axiWriteMaster.awaddr(10 downto 2);
          end if;
          -- Send Write bus response
          axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_OK_C);
@@ -343,7 +328,8 @@ begin
       end case;
 
       -- Combinatorial Outputs
-      rdRegSlave <= v.rdRegSlave;
+      rdRegSlave   <= v.rdRegSlave;
+      sConfigSlave <= v.sConfigSlave;
 
       -- Reset
       if (rst160MHz = '1') then
@@ -356,6 +342,7 @@ begin
       -- Registered Outputs
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
+      mConfigMaster <= r.mConfigMaster;
 
    end process comb;
 
