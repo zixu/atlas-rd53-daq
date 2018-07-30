@@ -1159,49 +1159,67 @@ class RxPhy(pr.Device):
             hidden       = True,
         ))        
                 
-        def getPixValue(col,row):
-            en     = self.node(f'pix_en{col}_{row}').get()
-            injen  = self.node(f'pix_injen{col}_{row}').get()
-            hitbus = self.node(f'pix_hitbus{col}_{row}').get()
-            tdac   = self.node(f'pix_tdac{col}_{row}').get()
-            sign   = self.node(f'pix_sign{col}_{row}').get()
-            return (sign<<7) | (tdac<<3) | (hitbus<<2) | (injen<<1) | en
+                
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        # Firmware no longer support LoadPixConfig() command.
+        # Please use configStream[3:0] in common.Top.py to configure the RD53's pixel array 
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+        ###################################################################################
+                
+        # def getPixValue(col,row):
+            # en     = self.node(f'pix_en{col}_{row}').get()
+            # injen  = self.node(f'pix_injen{col}_{row}').get()
+            # hitbus = self.node(f'pix_hitbus{col}_{row}').get()
+            # tdac   = self.node(f'pix_tdac{col}_{row}').get()
+            # sign   = self.node(f'pix_sign{col}_{row}').get()
+            # return (sign<<7) | (tdac<<3) | (hitbus<<2) | (injen<<1) | en
 
-        ##############################
-        # Commands
-        ##############################
-        @self.command(name= "LoadPixConfig", description  = "Loads the Pixel Configuration")        
-        def LoadPixConfig():         
-            # Create a configuration list
-            config = [None] * (192+3)
-            # Unlock the pixel configurations
-            self._rawWrite(offset=(4<<2), data=0x0)            
-            # Loop through the matrix
-            for col in range(400>>1):
-                # print (col)
-                ################################################
-                # Address[3].BIT[5:5] = PixBroadcastEn
-                # Address[3].BIT[4:4] = PixAutoCol
-                # Address[3].BIT[3:3] = PixAutoRow
-                # Address[3].BIT[2:0] = PixBroadcastMask
-                ################################################
-                config[0] = (3 << 16) | 0x8 # PixAutoCol enabled
-                ################################################
-                # Address[2].BIT[8:0] = PixRegionRow (always beginning of row)
-                ################################################
-                config[1] = (2 << 16) | 0 
-                ################################################
-                # Address[1].BIT[7:0] = PixRegionCol
-                ################################################                
-                config[2] = (1 << 16) | col
-                # Fill the list with row configuration
-                for row in range(192):
-                    config[row+3] = (getPixValue((2*col)+1,row) << 8) | getPixValue((2*col),row)
-                # Load the configuration into the ASIC
-                self._rawWrite(
-                    offset      = 0x8000,
-                    data        = config,
-                    posted      = True,
-                )
-            # Lock the pixel configurations
-            self._rawWrite(offset=(4<<2), data=0x9CE2)                  
+        # ##############################
+        # # Commands
+        # ##############################
+        # @self.command(name= "LoadPixConfig", description  = "Loads the Pixel Configuration")        
+        # def LoadPixConfig():         
+            # # Create a configuration list
+            # config = [None] * (192+3)
+            # # Unlock the pixel configurations
+            # self._rawWrite(offset=(4<<2), data=0x0)            
+            # # Loop through the matrix
+            # for col in range(400>>1):
+                # # print (col)
+                # ################################################
+                # # Address[3].BIT[5:5] = PixBroadcastEn
+                # # Address[3].BIT[4:4] = PixAutoCol
+                # # Address[3].BIT[3:3] = PixAutoRow
+                # # Address[3].BIT[2:0] = PixBroadcastMask
+                # ################################################
+                # config[0] = (3 << 16) | 0x8 # PixAutoCol enabled
+                # ################################################
+                # # Address[2].BIT[8:0] = PixRegionRow (always beginning of row)
+                # ################################################
+                # config[1] = (2 << 16) | 0 
+                # ################################################
+                # # Address[1].BIT[7:0] = PixRegionCol
+                # ################################################                
+                # config[2] = (1 << 16) | col
+                # # Fill the list with row configuration
+                # for row in range(192):
+                    # config[row+3] = (getPixValue((2*col)+1,row) << 8) | getPixValue((2*col),row)
+                # # Load the configuration into the ASIC
+                # self._rawWrite(
+                    # offset      = 0x8000,
+                    # data        = config,
+                    # posted      = True,
+                # )
+            # # Lock the pixel configurations
+            # self._rawWrite(offset=(4<<2), data=0x9CE2)                  
