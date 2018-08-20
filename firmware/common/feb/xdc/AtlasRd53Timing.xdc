@@ -26,5 +26,6 @@ set_clock_groups -asynchronous \
 set_case_analysis 1 [get_pins {U_Core/U_Clk/U_BUFGMUX_0/S}]
 set_case_analysis 1 [get_pins {U_Core/U_Clk/U_BUFGMUX_1/S}]    
 
-# set_property IODELAY_GROUP xapp_idelay [get_cells U_Core/U_IDELAYCTRL]
-# set_property IODELAY_GROUP xapp_idelay [get_cells U_Core/GEN_VEC[*].U_RxPhy/U_RxPhy/U_RxPhyLayer/GEN_LANE[*].U_Rx/custom_serdes.IDELAYE2_inst]
+set_property IODELAY_GROUP xapp_idelay [get_cells U_Core/U_IDELAYCTRL]
+set_property IODELAY_GROUP xapp_idelay [get_cells U_Core/GEN_VEC[*].U_RxPhy/U_RxPhy/U_RxPhyLayer/GEN_LANE[*].U_Rx/xapp1017_serdes.serdes_cmp/loop0[0].idelay_m]
+set_property IODELAY_GROUP xapp_idelay [get_cells U_Core/GEN_VEC[*].U_RxPhy/U_RxPhy/U_RxPhyLayer/GEN_LANE[*].U_Rx/xapp1017_serdes.serdes_cmp/loop0[0].idelay_s]
