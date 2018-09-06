@@ -64,7 +64,7 @@ begin
             -- FIFO configurations
             SYNTH_MODE_G        => SYNTH_MODE_G,
             MEMORY_TYPE_G       => "block",
-            GEN_SYNC_FIFO_G     => true,
+            GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 9,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
