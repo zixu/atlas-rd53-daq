@@ -222,5 +222,13 @@ class Top(pr.Root):
                 expand  = False,
             )) 
             
+        self.add(common.Timing(
+            name        = 'Timing', 
+            description = 'This device monitors the TLU and timing/trigger emulator', 
+            memBase     = memMap, 
+            offset      = 0x05000000, 
+            expand      = False,
+        ))            
+            
         ######################################################################
         

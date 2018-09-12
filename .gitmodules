@@ -13,3 +13,6 @@
 [submodule "firmware/submodules/Yarr-fw"]
 	path = firmware/submodules/Yarr-fw
 	url = https://github.com/ruck314/Yarr-fw
+[submodule "firmware/submodules/HomebrewAurora"]
+	path = firmware/submodules/HomebrewAurora
+	url = https://github.com/ruck314/HomebrewAurora

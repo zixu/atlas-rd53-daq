@@ -8,9 +8,10 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from common.Ntc      import *
-from common.Pcie     import *
-from common.RxPhy    import *
-from common.RxPhyMon import *
-from common.SysReg   import *
-from common.Top      import *
+from common.Ntc       import *
+from common.Pcie      import *
+from common.RxPhy     import *
+from common.RxPhyMon  import *
+from common.SysReg    import *
+from common.Top       import *
+from common.Timing    import *

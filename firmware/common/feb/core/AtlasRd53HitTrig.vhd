@@ -2,7 +2,7 @@
 -- File       : AtlasRd53HitTrig.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-05-25
+-- Last update: 2018-08-21
 -------------------------------------------------------------------------------
 -- Description: Hit/Trig Module
 -------------------------------------------------------------------------------
@@ -17,11 +17,11 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
 use work.AtlasRd53Pkg.all;
 
 library unisim;
@@ -68,6 +68,41 @@ end AtlasRd53HitTrig;
 
 architecture mapping of AtlasRd53HitTrig is
 
+   constant ADDR_WIDTH_C : positive := 10;
+
+   constant NUM_AXIL_MASTERS_C : natural := 3;
+
+   constant LUT0_INDEX_C : natural := 0;
+   constant LUT1_INDEX_C : natural := 1;
+   constant FSM_INDEX_C  : natural := 2;
+
+   constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
+      LUT0_INDEX_C    => (
+         baseAddr     => AXI_BASE_ADDR_G+ x"0000_0000",
+         addrBits     => 16,
+         connectivity => x"FFFF"),
+      LUT1_INDEX_C    => (
+         baseAddr     => AXI_BASE_ADDR_G+ x"0001_0000",
+         addrBits     => 16,
+         connectivity => x"FFFF"),
+      FSM_INDEX_C     => (
+         baseAddr     => AXI_BASE_ADDR_G + x"0002_0000",
+         addrBits     => 16,
+         connectivity => x"FFFF"));
+
+   signal regWriteMaster : AxiLiteWriteMasterType;
+   signal regWriteSlave  : AxiLiteWriteSlaveType;
+   signal regReadMaster  : AxiLiteReadMasterType;
+   signal regReadSlave   : AxiLiteReadSlaveType;
+
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+
+   signal ramAddr : slv(ADDR_WIDTH_C-1 downto 0);
+   signal ramData : Slv32Array(1 downto 0);
+
    signal dPortHit  : Slv4Array(3 downto 0);
    signal trigIn    : sl;
    signal tluInt    : sl;
@@ -78,7 +113,103 @@ architecture mapping of AtlasRd53HitTrig is
 
 begin
 
+   ----------------------------------------
+   -- Sync AXI-Lite to 160 MHz clock domain
+   ----------------------------------------
+   U_AxiLiteAsync : entity work.AxiLiteAsync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Slave Port
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMaster,
+         sAxiReadSlave   => axilReadSlave,
+         sAxiWriteMaster => axilWriteMaster,
+         sAxiWriteSlave  => axilWriteSlave,
+         -- Master Port
+         mAxiClk         => clk160MHz,
+         mAxiClkRst      => rst160MHz,
+         mAxiReadMaster  => regReadMaster,
+         mAxiReadSlave   => regReadSlave,
+         mAxiWriteMaster => regWriteMaster,
+         mAxiWriteSlave  => regWriteSlave);
+
+   --------------------------
+   -- AXI-Lite: Crossbar Core
+   --------------------------  
+   U_XBAR : entity work.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => XBAR_CONFIG_C)
+      port map (
+         axiClk              => clk160MHz,
+         axiClkRst           => rst160MHz,
+         sAxiWriteMasters(0) => regWriteMaster,
+         sAxiWriteSlaves(0)  => regWriteSlave,
+         sAxiReadMasters(0)  => regReadMaster,
+         sAxiReadSlaves(0)   => regReadSlave,
+         mAxiWriteMasters    => axilWriteMasters,
+         mAxiWriteSlaves     => axilWriteSlaves,
+         mAxiReadMasters     => axilReadMasters,
+         mAxiReadSlaves      => axilReadSlaves);
+
+   -------------------------------------       
+   -- AXI-Lite: BRAM bit Pattern storage
+   -------------------------------------       
+   GEN_VEC : for i in 1 downto 0 generate
+      U_BRAM : entity work.AxiDualPortRam
+         generic map (
+            TPD_G            => TPD_G,
+            MEMORY_TYPE_G    => "block",
+            REG_EN_G         => false,
+            AXI_WR_EN_G      => true,
+            SYS_WR_EN_G      => false,
+            SYS_BYTE_WR_EN_G => false,
+            COMMON_CLK_G     => true,
+            ADDR_WIDTH_G     => ADDR_WIDTH_C,
+            DATA_WIDTH_G     => 32)
+         port map (
+            -- Axi Port
+            axiClk         => clk160MHz,
+            axiRst         => rst160MHz,
+            axiReadMaster  => axilReadMasters(i),
+            axiReadSlave   => axilReadSlaves(i),
+            axiWriteMaster => axilWriteMasters(i),
+            axiWriteSlave  => axilWriteSlaves(i),
+            -- Standard Port
+            clk            => clk160MHz,
+            addr           => ramAddr,
+            dout           => ramData(i));
+   end generate GEN_VEC;
+
+   --------------------------------
+   -- FSM for reading out the BRAMs
+   --------------------------------
+   U_FSM : entity work.AtlasRd53EmuTrigTiming
+      generic map (
+         TPD_G        => TPD_G,
+         ADDR_WIDTH_G => ADDR_WIDTH_C)
+      port map (
+         -- Clock and reset
+         clk            => clk160MHz,
+         rst            => rst160MHz,
+         -- AXI-Lite Interface
+         axilReadMaster  => axilReadMasters(FSM_INDEX_C),
+         axilReadSlave   => axilReadSlaves(FSM_INDEX_C),
+         axilWriteMaster => axilWriteMasters(FSM_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(FSM_INDEX_C),
+         -- RAM Interface
+         ramAddr        => ramAddr,
+         ramData        => ramData,
+         -- Timing/Trigger Interface
+         ttc            => ttc);
+
+   ------------------------------
    -- Placeholder for future code
+   ------------------------------
    trigIn    <= not(trigInL);
    hitIn     <= not(hitInL);
    hitOut    <= '0';
@@ -118,10 +249,5 @@ begin
          I  => tluBsy,                  -- Place holder for future code
          O  => tluBsyP,
          OB => tluBsyN);
-
-   -- Place holder for future code
-   axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-   ttc            <= RD53_FEB_TIMING_TRIG_INIT_C;
 
 end mapping;

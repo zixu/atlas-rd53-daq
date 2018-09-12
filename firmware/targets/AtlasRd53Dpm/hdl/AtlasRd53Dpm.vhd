@@ -94,8 +94,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          BUILD_INFO_G   => BUILD_INFO_G,
-         RCE_DMA_MODE_G => RCE_DMA_AXISV2_C,  -- AXIS V2 Driver
-         ETH_10G_EN_G   => false)             -- 1 GbE
+         RCE_DMA_MODE_G => RCE_DMA_AXISV2_C,  -- AXIS V2 Driver         
+         ETH_TYPE_G     => "ZYNQ-GEM")
       port map (
          -- I2C
          i2cSda             => i2cSda,
