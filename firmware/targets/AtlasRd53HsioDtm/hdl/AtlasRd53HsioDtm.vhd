@@ -23,11 +23,14 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.RceG3Pkg.all;
 
+library UNISIM;
+use UNISIM.VCOMPONENTS.all;
+
 entity AtlasRd53HsioDtm is
    generic (
       TPD_G          : time   := 1 ns;
       DEBUG_DMA_CH_G : string := "loopback";
-      -- DEBUG_DMA_CH_G : string  := "PGPv3";
+      --DEBUG_DMA_CH_G : string  := "PGPv3";
       BUILD_INFO_G   : BuildInfoType);
    port (
       -- Debug
