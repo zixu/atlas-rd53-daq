@@ -123,6 +123,16 @@ class RxPhyMon(pr.Device):
             mode         = 'RW',
         ))        
         
+        for i in range(4):
+            self.add(pr.RemoteVariable(
+                name         = ('RxPhyXbar[%d]'%i), 
+                description  = 'RD53 Lane 4:4 lane crossbar configuration',
+                offset       = 0x80C,
+                bitOffset    = (2*i),
+                bitSize      = 2, 
+                mode         = 'RW',
+            ))             
+        
         self.add(pr.RemoteVariable(
             name         = 'RollOverEn', 
             description  = 'Rollover enable for status counters',

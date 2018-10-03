@@ -38,6 +38,7 @@ entity AtlasRd53RxPhy is
       invData         : in  slv(3 downto 0);
       linkUp          : out slv(3 downto 0);
       chBond          : out sl;
+      rxPhyXbar       : in  Slv2Array(3 downto 0);
       -- RD53 ASIC Serial Ports
       dPortDataP      : in  slv(3 downto 0);
       dPortDataN      : in  slv(3 downto 0);
@@ -157,6 +158,7 @@ begin
          invData     => invDataSync,
          linkUp      => linkUp,
          chBond      => chBond,
+         rxPhyXbar   => rxPhyXbar,
          -- AutoReg and Read back Interface
          axisData    => rx,
          autoReadReg => autoReg,
