@@ -2,7 +2,7 @@
 -- File       : AtlasRd53TxCmdWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-31
--- Last update: 2018-07-30
+-- Last update: 2018-10-03
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AtlasRd53TxCmd
 -------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 use work.Pgp3Pkg.all;
 use work.AtlasRd53Pkg.all;
 
@@ -232,6 +233,9 @@ begin
       end if;
       if (mConfigSlave.tReady = '1') then
          v.mConfigMaster.tValid := '0';
+         v.mConfigMaster.tLast  := '0';
+         v.mConfigMaster.tUser  := (others => '0');
+         v.mConfigMaster.tKeep  := x"000F";  -- 32-bit interface
       end if;
 
       -- Check for AXI stream transaction
@@ -243,8 +247,10 @@ begin
          v.wrRegId             := sConfigMaster.tData(28 downto 25);
          v.wrRegAddr           := sConfigMaster.tData(24 downto 16);
          v.wrRegData           := sConfigMaster.tData(15 downto 0);
-         -- Echo back the data
-         v.mConfigMaster       := sConfigMaster;
+         -- Check if ECHO response for write (used for debugging only)
+         if (sConfigMaster.tData(31) = '1') then
+            v.mConfigMaster := sConfigMaster;
+         end if;
       end if;
 
       -- Determine the transaction type
@@ -287,7 +293,7 @@ begin
          ----------------------------------------------------------------------   
          when IDLE_S =>
             -- Check for data
-            if (rdRegMaster.tValid = '1') then
+            if (rdRegMaster.tValid = '1') and (v.mConfigMaster.tValid = '0') then
                -- Accept the data by default
                v.rdRegSlave.tReady := '1';
                -- Check if first frame is AutoRead, second is from a read register command
@@ -316,16 +322,29 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DOUBLE_WD_S =>
-            -- Accept the data
-            v.rdRegSlave.tReady := '1';
-            -- Write the data to RAM
-            v.ramWr             := '1';
-            v.ramAddr           := rdRegMaster.tData(51 downto 42);
-            v.ramDin            := rdRegMaster.tData(41 downto 26);
-            -- Next state
-            v.state             := IDLE_S;
+            if (v.mConfigMaster.tValid = '0') then
+               -- Accept the data
+               v.rdRegSlave.tReady := '1';
+               -- Write the data to RAM
+               v.ramWr             := '1';
+               v.ramAddr           := rdRegMaster.tData(51 downto 42);
+               v.ramDin            := rdRegMaster.tData(41 downto 26);
+               -- Next state
+               v.state             := IDLE_S;
+            end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check for a RAM write
+      if (v.ramWr = '1') then
+         v.mConfigMaster.tValid              := '1';
+         v.mConfigMaster.tLast               := '1';
+         v.mConfigMaster.tUser(SSI_SOF_C)    := '1';
+         v.mConfigMaster.tData(31 downto 30) := "01";  -- Read response marker
+         v.mConfigMaster.tData(29 downto 26) := (others => '0');
+         v.mConfigMaster.tData(25 downto 16) := v.ramAddr;
+         v.mConfigMaster.tData(15 downto 0)  := v.ramDin;
+      end if;
 
       -- Combinatorial Outputs
       rdRegSlave   <= v.rdRegSlave;

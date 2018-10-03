@@ -2,7 +2,7 @@
 -- File       : AuroraRxChannel.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-07-13
--- Last update: 2018-07-19
+-- Last update: 2018-10-03
 -------------------------------------------------------------------------------
 -- Description: Wrapper for aurora_rx_lane
 -------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ entity AuroraRxChannel is
       invData     : in  slv(3 downto 0);
       linkUp      : out slv(3 downto 0);
       chBond      : out sl;
+      rxPhyXbar   : in  Slv2Array(3 downto 0);
       -- AutoReg and Read back Interface
       axisData    : out AxiStreamMasterType;
       autoReadReg : out Slv32Array(3 downto 0);
@@ -83,6 +84,11 @@ architecture rtl of AuroraRxChannel is
    signal rxData   : Slv64Array(3 downto 0) := (others => (others => '0'));
    signal rxStatus : Slv8Array(3 downto 0)  := (others => (others => '0'));
 
+   signal rxValidOut  : slv(3 downto 0)        := (others => '0');
+   signal rxHeaderOut : Slv2Array(3 downto 0)  := (others => (others => '0'));
+   signal rxDataOut   : Slv64Array(3 downto 0) := (others => (others => '0'));
+   signal rxStatusOut : Slv8Array(3 downto 0)  := (others => (others => '0'));
+
    signal valid  : slv(3 downto 0)        := (others => '0');
    signal afull  : slv(3 downto 0)        := (others => '0');
    signal rdEn   : slv(3 downto 0)        := (others => '0');
@@ -117,10 +123,21 @@ begin
             rx_data_i_p  => dPortDataP(i),
             rx_data_i_n  => dPortDataN(i),
             inv_rx_data  => invData(i),
-            rx_data_o    => rxData(i),
-            rx_header_o  => rxHeader(i),
-            rx_valid_o   => rxValid(i),
-            rx_stat_o    => rxStatus(i));
+            rx_data_o    => rxDataOut(i),
+            rx_header_o  => rxHeaderOut(i),
+            rx_valid_o   => rxValidOut(i),
+            rx_stat_o    => rxStatusOut(i));
+
+      -- Crossbar Switch
+      process(clk160MHz)
+      begin
+         if rising_edge(clk160MHz) then
+            rxData(i)   <= rxDataOut(conv_integer(rxPhyXbar(i)))   after TPD_G;
+            rxHeader(i) <= rxHeaderOut(conv_integer(rxPhyXbar(i))) after TPD_G;
+            rxValid(i)  <= rxValidOut(conv_integer(rxPhyXbar(i)))  after TPD_G;
+            rxStatus(i) <= rxStatusOut(conv_integer(rxPhyXbar(i))) after TPD_G;
+         end if;
+      end process;
 
       U_Fifo : entity work.Fifo
          generic map (

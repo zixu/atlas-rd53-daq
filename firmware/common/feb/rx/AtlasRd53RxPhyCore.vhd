@@ -93,6 +93,7 @@ architecture mapping of AtlasRd53RxPhyCore is
 
    signal enable : slv(3 downto 0);
    signal linkUp : slv(3 downto 0);
+   signal rxPhyXbar       : Slv2Array(3 downto 0);
    signal chBond : sl;
 
    signal invData : slv(3 downto 0);
@@ -152,6 +153,7 @@ begin
          invCmd          => invCmd,
          linkUp          => linkUp,
          chBond          => chBond,
+         rxPhyXbar       => rxPhyXbar,
          -- RD53 ASIC Serial Ports
          dPortDataP      => dPortDataP,
          dPortDataN      => dPortDataN,
@@ -221,6 +223,7 @@ begin
          invCmd          => invCmd,
          linkUp          => linkUp,
          chBond          => chBond,
+         rxPhyXbar       => rxPhyXbar,
          -- AXI-Lite Interface
          axilClk         => axilClk,
          axilRst         => axilRst,
