@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhyCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-07-30
+-- Last update: 2018-10-04
 -------------------------------------------------------------------------------
 -- Description: RX PHY Core module
 -------------------------------------------------------------------------------
@@ -91,10 +91,11 @@ architecture mapping of AtlasRd53RxPhyCore is
    signal dataDrop : sl;
    signal timedOut : sl;
 
-   signal enable : slv(3 downto 0);
-   signal linkUp : slv(3 downto 0);
-   signal rxPhyXbar       : Slv2Array(3 downto 0);
-   signal chBond : sl;
+   signal enable      : slv(3 downto 0);
+   signal linkUp      : slv(3 downto 0);
+   signal rxPhyXbar   : Slv2Array(3 downto 0);
+   signal chBond      : sl;
+   signal debugStream : sl;
 
    signal invData : slv(3 downto 0);
    signal invCmd  : sl;
@@ -154,6 +155,7 @@ begin
          linkUp          => linkUp,
          chBond          => chBond,
          rxPhyXbar       => rxPhyXbar,
+         debugStream     => debugStream,
          -- RD53 ASIC Serial Ports
          dPortDataP      => dPortDataP,
          dPortDataN      => dPortDataN,
@@ -224,6 +226,7 @@ begin
          linkUp          => linkUp,
          chBond          => chBond,
          rxPhyXbar       => rxPhyXbar,
+         debugStream     => debugStream,
          -- AXI-Lite Interface
          axilClk         => axilClk,
          axilRst         => axilRst,

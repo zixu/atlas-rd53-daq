@@ -239,17 +239,28 @@ begin
       end if;
 
       -- Check for AXI stream transaction
-      if (sConfigMaster.tValid = '1') and (v.mConfigMaster.tValid = '0') and (v.wrValid = '0') then
+      if (sConfigMaster.tValid = '1') and (v.mConfigMaster.tValid = '0') and (v.wrValid = '0') and (v.rdValid = '0') then
          -- Accept the data 
          v.sConfigSlave.tReady := '1';
-         -- Write data to the CMD sequencer 
-         v.wrValid             := '1';
-         v.wrRegId             := sConfigMaster.tData(28 downto 25);
-         v.wrRegAddr           := sConfigMaster.tData(24 downto 16);
-         v.wrRegData           := sConfigMaster.tData(15 downto 0);
-         -- Check if ECHO response for write (used for debugging only)
-         if (sConfigMaster.tData(31) = '1') then
-            v.mConfigMaster := sConfigMaster;
+         -- Check for a 32-bit transaction
+         if (sConfigMaster.tKeep(3 downto 0) = x"F") then
+            -- Check if ECHO response for write (used for debugging only)
+            if (sConfigMaster.tData(31) = '1') then
+               v.mConfigMaster := sConfigMaster;
+            end if;
+            -- Check the R/W bit
+            if (sConfigMaster.tData(30) = '1') then
+               -- Read data from the CMD sequencer 
+               v.rdValid             := '1';
+               v.rdRegId             := sConfigMaster.tData(28 downto 25);
+               v.rdRegAddr           := sConfigMaster.tData(24 downto 16);   
+            else
+               -- Write data to the CMD sequencer 
+               v.wrValid             := '1';
+               v.wrRegId             := sConfigMaster.tData(28 downto 25);
+               v.wrRegAddr           := sConfigMaster.tData(24 downto 16);
+               v.wrRegData           := sConfigMaster.tData(15 downto 0);
+            end if;
          end if;
       end if;
 

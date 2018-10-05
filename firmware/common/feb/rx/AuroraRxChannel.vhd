@@ -2,7 +2,7 @@
 -- File       : AuroraRxChannel.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-07-13
--- Last update: 2018-10-03
+-- Last update: 2018-10-04
 -------------------------------------------------------------------------------
 -- Description: Wrapper for aurora_rx_lane
 -------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ entity AuroraRxChannel is
       linkUp      : out slv(3 downto 0);
       chBond      : out sl;
       rxPhyXbar   : in  Slv2Array(3 downto 0);
+      debugStream : in  sl;
       -- AutoReg and Read back Interface
       axisData    : out AxiStreamMasterType;
       autoReadReg : out Slv32Array(3 downto 0);
@@ -181,7 +182,8 @@ begin
          autoReadReg => autoReadReg,
          rdReg       => rdReg);
 
-   comb : process (afull, data, enable, header, r, rst160MHz, rxStatus, valid) is
+   comb : process (afull, data, debugStream, enable, header, r, rst160MHz,
+                   rxStatus, valid) is
       variable v      : RegType;
       variable i      : natural;
       variable phyRdy : sl;
@@ -257,6 +259,14 @@ begin
                   v.axisData.tValid              := r.enable(r.cnt);
                   v.axisData.tData(63 downto 32) := x"FFFF_FFFF";
                   v.axisData.tData(31 downto 0)  := data(r.cnt)(31 downto 0);
+               -- Check for debugging streaming mode
+               elsif (debugStream = '1') and (header(r.cnt) = "10") and (
+                  (data(r.cnt)(63 downto 56) = x"B4") or  -- both register fields are of type AutoRead
+                  (data(r.cnt)(63 downto 56) = x"55") or  -- first frame is AutoRead, second is from a read register command
+                  (data(r.cnt)(63 downto 56) = x"99") or  -- first is from a read register command, second frame is AutoRead
+                  (data(r.cnt)(63 downto 56) = x"D2")) then  -- both register fields are from read register commands
+                  v.axisData.tValid             := r.enable(r.cnt);
+                  v.axisData.tData(63 downto 0) := data(r.cnt);
                end if;
                -- Increment the counter
                if r.cnt = 3 then
