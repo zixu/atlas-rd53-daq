@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-18
--- Last update: 2018-07-30
+-- Last update: 2018-10-04
 -------------------------------------------------------------------------------
 -- Description: RX PHY Module
 -------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ entity AtlasRd53RxPhy is
       linkUp          : out slv(3 downto 0);
       chBond          : out sl;
       rxPhyXbar       : in  Slv2Array(3 downto 0);
+      debugStream     : in  sl;
       -- RD53 ASIC Serial Ports
       dPortDataP      : in  slv(3 downto 0);
       dPortDataN      : in  slv(3 downto 0);
@@ -159,6 +160,7 @@ begin
          linkUp      => linkUp,
          chBond      => chBond,
          rxPhyXbar   => rxPhyXbar,
+         debugStream => debugStream,
          -- AutoReg and Read back Interface
          axisData    => rx,
          autoReadReg => autoReg,

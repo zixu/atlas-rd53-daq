@@ -2,7 +2,7 @@
 -- File       : AtlasRd53RxPhyMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-05-07
--- Last update: 2018-07-19
+-- Last update: 2018-10-04
 -------------------------------------------------------------------------------
 -- Description: Monitor the RX PHY status signals
 -------------------------------------------------------------------------------
@@ -37,7 +37,8 @@ entity AtlasRd53RxPhyMon is
       invCmd          : out sl;
       linkUp          : in  slv(3 downto 0);
       chBond          : in  sl;
-      rxPhyXbar       : out  Slv2Array(3 downto 0);
+      rxPhyXbar       : out Slv2Array(3 downto 0);
+      debugStream     : out sl;
       -- AXI-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -52,6 +53,7 @@ architecture rtl of AtlasRd53RxPhyMon is
    constant STATUS_SIZE_C : positive := 7;
 
    type RegType is record
+      debugStream    : sl;
       rxPhyXbar      : Slv2Array(3 downto 0);
       invData        : slv(3 downto 0);
       invCmd         : sl;
@@ -63,7 +65,8 @@ architecture rtl of AtlasRd53RxPhyMon is
    end record;
 
    constant REG_INIT_C : RegType := (
-      rxPhyXbar      => (0=>"00",1=>"01",2=>"10",3=>"11"),
+      debugStream    => '0',
+      rxPhyXbar      => (0 => "00", 1 => "01", 2 => "10", 3 => "11"),
       invData        => (others => '1'),  -- Invert by default
       invCmd         => '0',
       cntRst         => '1',
@@ -113,11 +116,13 @@ begin
       axiSlaveRegister(regCon, x"800", 0, v.enable);
       axiSlaveRegister(regCon, x"804", 0, v.invData);
       axiSlaveRegister(regCon, x"808", 0, v.invCmd);
-      
+
       axiSlaveRegister(regCon, x"80C", 0, v.rxPhyXbar(0));
       axiSlaveRegister(regCon, x"80C", 2, v.rxPhyXbar(1));
       axiSlaveRegister(regCon, x"80C", 4, v.rxPhyXbar(2));
       axiSlaveRegister(regCon, x"80C", 6, v.rxPhyXbar(3));
+
+      axiSlaveRegister(regCon, x"810", 0, v.debugStream);
 
       axiSlaveRegister(regCon, x"FF8", 0, v.rollOverEn);
       axiSlaveRegister(regCon, x"FFC", 0, v.cntRst);
@@ -140,6 +145,7 @@ begin
       invData        <= r.invData;
       invCmd         <= r.invCmd;
       rxPhyXbar      <= r.rxPhyXbar;
+      debugStream    <= r.debugStream;
 
    end process comb;
 

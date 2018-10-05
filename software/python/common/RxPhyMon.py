@@ -134,6 +134,14 @@ class RxPhyMon(pr.Device):
             ))             
         
         self.add(pr.RemoteVariable(
+            name         = 'DebugStream', 
+            description  = 'Enables the interleaving of autoreg and read responses into the dataStream path',
+            offset       = 0x810,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))         
+        
+        self.add(pr.RemoteVariable(
             name         = 'RollOverEn', 
             description  = 'Rollover enable for status counters',
             offset       = 0xFF8,
