@@ -10,13 +10,12 @@
 ##############################################################################
 
 import pyrogue as pr
-import surf.misc as misc
 
 class TimingEmu(pr.Device):
     def __init__(   self,       
         name        = "Timing",
         description = "Container for TimingEmu FSM registers",
-        ADDR_WIDTH_G = 10,
+        ADDR_WIDTH_G = 8,
         **kwargs):
         
         super().__init__(name=name,description=description,**kwargs)
@@ -35,7 +34,6 @@ class TimingEmu(pr.Device):
             offset       = 0x20004,
             bitSize      = 1, 
             mode         = 'RW',
-            base         = pr.UInt,
         )) 
         
         self.add(pr.RemoteVariable(
@@ -44,7 +42,6 @@ class TimingEmu(pr.Device):
             offset       = 0x20008,
             bitSize      = ADDR_WIDTH_G, 
             mode         = 'RW',
-            base         = pr.UInt,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -53,125 +50,115 @@ class TimingEmu(pr.Device):
             offset       = 0x2000C,
             bitSize      = 16, 
             mode         = 'RW',
-            base         = pr.UInt,
         ))         
         
-        # self.add(misc.GenericMemory(      
-            # name        = 'LutCalDat', 
-            # description = 'v.ttc.calDat     := ramData(0)(15 downto 0);', 
-            # offset      = 0x00000, 
-            # expand      = False,
-            # nelms       =  2**ADDR_WIDTH_G, 
-            # bitSize     =  16, 
-            # bitOffset   =  0, 
-            # stride      =  4,
-            # mode        = "RW", 
-            # base         = pr.UInt,
-        # )) 
+        self.addRemoteVariables(       
+            name        = 'LutCalDat', 
+            description = 'v.ttc.calDat     := ramData(0)(15 downto 0);', 
+            offset      = 0x00000, 
+            number      =  2**ADDR_WIDTH_G, 
+            bitSize     =  16, 
+            bitOffset   =  0, 
+            stride      =  4,
+            mode        = "RW", 
+            hidden      = True,
+        ) 
 
-        # self.add(misc.GenericMemory(      
-            # name        = 'LutCalId', 
-            # description = 'v.ttc.calId      := ramData(0)(19 downto 16);', 
-            # offset      = 0x00000, 
-            # expand      = False,
-            # nelms       =  2**ADDR_WIDTH_G, 
-            # bitSize     =  4, 
-            # bitOffset   =  16, 
-            # stride      =  4,
-            # mode        = "RW", 
-            # base         = pr.UInt,
-        # ))
+        self.addRemoteVariables(       
+            name        = 'LutCalId', 
+            description = 'v.ttc.calId      := ramData(0)(19 downto 16);', 
+            offset      = 0x00000, 
+            number      =  2**ADDR_WIDTH_G, 
+            bitSize     =  4, 
+            bitOffset   =  16, 
+            stride      =  4,
+            mode        = "RW", 
+            hidden      = True,
+        )
 
-        # self.add(misc.GenericMemory(      
-            # name        = 'LutCal', 
-            # description = 'v.ttc.cal        := ramData(0)(20);', 
-            # offset      = 0x00000, 
-            # expand      = False,
-            # nelms       =  2**ADDR_WIDTH_G, 
-            # bitSize     =  1, 
-            # bitOffset   =  20, 
-            # stride      =  4,
-            # mode        = "RW", 
-            # base         = pr.UInt,
-        # )) 
+        self.addRemoteVariables(       
+            name        = 'LutCal', 
+            description = 'v.ttc.cal        := ramData(0)(20);', 
+            offset      = 0x00000, 
+            number      =  2**ADDR_WIDTH_G, 
+            bitSize     =  1, 
+            bitOffset   =  20, 
+            stride      =  4,
+            mode        = "RW", 
+            hidden      = True,
+        ) 
 
-        # self.add(misc.GenericMemory(      
-            # name        = 'LutGPulseData', 
-            # description = 'v.ttc.gPulseData := ramData(1)(3 downto 0);', 
-            # offset      = 0x10000, 
-            # expand      = False,
-            # nelms       =  2**ADDR_WIDTH_G, 
-            # bitSize     =  4, 
-            # bitOffset   =  0, 
-            # stride      =  4,
-            # mode        = "RW", 
-            # base         = pr.UInt,
-        # )) 
+        self.addRemoteVariables(       
+            name        = 'LutGPulseData', 
+            description = 'v.ttc.gPulseData := ramData(1)(3 downto 0);', 
+            offset      = 0x10000, 
+            number      =  2**ADDR_WIDTH_G, 
+            bitSize     =  4, 
+            bitOffset   =  0, 
+            stride      =  4,
+            mode        = "RW", 
+            hidden      = True,
+        ) 
 
-        # self.add(misc.GenericMemory(      
-            # name        = 'LutGPulseId', 
-            # description = 'v.ttc.gPulseId   := ramData(1)(7 downto 4);', 
-            # offset      = 0x10000, 
-            # expand      = False,
-            # nelms       =  2**ADDR_WIDTH_G, 
-            # bitSize     =  4, 
-            # bitOffset   =  4, 
-            # stride      =  4,
-            # mode        = "RW", 
-            # base         = pr.UInt,
-        # ))
+        self.addRemoteVariables(       
+            name        = 'LutGPulseId', 
+            description = 'v.ttc.gPulseId   := ramData(1)(7 downto 4);', 
+            offset      = 0x10000, 
+            number      =  2**ADDR_WIDTH_G, 
+            bitSize     =  4, 
+            bitOffset   =  4, 
+            stride      =  4,
+            mode        = "RW", 
+            hidden      = True,
+        )
 
-        # self.add(misc.GenericMemory(      
-            # name        = 'LutGPulse', 
-            # description = 'v.ttc.gPulse     := ramData(1)(8);', 
-            # offset      = 0x10000, 
-            # expand      = False,
-            # nelms       =  2**ADDR_WIDTH_G, 
-            # bitSize     =  1, 
-            # bitOffset   =  8, 
-            # stride      =  4,
-            # mode        = "RW", 
-            # base         = pr.UInt,
-        # )) 
+        self.addRemoteVariables(       
+            name        = 'LutGPulse', 
+            description = 'v.ttc.gPulse     := ramData(1)(8);', 
+            offset      = 0x10000, 
+            number      =  2**ADDR_WIDTH_G, 
+            bitSize     =  1, 
+            bitOffset   =  8, 
+            stride      =  4,
+            mode        = "RW", 
+            hidden      = True,
+        ) 
 
-        self.add(misc.GenericMemory(      
+        self.addRemoteVariables(       
             name        = 'LutBcr', 
             description = 'v.ttc.bcr        := ramData(1)(9);', 
             offset      = 0x10000, 
-            expand      = False,
-            nelms       =  2**ADDR_WIDTH_G, 
+            number      =  2**ADDR_WIDTH_G, 
             bitSize     =  1, 
             bitOffset   =  9, 
             stride      =  4,
             mode        = "RW", 
-            base         = pr.UInt,
-        ))   
+            hidden      = True,
+        )
 
-        self.add(misc.GenericMemory(      
+        self.addRemoteVariables(       
             name        = 'LutEcr', 
             description = 'v.ttc.ecr        := ramData(1)(10);', 
             offset      = 0x10000, 
-            expand      = False,
-            nelms       =  2**ADDR_WIDTH_G, 
+            number      =  2**ADDR_WIDTH_G, 
             bitSize     =  1, 
             bitOffset   =  10, 
             stride      =  4,
             mode        = "RW", 
-            base         = pr.UInt,
-        )) 
+            hidden      = True,
+        )
 
-        self.add(misc.GenericMemory(      
+        self.addRemoteVariables(       
             name        = 'LutTrig', 
             description = 'v.ttc.trig       := ramData(1)(11);', 
             offset      = 0x10000, 
-            expand      = False,
-            nelms       =  2**ADDR_WIDTH_G, 
+            number      =  2**ADDR_WIDTH_G, 
             bitSize     =  1, 
             bitOffset   =  11, 
             stride      =  4,
             mode        = "RW", 
-            base         = pr.UInt,
-        ))         
+            hidden      = True,
+        )  
         
 class Timing(pr.Device):
     def __init__(   self,       
@@ -185,6 +172,6 @@ class Timing(pr.Device):
             name         = 'TimingEmu', 
             offset       = 0x00000000, 
             expand       = False,
-            ADDR_WIDTH_G = 10,
+            ADDR_WIDTH_G = 8,
         ))        
       

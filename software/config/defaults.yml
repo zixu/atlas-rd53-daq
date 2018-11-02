@@ -88,8 +88,7 @@ Top:
     CDR_PD_DEL: 8
     CDR_EN_GCK2: 0
     CDR_VCO_GAIN: 3
-    # CDR_SEL_SER_CLK: 3 # Default 0 = 1.28 GHz from PLL (3 = 160 Mbps/lane)
-    CDR_SEL_SER_CLK: 0 # Default 0 = 1.28 GHz from PLL
+    CDR_SEL_SER_CLK: 3 # Default 0 = 1.28 GHz from PLL (3 = 160 Mbps/lane)
     VCO_BUFF_BIAS: 400
     CDR_CP_IBIAS: 50
     VCO_IBIAS: 500
@@ -142,4 +141,5 @@ Top:
     AI_PIX_ROW: 0 
     HitOr_Cnt[:]: 0 
     SKP_TRIG_CNT: 0 
-    ERR_MASK: 0 
+    ERR_MASK: 0
+    

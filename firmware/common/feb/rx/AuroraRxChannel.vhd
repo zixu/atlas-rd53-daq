@@ -115,8 +115,11 @@ begin
    GEN_LANE : for i in 3 downto 0 generate
 
       linkUp(i) <= rxStatus(i)(1);
-
+      
       U_Rx : entity work.aurora_rx_lane
+         generic map (
+            g_SERDES_TYPE => "CUSTOM")
+         -- g_SERDES_TYPE => "XAPP1017") 
          port map (
             rst_n_i      => rst160MHzL,
             clk_rx_i     => clk160MHz,
@@ -127,7 +130,7 @@ begin
             rx_data_o    => rxDataOut(i),
             rx_header_o  => rxHeaderOut(i),
             rx_valid_o   => rxValidOut(i),
-            rx_stat_o    => rxStatusOut(i));
+            rx_stat_o    => rxStatusOut(i));      
 
       -- Crossbar Switch
       process(clk160MHz)
