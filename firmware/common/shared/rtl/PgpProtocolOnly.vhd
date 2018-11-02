@@ -92,8 +92,6 @@ begin
          -- Tx PHY interface
          phyTxActive     => '1',
          phyTxReady      => '1',
-         phyTxStart      => open,
-         phyTxSequence   => open,
          phyTxData       => phyData,
          phyTxHeader     => phyHeader,
          -- Rx User interface
