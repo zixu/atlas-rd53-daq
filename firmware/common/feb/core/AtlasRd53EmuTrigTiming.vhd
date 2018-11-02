@@ -27,7 +27,7 @@ use work.AtlasRd53Pkg.all;
 entity AtlasRd53EmuTrigTiming is
    generic (
       TPD_G        : time     := 1 ns;
-      ADDR_WIDTH_G : positive := 10);
+      ADDR_WIDTH_G : positive := 8);
    port (
       -- Clock and reset
       clk             : in  sl;

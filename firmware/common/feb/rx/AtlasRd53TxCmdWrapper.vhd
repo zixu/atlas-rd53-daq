@@ -235,7 +235,7 @@ begin
          v.mConfigMaster.tValid := '0';
          v.mConfigMaster.tLast  := '0';
          v.mConfigMaster.tUser  := (others => '0');
-         v.mConfigMaster.tKeep  := x"000F";  -- 32-bit interface
+         v.mConfigMaster.tKeep  := resize(x"F",AXI_STREAM_MAX_TKEEP_WIDTH_C);  -- 32-bit interface
       end if;
 
       -- Check for AXI stream transaction

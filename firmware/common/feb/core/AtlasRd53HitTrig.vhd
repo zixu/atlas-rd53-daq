@@ -68,7 +68,7 @@ end AtlasRd53HitTrig;
 
 architecture mapping of AtlasRd53HitTrig is
 
-   constant ADDR_WIDTH_C : positive := 10;
+   constant ADDR_WIDTH_C : positive := 8;
 
    constant NUM_AXIL_MASTERS_C : natural := 3;
 

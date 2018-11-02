@@ -23,6 +23,7 @@ use work.AxiPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiPciePkg.all;
+use work.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -58,8 +59,6 @@ entity AtlasRd53Kcu1500 is
       emcClk       : in    sl;
       userClkP     : in    sl;
       userClkN     : in    sl;
-      swDip        : in    slv(3 downto 0);
-      led          : out   slv(7 downto 0);
       -- QSFP[0] Ports
       qsfp0RstL    : out   sl;
       qsfp0LpMode  : out   sl;
@@ -76,11 +75,6 @@ entity AtlasRd53Kcu1500 is
       flashMiso    : in    sl;
       flashHoldL   : out   sl;
       flashWp      : out   sl;
-      -- DDR Ports
-      ddrClkP      : in    slv(3 downto 0);
-      ddrClkN      : in    slv(3 downto 0);
-      ddrOut       : out   DdrOutArray(3 downto 0);
-      ddrInOut     : inout DdrInOutArray(3 downto 0);
       -- PCIe Ports
       pciRstL      : in    sl;
       pciRefClkP   : in    sl;
@@ -107,12 +101,6 @@ architecture top_level of AtlasRd53Kcu1500 is
    signal dmaIbMasters : AxiStreamMasterArray(7 downto 0);
    signal dmaIbSlaves  : AxiStreamSlaveArray(7 downto 0);
 
-   signal memReady        : slv(3 downto 0);
-   signal memWriteMasters : AxiWriteMasterArray(15 downto 0);
-   signal memWriteSlaves  : AxiWriteSlaveArray(15 downto 0);
-   signal memReadMasters  : AxiReadMasterArray(15 downto 0);
-   signal memReadSlaves   : AxiReadSlaveArray(15 downto 0);
-
 begin
 
    U_axilClk : BUFGCE_DIV
@@ -137,15 +125,15 @@ begin
          TPD_G        => TPD_G,
          BUILD_INFO_G => BUILD_INFO_G,
          SYNTH_MODE_G => SYNTH_MODE_G,
+         DMA_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          DMA_SIZE_G   => 8)
       port map (
          ------------------------      
          --  Top Level Interfaces
          ------------------------        
-         -- System Clock and Reset
-         sysClk          => dmaClk,
-         sysRst          => dmaRst,
          -- DMA Interfaces
+         dmaClk          => dmaClk,
+         dmaRst          => dmaRst,
          dmaObMasters    => dmaObMasters,
          dmaObSlaves     => dmaObSlaves,
          dmaIbMasters    => dmaIbMasters,
@@ -157,12 +145,6 @@ begin
          appReadSlave    => axilReadSlave,
          appWriteMaster  => axilWriteMaster,
          appWriteSlave   => axilWriteSlave,
-         -- Memory bus (sysClk domain)
-         memReady        => memReady,
-         memWriteMasters => memWriteMasters,
-         memWriteSlaves  => memWriteSlaves,
-         memReadMasters  => memReadMasters,
-         memReadSlaves   => memReadSlaves,
          --------------
          --  Core Ports
          --------------   
@@ -170,8 +152,6 @@ begin
          emcClk          => emcClk,
          userClkP        => userClkP,
          userClkN        => userClkN,
-         swDip           => swDip,
-         led             => led,
          -- QSFP[0] Ports
          qsfp0RstL       => qsfp0RstL,
          qsfp0LpMode     => qsfp0LpMode,
@@ -202,10 +182,6 @@ begin
          pciTxP          => pciTxP,
          pciTxN          => pciTxN);
 
-   -- Unused memory signals
-   memWriteMasters <= (others => AXI_WRITE_MASTER_INIT_C);
-   memReadMasters  <= (others => AXI_READ_MASTER_INIT_C);
-
    --------------
    -- PGP Modules
    --------------
@@ -214,7 +190,7 @@ begin
          TPD_G           => TPD_G,
          SYNTH_MODE_G    => SYNTH_MODE_G,
          RATE_G          => "6.25Gbps",
-         AXI_BASE_ADDR_G => BAR0_BASE_ADDR_C)
+         AXI_BASE_ADDR_G => x"0080_0000")
       port map (
          -- QSFP[0] Ports
          qsfp0RefClkP    => qsfp0RefClkP,

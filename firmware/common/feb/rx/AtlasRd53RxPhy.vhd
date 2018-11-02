@@ -84,7 +84,7 @@ architecture mapping of AtlasRd53RxPhy is
       tLast  => '1',                    -- single 64-bit word transactions
       tDest  => (others => '0'),
       tId    => (others => '0'),
-      tUser  => toSlv(2, 128));         -- Set the Start of Frame bit for SSI
+      tUser  => toSlv(2, AXI_STREAM_MAX_TDATA_WIDTH_C));         -- Set the Start of Frame bit for SSI
 
    signal rx      : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
    signal rdReg   : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
