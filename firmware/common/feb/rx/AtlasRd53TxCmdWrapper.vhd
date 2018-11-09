@@ -64,8 +64,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 0,
+         INT_PIPE_STAGES_G   => 1,
+         PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 4090,   -- less than 2**FIFO_ADDR_WIDTH_G
          VALID_BURST_MODE_G  => true,   -- bursting mode enabled
