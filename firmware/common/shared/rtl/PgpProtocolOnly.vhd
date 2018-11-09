@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : PgpProtocolOnly.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-26
--- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -92,8 +90,6 @@ begin
          -- Tx PHY interface
          phyTxActive     => '1',
          phyTxReady      => '1',
-         phyTxStart      => open,
-         phyTxSequence   => open,
          phyTxData       => phyData,
          phyTxHeader     => phyHeader,
          -- Rx User interface

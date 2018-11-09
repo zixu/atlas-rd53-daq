@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : PgpLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-26
--- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -85,7 +83,7 @@ begin
          SYNTH_MODE_G     => SYNTH_MODE_G,
          RATE_G           => RATE_G,
          NUM_VC_G         => NUM_VC_G,
-         AXIL_CLK_FREQ_G  => (SYS_CLK_FREQ_C/2.0),
+         AXIL_CLK_FREQ_G  => (DMA_CLK_FREQ_C/2.0),
          AXIL_BASE_ADDR_G => AXI_BASE_ADDR_G)
       port map (
          -- Stable Clock and Reset
@@ -131,7 +129,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          SYNTH_MODE_G      => SYNTH_MODE_G,
-         DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
+         DMA_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          PGP_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          NUM_VC_G          => NUM_VC_G)
       port map (
@@ -155,7 +153,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          SYNTH_MODE_G      => SYNTH_MODE_G,
-         DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
+         DMA_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          PGP_AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C,
          LANE_G            => LANE_G,
          NUM_VC_G          => NUM_VC_G)

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasRd53RxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-18
--- Last update: 2018-10-04
 -------------------------------------------------------------------------------
 -- Description: RX PHY Module
 -------------------------------------------------------------------------------
@@ -31,7 +29,7 @@ entity AtlasRd53RxPhy is
    port (
       -- Misc. Interfaces
       enLocalEmu      : in  sl;
-      asicRstIn       : in  sl;                       -- TBD interface
+      asicRstIn       : in  sl;         -- TBD interface
       iDelayCtrlRdy   : in  sl;
       invCmd          : in  sl;
       enable          : in  slv(3 downto 0);
@@ -54,14 +52,13 @@ entity AtlasRd53RxPhy is
       rst160MHz       : in  sl;
       rst80MHz        : in  sl;
       rst40MHz        : in  sl;
-      ttc             : in  AtlasRd53TimingTrigType;  -- clk160MHz domain
       -- AXI-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C;
       -- Streaming RD53 Config Interface (clk160MHz domain)
       sConfigMaster   : in  AxiStreamMasterType;
       sConfigSlave    : out AxiStreamSlaveType;
@@ -84,7 +81,7 @@ architecture mapping of AtlasRd53RxPhy is
       tLast  => '1',                    -- single 64-bit word transactions
       tDest  => (others => '0'),
       tId    => (others => '0'),
-      tUser  => toSlv(2, AXI_STREAM_MAX_TDATA_WIDTH_C));         -- Set the Start of Frame bit for SSI
+      tUser  => toSlv(2, AXI_STREAM_MAX_TDATA_WIDTH_C));  -- Set the Start of Frame bit for SSI
 
    signal rx      : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
    signal rdReg   : AxiStreamMasterType    := AXIS_MASTER_INIT_C;
@@ -116,28 +113,22 @@ begin
          TPD_G        => TPD_G,
          SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
-         -- AXI Stream Interface (axilClk domain)
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave,
          -- Streaming RD53 Config Interface (clk160MHz domain)
-         sConfigMaster   => sConfigMaster,
-         sConfigSlave    => sConfigSlave,
-         mConfigMaster   => mConfigMaster,
-         mConfigSlave    => mConfigSlave,
-         -- Timing Interface (clk160MHz domain)
-         clk160MHz       => clk160MHz,
-         rst160MHz       => rst160MHz,
-         ttc             => ttc,
-         -- Read Back Register Interface (clk160MHz domain)
-         rdReg           => rdRegOut,
+         sConfigMaster => sConfigMaster,
+         sConfigSlave  => sConfigSlave,
+         -- Timing Interface
+         clk640MHz     => clk640MHz,
+         clk160MHz     => clk160MHz,
+         clk80MHz      => clk80MHz,
+         clk40MHz      => clk40MHz,
+         rst640MHz     => rst640MHz,
+         rst160MHz     => rst160MHz,
+         rst80MHz      => rst80MHz,
+         rst40MHz      => rst40MHz,
          -- Command Serial Interface (clk160MHz domain)
-         invCmd          => invCmd,
-         cmdOutP         => dPortCmdP,
-         cmdOutN         => dPortCmdN);
+         invCmd        => invCmd,
+         cmdOutP       => dPortCmdP,
+         cmdOutN       => dPortCmdN);
 
    ---------------
    -- RX PHY Layer
@@ -195,9 +186,9 @@ begin
    ----------------------------------------
    -- Mux for selecting RX PHY or emulation
    ----------------------------------------
-   rxOut      <= rx      when(enEmu = '0') else emuRx;
-   rdRegOut   <= rdReg   when(enEmu = '0') else emuRdReg;
-   autoRegOut <= autoReg when(enEmu = '0') else emuAutoRegOut;
+   rxOut         <= rx      when(enEmu = '0') else emuRx;
+   mConfigMaster <= rdReg   when(enEmu = '0') else emuRdReg;
+   autoRegOut    <= autoReg when(enEmu = '0') else emuAutoRegOut;
 
    U_enEmu : entity work.Synchronizer
       generic map (

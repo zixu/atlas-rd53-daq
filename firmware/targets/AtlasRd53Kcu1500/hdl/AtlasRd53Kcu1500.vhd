@@ -168,11 +168,6 @@ begin
          flashMiso       => flashMiso,
          flashHoldL      => flashHoldL,
          flashWp         => flashWp,
-         -- DDR Ports
-         ddrClkP         => ddrClkP,
-         ddrClkN         => ddrClkN,
-         ddrOut          => ddrOut,
-         ddrInOut        => ddrInOut,
          -- PCIe Ports 
          pciRstL         => pciRstL,
          pciRefClkP      => pciRefClkP,

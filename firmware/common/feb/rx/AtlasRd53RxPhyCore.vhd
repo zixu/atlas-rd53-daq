@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasRd53RxPhyCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-18
--- Last update: 2018-10-04
 -------------------------------------------------------------------------------
 -- Description: RX PHY Core module
 -------------------------------------------------------------------------------
@@ -62,7 +60,6 @@ entity AtlasRd53RxPhyCore is
       rst160MHz       : in  sl;
       rst80MHz        : in  sl;
       rst40MHz        : in  sl;
-      ttc             : in  AtlasRd53TimingTrigType;  -- clk160MHz domain
       refClk300MHz    : in  sl;
       -- RD53 ASIC Serial Ports
       dPortDataP      : in  slv(3 downto 0);
@@ -170,7 +167,6 @@ begin
          rst160MHz       => rst160MHz,
          rst80MHz        => rst80MHz,
          rst40MHz        => rst40MHz,
-         ttc             => ttc,
          -- AXI-Lite Interface  (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
