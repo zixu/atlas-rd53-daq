@@ -204,15 +204,7 @@ class Top(pr.Root):
             offset      = 0x00050400, 
             senseRes    = 20.E-3, # Units of Ohms
             expand      = False,
-        ))
-
-        for i in range(4):
-            self.add(common.RxPhy(
-                name    = ('RxPhy[%d]'%i), 
-                memBase = memMap, 
-                offset  = (0x01000000*(i+1)), 
-                expand  = False,
-            ))             
+        ))          
         
         for i in range(4):
             self.add(common.RxPhyMon(

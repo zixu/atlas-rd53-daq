@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasRd53RdReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-05-24
--- Last update: 2018-07-18
 -------------------------------------------------------------------------------
 -- Description: Demux the auto-reg, RdReg and data paths 
 -------------------------------------------------------------------------------
@@ -30,6 +28,7 @@ entity AtlasRd53RdReg is
    generic (
       TPD_G : time := 1 ns);
    port (
+      debugStream : in  sl;
       clk160MHz   : in  sl;
       rst160MHz   : in  sl;
       -- Data Tap Interface
@@ -63,7 +62,8 @@ architecture rtl of AtlasRd53RdReg is
 
 begin
 
-   comb : process (r, rst160MHz, rxData, rxHeader, rxStatus, rxValid) is
+   comb : process (debugStream, r, rst160MHz, rxData, rxHeader, rxStatus,
+                   rxValid) is
       variable v      : RegType;
       variable i      : natural;
       variable opCode : Slv8Array(3 downto 0);
@@ -105,33 +105,23 @@ begin
             elsif (opCode(i) = x"55") then
                v.autoDet                     := '1';
                v.autoReadReg(i)(15 downto 0) := rxData(i)(15 downto 0);
-               -- Check if lane[0] (see note below)
-               if (i = 0) then
+               if (debugStream = '1') then
                   fwdRdReg;
                end if;
             -- First is from a read register command, second frame is AutoRead
             elsif (opCode(i) = x"99") then
                v.autoDet                      := '1';
                v.autoReadReg(i)(31 downto 16) := rxData(i)(41 downto 26);
-               -- Check if lane[0] (see note below)
-               if (i = 0) then
+               if (debugStream = '1') then
                   fwdRdReg;
                end if;
             -- Both register fields are from read register commands
             elsif (opCode(i) = x"D2") then
-               -- Check if lane[0] (see note below)
-               if (i = 0) then
+               if (debugStream = '1') then
                   fwdRdReg;
                end if;
             end if;
          end if;
-      ------------------------------------------------------
-      --                 Note                             --
-      ------------------------------------------------------
-      -- "Lanes 1 to 3 are unaffected by the RdReg command 
-      -- and only output their assigned auto-fill registers"
-      -- So we only check lane[0] for RdReg command read back
-      ------------------------------------------------------
       end loop;
 
       -- Reset

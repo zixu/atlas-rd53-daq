@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasRd53Pgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-08
--- Last update: 2018-07-30
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGPv3 communication
 -------------------------------------------------------------------------------
@@ -226,7 +224,7 @@ begin
             TPD_G               => TPD_G,
             SYNTH_MODE_G        => SYNTH_MODE_G,
             SIMULATION_G        => SIMULATION_G,
-            SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+            SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
          port map (
             -- System Interface (axilClk domain)

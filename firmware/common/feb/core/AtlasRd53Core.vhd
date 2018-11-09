@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasRd53Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-08
--- Last update: 2018-07-30
 -------------------------------------------------------------------------------
 -- Description: AD53 readout core module
 -------------------------------------------------------------------------------
@@ -170,7 +168,6 @@ architecture mapping of AtlasRd53Core is
    signal rst160MHz : sl;
    signal rst80MHz  : sl;
    signal rst40MHz  : sl;
-   signal ttc       : AtlasRd53TimingTrigType;
 
    signal refClk300MHz : sl;
    signal refRst300MHz : sl;
@@ -422,7 +419,6 @@ begin
             rst160MHz       => rst160MHz,
             rst80MHz        => rst80MHz,
             rst40MHz        => rst40MHz,
-            ttc             => ttc,
             refClk300MHz    => refClk300MHz,
             -- RD53 Ports
             dPortDataP      => dPortDataP(i),
@@ -457,7 +453,6 @@ begin
          rst160MHz       => rst160MHz,
          rst80MHz        => rst80MHz,
          rst40MHz        => rst40MHz,
-         ttc             => ttc,
          -- Trigger and hits Ports
          dPortHitP       => dPortHitP,
          dPortHitN       => dPortHitN,
