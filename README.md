@@ -85,7 +85,7 @@ $ source atlas-rd53-daq/firmware/setup_env_slac.sh
 2) Go to the firmware's target directory:
 
 ```
-$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500
+$ cd atlas-rd53-daq/firmware/targets/AtlasRd53Kcu1500 
 ```
 
 3) Build the firmware
@@ -166,28 +166,6 @@ $ source setup_env_slac.sh
 
 # Run the programming script
 $ python3 scripts/PcieProgFeb.py --mcs <PATH_TO_FEB_MCS>
- 
-```
-
-<!--- ########################################################################################### -->
-
-# How to reprogram the KCU1500 via PCIe
-
-```
-# Go to software directory
-$ cd atlas-rd53-daq/software
-
-# If you are on the SLAC AFS network, 
-$ source setup_env_slac.sh
-
-# Else you will need to clone and build rogue:
-> https://github.com/slaclab/rogue/blob/master/README.md
-
-# Run the programming script
-$ python3 scripts/PcieProgKcu1500.py --mcs_pri <PATH_TO_PRIMARY_MCS> --mcs_sec <PATH_TO_SECONDARY_MCS>
- 
-# Reboot your computer
-$ sudo reboot
  
 ```
 
