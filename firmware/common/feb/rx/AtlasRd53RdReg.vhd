@@ -68,11 +68,11 @@ begin
       variable i      : natural;
       variable opCode : Slv8Array(3 downto 0);
 
-      procedure fwdRdReg is
+      procedure fwdRdReg(index : natural) is
       begin
          -- Move the data
          v.rdReg.tValid             := '1';
-         v.rdReg.tData(63 downto 0) := rxData(0);  -- only lane[0] has RdReg command read back
+         v.rdReg.tData(63 downto 0) := rxData(index);
          -- Set the End of Frame (EOF) flag
          v.rdReg.tLast              := '1';
          -- Set Start of Frame (SOF) flag
@@ -101,24 +101,27 @@ begin
                v.autoDet                      := '1';
                v.autoReadReg(i)(15 downto 0)  := rxData(i)(15 downto 0);
                v.autoReadReg(i)(31 downto 16) := rxData(i)(41 downto 26);
+               if (debugStream = '1') then
+                  fwdRdReg(i);
+               end if;               
             -- First frame is AutoRead, second is from a read register command
             elsif (opCode(i) = x"55") then
                v.autoDet                     := '1';
                v.autoReadReg(i)(15 downto 0) := rxData(i)(15 downto 0);
                if (debugStream = '1') then
-                  fwdRdReg;
+                  fwdRdReg(i);
                end if;
             -- First is from a read register command, second frame is AutoRead
             elsif (opCode(i) = x"99") then
                v.autoDet                      := '1';
                v.autoReadReg(i)(31 downto 16) := rxData(i)(41 downto 26);
                if (debugStream = '1') then
-                  fwdRdReg;
+                  fwdRdReg(i);
                end if;
             -- Both register fields are from read register commands
             elsif (opCode(i) = x"D2") then
                if (debugStream = '1') then
-                  fwdRdReg;
+                  fwdRdReg(i);
                end if;
             end if;
          end if;
