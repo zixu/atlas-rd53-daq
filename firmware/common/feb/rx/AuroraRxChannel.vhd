@@ -115,9 +115,8 @@ begin
       linkUp(i) <= rxStatus(i)(1);
 
       U_Rx : entity work.aurora_rx_lane
-         generic map (
-            g_SERDES_TYPE => "CUSTOM")
-         -- g_SERDES_TYPE => "XAPP1017") 
+         -- generic map (
+            -- g_SERDES_TYPE => "CUSTOM")
          port map (
             rst_n_i      => rst160MHzL,
             clk_rx_i     => clk160MHz,

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53FebPgp3.vhd
+-- File       : AtlasRd53FebPgp3Cmd160Mbps.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-08
--- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using four lanes of 6.0 Gbps PGPv3 communication
 --
@@ -25,7 +23,7 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 
-entity AtlasRd53FebPgp3 is
+entity AtlasRd53FebPgp3Cmd160Mbps is
    generic (
       TPD_G        : time := 1 ns;
       -- SYNTH_MODE_G : string := "xpm";
@@ -92,9 +90,9 @@ entity AtlasRd53FebPgp3 is
       tempAlertL    : in    sl;
       vPIn          : in    sl;
       vNIn          : in    sl);
-end AtlasRd53FebPgp3;
+end AtlasRd53FebPgp3Cmd160Mbps;
 
-architecture top_level of AtlasRd53FebPgp3 is
+architecture top_level of AtlasRd53FebPgp3Cmd160Mbps is
 
 begin
 
