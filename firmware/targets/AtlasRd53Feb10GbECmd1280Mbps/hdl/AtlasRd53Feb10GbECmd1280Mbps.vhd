@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : AtlasRd53Feb1GbE.vhd
+-- File       : AtlasRd53Feb10GbECmd1280Mbps.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-08
--- Last update: 2018-07-30
 -------------------------------------------------------------------------------
--- Description: Top-Level module using 1 GbE communication
+-- Description: Top-Level module using 10 GbE communication
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS RD53 DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -20,7 +18,7 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 
-entity AtlasRd53Feb1GbE is
+entity AtlasRd53Feb10GbECmd1280Mbps is
    generic (
       TPD_G        : time   := 1 ns;
       -- SYNTH_MODE_G : string := "xpm";
@@ -87,9 +85,9 @@ entity AtlasRd53Feb1GbE is
       tempAlertL    : in    sl;
       vPIn          : in    sl;
       vNIn          : in    sl);
-end AtlasRd53Feb1GbE;
+end AtlasRd53Feb10GbECmd1280Mbps;
 
-architecture top_level of AtlasRd53Feb1GbE is
+architecture top_level of AtlasRd53Feb10GbECmd1280Mbps is
 
 begin
 
@@ -99,7 +97,7 @@ begin
          BUILD_INFO_G => BUILD_INFO_G,
          SYNTH_MODE_G => SYNTH_MODE_G,
          COM_TYPE_G   => "ETH",
-         ETH_10G_G    => false,          -- 1 GbE 
+         ETH_10G_G    => true,          -- 10 GbE 
          DHCP_G       => true,
          IP_ADDR_G    => x"0A01A8C0")  -- 192.168.1.10 (before DHCP)            
       port map (
