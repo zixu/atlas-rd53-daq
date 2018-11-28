@@ -154,6 +154,9 @@ architecture mapping of AtlasRd53Core is
    signal rxConfigMasters : AxiStreamMasterArray(3 downto 0);
    signal rxConfigSlaves  : AxiStreamSlaveArray(3 downto 0);
 
+   signal tluTrigMasters : AxiStreamMasterArray(3 downto 0);
+   signal tluTrigSlaves  : AxiStreamSlaveArray(3 downto 0);
+
    signal rxLinkUp : slv(3 downto 0);
    signal txLinkUp : slv(3 downto 0);
 
@@ -402,11 +405,13 @@ begin
             axilReadSlave   => axilReadSlaves(DPORT0_INDEX_C+i),
             axilWriteMaster => axilWriteMasters(DPORT0_INDEX_C+i),
             axilWriteSlave  => axilWriteSlaves(DPORT0_INDEX_C+i),
-            -- Streaming RD43 Config Interface (clk160MHz domain)
+            -- Streaming RD53 Config/Trig Interface (clk160MHz domain)
             sConfigMaster   => rxConfigMasters(i),
             sConfigSlave    => rxConfigSlaves(i),
             mConfigMaster   => txConfigMasters(i),
             mConfigSlave    => txConfigSlaves(i),
+            tluTrigMaster   => tluTrigMasters(i),
+            tluTrigSlave    => tluTrigSlaves(i),
             -- Streaming RD43 Data Interface (axilClk domain)
             mDataMaster     => txDataMasters(i),
             mDataSlave      => txDataSlaves(i),
@@ -444,7 +449,7 @@ begin
          axilReadSlave   => axilReadSlaves(TLU_INDEX_C),
          axilWriteMaster => axilWriteMasters(TLU_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(TLU_INDEX_C),
-         -- Timing/Trigger Interface
+         -- Reference Timing Interface
          clk640MHz       => clk640MHz,
          clk160MHz       => clk160MHz,
          clk80MHz        => clk80MHz,
@@ -453,6 +458,9 @@ begin
          rst160MHz       => rst160MHz,
          rst80MHz        => rst80MHz,
          rst40MHz        => rst40MHz,
+         -- Streaming RD53 Trig Interface (clk160MHz domain)
+         tluTrigMasters  => tluTrigMasters,
+         tluTrigSlaves   => tluTrigSlaves,
          -- Trigger and hits Ports
          dPortHitP       => dPortHitP,
          dPortHitN       => dPortHitN,

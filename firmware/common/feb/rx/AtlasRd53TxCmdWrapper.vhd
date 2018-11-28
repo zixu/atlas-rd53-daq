@@ -30,9 +30,11 @@ entity AtlasRd53TxCmdWrapper is
       TPD_G        : time   := 1 ns;
       SYNTH_MODE_G : string := "inferred");
    port (
-      -- Streaming RD53 Config Interface (clk160MHz domain)
+      -- Streaming RD53 Config/Trig Interface (clk160MHz domain)
       sConfigMaster : in  AxiStreamMasterType;
       sConfigSlave  : out AxiStreamSlaveType;
+      tluTrigMaster : in  AxiStreamMasterType;
+      tluTrigSlave  : out AxiStreamSlaveType;
       -- Timing Interface
       clk640MHz     : in  sl;
       clk160MHz     : in  sl;
@@ -58,7 +60,28 @@ architecture rtl of AtlasRd53TxCmdWrapper is
    signal cmdMaster : AxiStreamMasterType;
    signal cmdSlave  : AxiStreamSlaveType;
 
+   signal muxMaster : AxiStreamMasterType;
+   signal muxSlave  : AxiStreamSlaveType;
+
 begin
+
+   U_Mux : entity work.AxiStreamMux
+      generic map (
+         TPD_G         => TPD_G,
+         NUM_SLAVES_G  => 2,
+         PIPE_STAGES_G => 1)
+      port map (
+         -- Clock and reset
+         axisClk         => clk160MHz,
+         axisRst         => rst160MHz,
+         -- Slaves
+         sAxisMasters(0) => sConfigMaster,
+         sAxisMasters(1) => tluTrigMaster,
+         sAxisSlaves(0)  => sConfigSlave,
+         sAxisSlaves(1)  => tluTrigSlave,
+         -- Master
+         mAxisMaster     => muxMaster,
+         mAxisSlave      => muxSlave);
 
    U_FW_CACH : entity work.AxiStreamFifoV2
       generic map (
@@ -81,8 +104,8 @@ begin
          -- Slave Port
          sAxisClk    => clk160MHz,
          sAxisRst    => rst160MHz,
-         sAxisMaster => sConfigMaster,
-         sAxisSlave  => sConfigSlave,
+         sAxisMaster => muxMaster,
+         sAxisSlave  => muxSlave,
          -- Master Port
          mAxisClk    => clk160MHz,
          mAxisRst    => rst160MHz,

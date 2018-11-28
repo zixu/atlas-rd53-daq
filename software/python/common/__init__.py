@@ -10,7 +10,6 @@
 ##############################################################################
 from common.Ntc       import *
 from common.Pcie      import *
-from common.RxPhy     import *
 from common.RxPhyMon  import *
 from common.SysReg    import *
 from common.Top       import *

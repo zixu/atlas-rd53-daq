@@ -43,11 +43,13 @@ entity AtlasRd53RxPhyCore is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-      -- Streaming RD53 Config Interface (clk160MHz domain)
+      -- Streaming RD53 Config/Trig Interface (clk160MHz domain)
       sConfigMaster   : in  AxiStreamMasterType;
       sConfigSlave    : out AxiStreamSlaveType;
       mConfigMaster   : out AxiStreamMasterType;
       mConfigSlave    : in  AxiStreamSlaveType;
+      tluTrigMaster   : in  AxiStreamMasterType;
+      tluTrigSlave    : out AxiStreamSlaveType;
       -- Streaming RD43 Data Interface (axilClk domain)
       mDataMaster     : out AxiStreamMasterType;
       mDataSlave      : in  AxiStreamSlaveType;
@@ -179,6 +181,8 @@ begin
          sConfigSlave    => sConfigSlave,
          mConfigMaster   => mConfigMaster,
          mConfigSlave    => mConfigSlave,
+         tluTrigMaster   => tluTrigMaster,
+         tluTrigSlave    => tluTrigSlave,
          -- Outbound Data/Auto-Read Interface (axilClk domain)
          mDataMaster     => dataMaster,
          mDataSlave      => dataSlave,
