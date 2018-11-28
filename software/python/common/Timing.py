@@ -59,7 +59,15 @@ class TimingEmu(pr.Device):
             offset       = 0x10,
             bitSize      = 32, 
             mode         = 'RO',
-        ))          
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'Busy', 
+            description  = '0x0 in IDLE state else 0x1',
+            offset       = 0x14,
+            bitSize      = 1, 
+            mode         = 'RO',
+        ))         
         
 class Timing(pr.Device):
     def __init__(   self,       
