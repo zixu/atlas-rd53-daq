@@ -59,11 +59,13 @@ entity AtlasRd53RxPhy is
       axilReadSlave   : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C;
-      -- Streaming RD53 Config Interface (clk160MHz domain)
+      -- Streaming RD53 Config/Trig Interface (clk160MHz domain)
       sConfigMaster   : in  AxiStreamMasterType;
       sConfigSlave    : out AxiStreamSlaveType;
       mConfigMaster   : out AxiStreamMasterType;
       mConfigSlave    : in  AxiStreamSlaveType;
+      tluTrigMaster   : in  AxiStreamMasterType;
+      tluTrigSlave    : out AxiStreamSlaveType;
       -- Outbound Reg/Data Interface (axilClk domain)
       mDataMaster     : out AxiStreamMasterType;
       mDataSlave      : in  AxiStreamSlaveType;
@@ -113,9 +115,11 @@ begin
          TPD_G        => TPD_G,
          SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
-         -- Streaming RD53 Config Interface (clk160MHz domain)
+         -- Streaming RD53 Config/Trig Interface (clk160MHz domain)
          sConfigMaster => sConfigMaster,
          sConfigSlave  => sConfigSlave,
+         tluTrigMaster => tluTrigMaster,
+         tluTrigSlave  => tluTrigSlave,
          -- Timing Interface
          clk640MHz     => clk640MHz,
          clk160MHz     => clk160MHz,
