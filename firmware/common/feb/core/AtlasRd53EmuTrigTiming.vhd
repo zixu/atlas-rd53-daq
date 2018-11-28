@@ -52,6 +52,7 @@ architecture mapping of AtlasRd53EmuTrigTiming is
       WAIT_S);
 
    type RegType is record
+      busy            : sl;
       trigger         : sl;
       ramRdy          : sl;
       timeout         : sl;
@@ -69,6 +70,7 @@ architecture mapping of AtlasRd53EmuTrigTiming is
    end record;
 
    constant REG_INIT_C : RegType := (
+      busy            => '0',
       trigger         => '0',
       ramRdy          => '0',
       timeout         => '0',
@@ -99,6 +101,13 @@ begin
       -- Reset the strobes
       v.trigger := '0';
 
+      -- Update the status flag
+      if (r.state = IDLE_S) then
+         v.busy := '0';
+      else
+         v.busy := '1';
+      end if;
+
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -107,6 +116,7 @@ begin
       axiSlaveRegister(axilEp, x"08", 0, v.maxAddr);
       axiSlaveRegister(axilEp, x"0C", 0, v.iteration);
       axiSlaveRegisterR(axilEp, x"10", 0, r.backpressureCnt);
+      axiSlaveRegisterR(axilEp, x"14", 0, r.busy);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
