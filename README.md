@@ -29,7 +29,10 @@ git-lfs/2.1.1
 # Clone the GIT repository
 
 ```
-$ git clone --recursive https://github.com/slaclab/atlas-rd53-daq
+$ git clone --recursive  git@github.com:zixu/atlas-rd53-daq.git
+$ cd atlas-rd53-daq
+$ git checkout devel_zixu
+
 ```
 
 <!--- ########################################################################################### -->
