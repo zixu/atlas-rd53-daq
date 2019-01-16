@@ -254,19 +254,24 @@ begin
                   v.axisData.tValid             := r.enable(r.cnt);
                   v.axisData.tData(63 downto 0) := data(r.cnt);
                -- Check for data in service header
-               elsif (header(r.cnt) = "10") and (data(r.cnt)(63 downto 32) = x"1E04_0000") then
+               --elsif (header(r.cnt) = "10") and (data(r.cnt)(63 downto 32) = x"1E04_0000") then
+               --   -- Move the data
+               --   v.axisData.tValid              := r.enable(r.cnt);
+               --   v.axisData.tData(63 downto 32) := x"FFFF_FFFF";
+               --   v.axisData.tData(31 downto 0)  := data(r.cnt)(31 downto 0);
+               elsif (header(r.cnt) = "10") and (data(r.cnt)(63 downto 48) = x"1E04") then
                   -- Move the data
                   v.axisData.tValid              := r.enable(r.cnt);
-                  v.axisData.tData(63 downto 32) := x"FFFF_FFFF";
-                  v.axisData.tData(31 downto 0)  := data(r.cnt)(31 downto 0);
-               -- Check for AutoRead or command responds
-               elsif (header(r.cnt) = "10") and (
-                  (data(r.cnt)(63 downto 56) = x"B4") or  -- both register fields are of type AutoRead
-                  (data(r.cnt)(63 downto 56) = x"55") or  -- first frame is AutoRead, second is from a read register command
-                  (data(r.cnt)(63 downto 56) = x"99") or  -- first is from a read register command, second frame is AutoRead
-                  (data(r.cnt)(63 downto 56) = x"D2")) then  -- both register fields are from read register commands
-                  v.axisData.tValid             := r.enable(r.cnt);
-                  v.axisData.tData(63 downto 0) := data(r.cnt);
+                  v.axisData.tData(63 downto 0)  := data(r.cnt);
+               ---- Check for AutoRead or command responds
+			   -- register frame should not go to data stream
+               --elsif (header(r.cnt) = "10") and (
+               --   (data(r.cnt)(63 downto 56) = x"B4") or  -- both register fields are of type AutoRead
+               --   (data(r.cnt)(63 downto 56) = x"55") or  -- first frame is AutoRead, second is from a read register command
+               --   (data(r.cnt)(63 downto 56) = x"99") or  -- first is from a read register command, second frame is AutoRead
+               --   (data(r.cnt)(63 downto 56) = x"D2")) then  -- both register fields are from read register commands
+               --   v.axisData.tValid             := r.enable(r.cnt);
+               --   v.axisData.tData(63 downto 0) := data(r.cnt);
                end if;
                -- Increment the counter
                if r.cnt = 3 then
